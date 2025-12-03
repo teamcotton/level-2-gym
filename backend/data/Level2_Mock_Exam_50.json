@@ -1,0 +1,502 @@
+[
+  {
+    "question": "What is the primary function of the circulatory system?",
+    "options": [
+      "Produce hormones",
+      "Transport oxygen, nutrients, and remove waste",
+      "Support digestion",
+      "Strengthen bones"
+    ],
+    "correctAnswer": "B"
+  },
+  {
+    "question": "Where is the heart located?",
+    "options": [
+      "Slightly left of midline in the thoracic cavity",
+      "Right side of abdominal cavity",
+      "Centre of cranial cavity",
+      "Behind the liver"
+    ],
+    "correctAnswer": "A"
+  },
+  {
+    "question": "Which chamber receives deoxygenated blood from the body?",
+    "options": [
+      "Left atrium",
+      "Left ventricle",
+      "Right atrium",
+      "Right ventricle"
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "question": "Which blood vessels have the thickest muscular walls?",
+    "options": [
+      "Veins",
+      "Arteries",
+      "Capillaries",
+      "Venules"
+    ],
+    "correctAnswer": "B"
+  },
+  {
+    "question": "What is systolic blood pressure?",
+    "options": [
+      "Pressure when the heart relaxes",
+      "Pressure when the heart contracts",
+      "Pressure in veins",
+      "Pressure in capillaries"
+    ],
+    "correctAnswer": "B"
+  },
+  {
+    "question": "Where does gas exchange occur in the lungs?",
+    "options": [
+      "Bronchi",
+      "Trachea",
+      "Alveoli",
+      "Larynx"
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "question": "Which muscle is the primary driver of inhalation at rest?",
+    "options": [
+      "Internal intercostals",
+      "External obliques",
+      "Diaphragm",
+      "Rectus abdominis"
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "question": "What percentage of oxygen is found in inhaled air?",
+    "options": [
+      "21%",
+      "16%",
+      "4%",
+      "78%"
+    ],
+    "correctAnswer": "A"
+  },
+  {
+    "question": "Which lung has three lobes?",
+    "options": [
+      "Left",
+      "Right",
+      "Both",
+      "Neither"
+    ],
+    "correctAnswer": "B"
+  },
+  {
+    "question": "Which structure prevents friction around the lungs?",
+    "options": [
+      "Pericardium",
+      "Mediastinum",
+      "Pleura",
+      "Diaphragm"
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "question": "What is the primary function of the skeleton?",
+    "options": [
+      "Hormone production",
+      "Support and protection",
+      "Filter toxins",
+      "Regulate temperature"
+    ],
+    "correctAnswer": "B"
+  },
+  {
+    "question": "The axial skeleton includes:",
+    "options": [
+      "Limbs",
+      "Skull, ribs, spine",
+      "Pelvis and legs",
+      "Shoulder girdle"
+    ],
+    "correctAnswer": "B"
+  },
+  {
+    "question": "The femur is a:",
+    "options": [
+      "Short bone",
+      "Flat bone",
+      "Long bone",
+      "Irregular bone"
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "question": "Which bone is sesamoid?",
+    "options": [
+      "Skull",
+      "Radius",
+      "Vertebra",
+      "Patella"
+    ],
+    "correctAnswer": "D"
+  },
+  {
+    "question": "What is the shaft of a long bone called?",
+    "options": [
+      "Diaphysis",
+      "Epiphysis",
+      "Periosteum",
+      "Endosteum"
+    ],
+    "correctAnswer": "A"
+  },
+  {
+    "question": "Which posture deviation is an excessive inward lumbar curve?",
+    "options": [
+      "Kyphosis",
+      "Lordosis",
+      "Scoliosis",
+      "Flat back"
+    ],
+    "correctAnswer": "B"
+  },
+  {
+    "question": "Neutral spine means:",
+    "options": [
+      "No curves",
+      "Spine is perfectly straight",
+      "Natural curves are aligned correctly",
+      "Ribs flare outward"
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "question": "Bending forward at the waist is:",
+    "options": [
+      "Extension",
+      "Flexion",
+      "Rotation",
+      "Pronation"
+    ],
+    "correctAnswer": "B"
+  },
+  {
+    "question": "Pregnancy commonly increases:",
+    "options": [
+      "Kyphosis",
+      "Scoliosis",
+      "Lumbar lordosis",
+      "Neutral posture"
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "question": "Lateral flexion means:",
+    "options": [
+      "Twisting",
+      "Bending forward",
+      "Bending to the side",
+      "Straightening the spine"
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "question": "How are joints classified?",
+    "options": [
+      "Ball, hinge, pivot",
+      "Fibrous, cartilaginous, synovial",
+      "Tendon, ligament, bursa",
+      "Simple, complex, compound"
+    ],
+    "correctAnswer": "B"
+  },
+  {
+    "question": "Which joint type is immovable?",
+    "options": [
+      "Fibrous",
+      "Cartilaginous",
+      "Synovial",
+      "Ellipsoid"
+    ],
+    "correctAnswer": "A"
+  },
+  {
+    "question": "The elbow is a:",
+    "options": [
+      "Ball-and-socket",
+      "Hinge",
+      "Pivot",
+      "Saddle"
+    ],
+    "correctAnswer": "B"
+  },
+  {
+    "question": "Articular cartilage:",
+    "options": [
+      "Produces synovial fluid",
+      "Connects bone to bone",
+      "Covers bone ends and reduces friction",
+      "Stores minerals"
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "question": "Which synovial joint allows rotation only?",
+    "options": [
+      "Saddle",
+      "Condyloid",
+      "Pivot",
+      "Gliding"
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "question": "Skeletal muscle is:",
+    "options": [
+      "Involuntary and striated",
+      "Involuntary and smooth",
+      "Voluntary and striated",
+      "Voluntary and non-striated"
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "question": "Which muscle is posterior?",
+    "options": [
+      "Pectoralis major",
+      "Quadriceps",
+      "Latissimus dorsi",
+      "Biceps brachii"
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "question": "A muscle that opposes the prime mover is the:",
+    "options": [
+      "Agonist",
+      "Synergist",
+      "Antagonist",
+      "Fixator"
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "question": "A concentric contraction means the muscle:",
+    "options": [
+      "Lengthens",
+      "Does not change length",
+      "Shortens",
+      "Relaxes fully"
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "question": "Type I fibres are best for:",
+    "options": [
+      "Power",
+      "Explosive strength",
+      "Fast fatigue",
+      "Endurance"
+    ],
+    "correctAnswer": "D"
+  },
+  {
+    "question": "ATP-PC system lasts:",
+    "options": [
+      "2\u20133 minutes",
+      "30\u201360 seconds",
+      "10\u201330 minutes",
+      "0\u201310 seconds"
+    ],
+    "correctAnswer": "D"
+  },
+  {
+    "question": "Anaerobic glycolysis produces:",
+    "options": [
+      "Oxygen",
+      "ATP only",
+      "Lactic acid",
+      "Phosphocreatine"
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "question": "The aerobic system uses:",
+    "options": [
+      "Only carbs",
+      "Only fats",
+      "Only proteins",
+      "Carbs, fats, and proteins"
+    ],
+    "correctAnswer": "D"
+  },
+  {
+    "question": "Low-intensity long-duration exercise uses:",
+    "options": [
+      "ATP-PC",
+      "Glycolysis",
+      "Aerobic system",
+      "Phosphagen shuttle"
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "question": "Carbohydrates are stored as:",
+    "options": [
+      "Fatty acids",
+      "Amino acids",
+      "Glycogen",
+      "Lactate"
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "question": "Which blood vessel returns blood to the heart?",
+    "options": [
+      "Artery",
+      "Vein",
+      "Capillary",
+      "Arteriole"
+    ],
+    "correctAnswer": "B"
+  },
+  {
+    "question": "The left ventricle pumps blood to:",
+    "options": [
+      "Lungs",
+      "Liver",
+      "The whole body",
+      "Brain only"
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "question": "Which part of the spine has an outward curve?",
+    "options": [
+      "Lumbar",
+      "Thoracic",
+      "Cervical",
+      "Sacral"
+    ],
+    "correctAnswer": "B"
+  },
+  {
+    "question": "The pelvis is part of the:",
+    "options": [
+      "Axial skeleton",
+      "Appendicular skeleton",
+      "Cranial skeleton",
+      "Thoracic skeleton"
+    ],
+    "correctAnswer": "B"
+  },
+  {
+    "question": "Which connective tissue surrounds the entire muscle?",
+    "options": [
+      "Endomysium",
+      "Perimysium",
+      "Epimysium",
+      "Sarcolemma"
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "question": "Which joint action turns the palm upward?",
+    "options": [
+      "Pronation",
+      "Supination",
+      "Plantarflexion",
+      "Eversion"
+    ],
+    "correctAnswer": "B"
+  },
+  {
+    "question": "Dorsiflexion occurs at the:",
+    "options": [
+      "Knee",
+      "Hip",
+      "Ankle",
+      "Wrist"
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "question": "Which tissue connects bone to bone?",
+    "options": [
+      "Tendon",
+      "Ligament",
+      "Cartilage",
+      "Bursa"
+    ],
+    "correctAnswer": "B"
+  },
+  {
+    "question": "Where is smooth muscle found?",
+    "options": [
+      "Biceps",
+      "Intestines",
+      "Heart",
+      "Quadriceps"
+    ],
+    "correctAnswer": "B"
+  },
+  {
+    "question": "Which muscle extends the elbow?",
+    "options": [
+      "Biceps",
+      "Deltoid",
+      "Triceps",
+      "Hamstrings"
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "question": "What causes the 'fight or flight' heart rate increase?",
+    "options": [
+      "Parasympathetic system",
+      "Sympathetic nervous system",
+      "Lymphatic system",
+      "Venous valves"
+    ],
+    "correctAnswer": "B"
+  },
+  {
+    "question": "Which gland releases adrenaline?",
+    "options": [
+      "Thyroid",
+      "Adrenal glands",
+      "Pituitary",
+      "Pineal"
+    ],
+    "correctAnswer": "B"
+  },
+  {
+    "question": "What decreases joint range of motion?",
+    "options": [
+      "Warm temperature",
+      "Flexibility training",
+      "Injury or inflammation",
+      "Hydration"
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "question": "Muscle fibres that fatigue quickly are:",
+    "options": [
+      "Type I",
+      "Type IIa",
+      "Type IIx",
+      "Type III"
+    ],
+    "correctAnswer": "C"
+  },
+  {
+    "question": "Which system supports very high-intensity efforts such as maximal lifting?",
+    "options": [
+      "Aerobic",
+      "Anaerobic glycolysis",
+      "ATP-PC",
+      "Lactic clearance system"
+    ],
+    "correctAnswer": "C"
+  }
+]
