@@ -4,7 +4,7 @@
 
 This is a **Turborepo monorepo** with PNPM workspaces containing:
 - **frontend/**: Astro 5 SSG with React 19 islands, Material UI 7, Drizzle ORM, AI SDK v5 integration
-- **backend/**: Minimal placeholder (not yet implemented)
+- **backend/**: Fastify TypeScript API server (port 3000)
 - **supabase/**: Docker-based self-hosted PostgreSQL documentation
 
 Key architectural decisions:
@@ -33,13 +33,21 @@ pnpm dev          # Astro dev server on :4321
 pnpm test         # Vitest unit tests
 pnpm test:e2e     # Playwright E2E tests (auto-starts dev server)
 pnpm check        # TypeScript + Astro check
+
+# Backend-specific (cd backend first)
+pnpm dev          # Fastify server with tsx watch on :3000
+pnpm build        # Compile TypeScript to dist/
+pnpm start        # Run compiled server from dist/
+pnpm test         # Vitest unit tests
 ```
 
 ### Testing Strategy
-- **Unit tests (Vitest)**: Located in `frontend/src/test/`, use `@testing-library/jest-dom`
-- **E2E tests (Playwright)**: Located in `frontend/e2e/`, run against dev server on port 4321
+- **Frontend Unit tests (Vitest)**: Located in `frontend/src/test/`, use `@testing-library/jest-dom`
+- **Frontend E2E tests (Playwright)**: Located in `frontend/e2e/`, run against dev server on port 4321
+- **Backend Unit tests (Vitest)**: Located in `backend/test/`, test Fastify routes using `app.inject()`
 - Tests excluded from coverage: `node_modules`, `dist`, `e2e` directories
 - Playwright config runs chromium/firefox/webkit with retry logic in CI
+- Backend uses Fastify's built-in testing utilities for route testing
 
 ### Database Workflows
 Drizzle ORM uses environment variables from `frontend/.env`:
@@ -60,10 +68,18 @@ Client configured in `frontend/src/db/index.ts` using `import.meta.env.DATABASE_
 ## Project-Specific Conventions
 
 ### File Organization
+**Frontend:**
 - **Pages**: `frontend/src/pages/*.astro` - file-based routing
 - **Layouts**: `frontend/src/layouts/*.astro` - shared page templates
 - **Components**: `frontend/src/components/*.tsx` - React components (note `.tsx` not `.astro`)
 - **Database**: `frontend/src/db/schema.ts` for tables, `index.ts` for client export
+
+**Backend:**
+- **Server**: `backend/src/index.ts` - Fastify server entry point
+- **App**: `backend/src/app.ts` - Fastify app factory (exported for testing)
+- **Tests**: `backend/test/*.test.ts` - Vitest unit tests
+- **Build output**: `backend/dist/` - Compiled JavaScript (git-ignored)
+- **Config**: `backend/tsconfig.json` - TypeScript configuration with ESNext modules
 
 ### Code Style (Enforced via ESLint + Prettier)
 - **Prettier**: 100 char line length, single quotes, 2 space tabs, trailing commas (ES5), LF endings
@@ -118,7 +134,7 @@ Defined in `turbo.json`:
 ## Common Pitfalls
 
 1. **Don't use npm/yarn** - PNPM workspace required for monorepo
-2. **Backend is empty** - No actual backend implementation yet, just placeholder
+2. **Backend uses tsx for dev** - Backend runs TypeScript directly via `tsx watch` in development, compiles to `dist/` for production
 3. **Database in frontend** - Unusual but correct for this SSG architecture with server endpoints
 4. **Astro env vars** - Use `import.meta.env`, not `process.env` (except in config files)
 5. **React components** - Must be `.tsx` files, not `.astro`, to use Material UI
@@ -136,5 +152,7 @@ Defined in `turbo.json`:
 - `eslint.config.js` - Root ESLint 9 flat config (base rules)
 - `frontend/eslint.config.js` - Frontend linting (TypeScript, React, Astro)
 - `backend/eslint.config.js` - Backend linting (extends root)
+- `backend/tsconfig.json` - TypeScript config (ESNext, bundler resolution)
+- `backend/src/index.ts` - Fastify server with routes (/, /health)
 - `.prettierrc` - Code formatting rules
 - `DEVELOPMENT.md` - Detailed developer workflows and troubleshooting
