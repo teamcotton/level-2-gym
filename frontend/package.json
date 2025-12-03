@@ -30,6 +30,7 @@
     "ai": "^5.0.106",
     "astro": "^5.16.3",
     "drizzle-orm": "^0.44.7",
+    "modern-normalize": "^3.0.1",
     "postgres": "^3.4.7",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
