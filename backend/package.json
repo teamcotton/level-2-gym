@@ -1,0 +1,13 @@
+{
+  "name": "@level-2-gym/backend",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node src/index.js",
+    "build": "echo 'No build step needed'",
+    "lint": "echo 'No linting configured yet'"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

@@ -1,0 +1,50 @@
+{
+  "name": "@level-2-gym/frontend",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "check": "astro check",
+    "preview": "astro preview",
+    "astro": "astro",
+    "lint": "eslint .",
+    "test": "vitest",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@ai-sdk/google": "^1.0.8",
+    "@astrojs/react": "^3.6.2",
+    "@mui/material": "^5.15.3",
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
+    "@types/react": "^18.2.47",
+    "@types/react-dom": "^18.2.18",
+    "ai": "^4.0.16",
+    "astro": "^4.16.15",
+    "drizzle-orm": "^0.36.4",
+    "postgres": "^3.4.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-markdown": "^9.0.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@playwright/test": "^1.48.2",
+    "@testing-library/jest-dom": "^6.1.6",
+    "@types/node": "^20.10.6",
+    "@typescript-eslint/eslint-plugin": "^6.18.1",
+    "@typescript-eslint/parser": "^6.18.1",
+    "@vitejs/plugin-react": "^4.2.1",
+    "drizzle-kit": "^0.27.2",
+    "eslint": "^8.56.0",
+    "eslint-plugin-astro": "^0.31.2",
+    "eslint-plugin-jsx-a11y": "^6.8.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "jsdom": "^23.2.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.1.1"
+  }
+}
