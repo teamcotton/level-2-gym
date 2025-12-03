@@ -3,7 +3,7 @@
 ## Architecture Overview
 
 This is a **Turborepo monorepo** with PNPM workspaces containing:
-- **frontend/**: Astro SSG with React islands, Material UI, Drizzle ORM, AI SDK integration
+- **frontend/**: Astro 5 SSG with React 19 islands, Material UI 7, Drizzle ORM, AI SDK v5 integration
 - **backend/**: Minimal placeholder (not yet implemented)
 - **supabase/**: Docker-based self-hosted PostgreSQL documentation
 
