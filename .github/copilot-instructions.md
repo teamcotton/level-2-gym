@@ -3,11 +3,13 @@
 ## Architecture Overview
 
 This is a **Turborepo monorepo** with PNPM workspaces containing:
+
 - **frontend/**: Astro 5 SSG with React 19 islands, Material UI 7, Drizzle ORM, AI SDK v5 integration
 - **backend/**: Fastify TypeScript API server (port 3000)
 - **supabase/**: Docker-based self-hosted PostgreSQL documentation
 
 Key architectural decisions:
+
 - Astro uses `output: 'static'` for static site generation
 - React components are "islands" for interactive UI (use `.tsx` files in `components/`)
 - Database logic lives in frontend (`frontend/src/db/`) - unusual but intentional for this SSG setup
@@ -16,11 +18,13 @@ Key architectural decisions:
 ## Development Workflows
 
 ### Package Manager
+
 **Always use `pnpm`**, never npm/yarn. This is enforced by `"packageManager": "pnpm@8.15.0"`.
 
 **Root package.json uses `"type": "module"`** - All `.js` files are treated as ESM, including config files.
 
 ### Running Commands
+
 ```bash
 # From root - runs across all workspaces via Turborepo
 pnpm dev          # Start all dev servers
@@ -28,6 +32,7 @@ pnpm build        # Build all packages
 pnpm lint         # Lint all workspaces
 pnpm test         # Run all tests
 pnpm typecheck    # TypeScript type checking (no emit)
+pnpm format       # Format code with Prettier
 
 # Frontend-specific (cd frontend first)
 pnpm dev          # Astro dev server on :4321
@@ -44,7 +49,25 @@ pnpm test         # Vitest unit tests
 pnpm typecheck    # TypeScript type checking (no emit)
 ```
 
+### Git Hooks (Husky)
+
+**Pre-commit hook** (runs before each commit):
+
+- `pnpm run format` - Format code with Prettier
+- `pnpm run lint` - Lint all workspaces
+- `pnpm run typecheck` - TypeScript type checking
+
+**Pre-push hook** (runs before pushing to remote):
+
+- `pnpm run format` - Format code with Prettier
+- `pnpm run lint` - Lint all workspaces
+- `pnpm run typecheck` - TypeScript type checking
+- `pnpm run test` - Run all unit tests
+
+Hooks are managed by Husky and located in `.husky/` directory.
+
 ### Testing Strategy
+
 - **Frontend Unit tests (Vitest)**: Located in `frontend/src/test/`, use `@testing-library/jest-dom`
 - **Frontend E2E tests (Playwright)**: Located in `frontend/e2e/`, run against dev server on port 4321
 - **Backend Unit tests (Vitest)**: Located in `backend/test/`, test Fastify routes using `app.inject()`
@@ -53,7 +76,9 @@ pnpm typecheck    # TypeScript type checking (no emit)
 - Backend uses Fastify's built-in testing utilities for route testing
 
 ### Database Workflows
+
 Drizzle ORM uses environment variables from `frontend/.env`:
+
 ```bash
 # Generate migration from schema changes
 cd frontend && pnpm drizzle-kit generate:pg
@@ -71,13 +96,16 @@ Client configured in `frontend/src/db/index.ts` using `import.meta.env.DATABASE_
 ## Project-Specific Conventions
 
 ### File Organization
+
 **Frontend:**
+
 - **Pages**: `frontend/src/pages/*.astro` - file-based routing
 - **Layouts**: `frontend/src/layouts/*.astro` - shared page templates
 - **Components**: `frontend/src/components/*.tsx` - React components (note `.tsx` not `.astro`)
 - **Database**: `frontend/src/db/schema.ts` for tables, `index.ts` for client export
 
 **Backend:**
+
 - **Server**: `backend/src/index.ts` - Fastify server entry point
 - **App**: `backend/src/app.ts` - Fastify app factory (exported for testing)
 - **Tests**: `backend/test/*.test.ts` - Vitest unit tests
@@ -85,6 +113,7 @@ Client configured in `frontend/src/db/index.ts` using `import.meta.env.DATABASE_
 - **Config**: `backend/tsconfig.json` - TypeScript configuration with ESNext modules
 
 ### Code Style (Enforced via ESLint + Prettier)
+
 - **Prettier**: 100 char line length, single quotes, 2 space tabs, trailing commas (ES5), LF endings
 - **ESLint 9**: Unified flat config at root `eslint.config.js` (ESM) extended by frontend and backend
   - Frontend: TypeScript, React, Astro plugins (see `frontend/eslint.config.js`)
@@ -96,38 +125,47 @@ Client configured in `frontend/src/db/index.ts` using `import.meta.env.DATABASE_
 - Console statements warn at root level, but allowed in backend
 
 ### Environment Variables
+
 **Frontend uses Astro's `import.meta.env` pattern:**
+
 - Public vars: `PUBLIC_SUPABASE_URL`, `PUBLIC_SUPABASE_ANON_KEY` (exposed to browser)
 - Private vars: `DATABASE_URL`, `GOOGLE_API_KEY`, `DB_HOST`, etc. (server-only)
 - Example file: `frontend/.env.example` - copy to `.env` before development
 
 ### AI SDK Integration
+
 Google Gemini via `@ai-sdk/google` and `ai` packages:
+
 ```typescript
-import { google } from '@ai-sdk/google';
-import { generateText } from 'ai';
+import { google } from '@ai-sdk/google'
+import { generateText } from 'ai'
 
 const { text } = await generateText({
   model: google('models/gemini-pro'),
   prompt: 'Your prompt',
-});
+})
 ```
+
 Requires `GOOGLE_API_KEY` in frontend `.env`.
 
 ## Integration Points
 
 ### Database Connection
+
 - **Driver**: `postgres` (not `@supabase/supabase-js`)
 - **Connection string**: Reads from `import.meta.env.DATABASE_URL` or defaults to `postgresql://postgres:postgres@localhost:5432/postgres`
 - **Self-hosted Supabase**: Optional Docker setup (see `supabase/README.md`), exposes PostgreSQL on `:5432` and API on `:8000`
 
 ### Astro + React Integration
+
 - React added via `@astrojs/react` integration in `astro.config.mjs`
 - Use `.astro` files for static pages, `.tsx` components for interactive islands
 - Material UI components work in `.tsx` files (Emotion runtime included)
 
 ### Turborepo Task Pipeline
+
 Defined in `turbo.json`:
+
 - `build` depends on `^build` (topological order), outputs to `dist/`, `.next/`, `.astro/`
 - `dev` is persistent (doesn't exit), no caching
 - `lint` depends on `^lint`
@@ -148,6 +186,7 @@ Defined in `turbo.json`:
 10. **No .eslintignore** - ESLint 9 uses `ignores` property in config file, not `.eslintignore`
 
 ## Key Files Reference
+
 - `turbo.json` - Build orchestration and caching config
 - `pnpm-workspace.yaml` - Workspace packages definition
 - `frontend/astro.config.mjs` - Astro framework config (React integration, output mode)

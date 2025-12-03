@@ -1,4 +1,4 @@
-import js from '@eslint/js';
+import js from '@eslint/js'
 
 export default [
   js.configs.recommended,
@@ -18,7 +18,7 @@ export default [
     rules: {
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-      'semi': ['error', 'never'],
+      semi: ['error', 'never'],
     },
   },
   {
@@ -31,4 +31,4 @@ export default [
       '**/build/',
     ],
   },
-];
+]

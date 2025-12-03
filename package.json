@@ -9,16 +9,20 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "test": "turbo test",
-    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md,astro}\""
+    "typecheck": "turbo typecheck",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md,astro}\"",
+    "prepare": "husky"
   },
   "devDependencies": {
     "eslint": "^9.15.0",
+    "husky": "^9.1.7",
     "prettier": "^3.1.1",
+    "prettier-plugin-astro": "^0.14.1",
     "turbo": "^2.2.3"
   },
   "engines": {
     "node": ">=18",
-    "pnpm": ">=8"
+    "pnpm": ">=10"
   },
   "packageManager": "pnpm@10.24.0"
 }

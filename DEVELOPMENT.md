@@ -129,19 +129,21 @@ The frontend includes the AI SDK with Google provider support. To use it:
 
 1. Get a Google AI API key from https://makersuite.google.com/app/apikey
 2. Add it to `frontend/.env`:
+
 ```
 GOOGLE_API_KEY=your-api-key-here
 ```
 
 3. Use it in your code:
+
 ```typescript
-import { google } from '@ai-sdk/google';
-import { generateText } from 'ai';
+import { google } from '@ai-sdk/google'
+import { generateText } from 'ai'
 
 const { text } = await generateText({
   model: google('models/gemini-pro'),
   prompt: 'Your prompt here',
-});
+})
 ```
 
 ## Supabase Setup
@@ -149,26 +151,31 @@ const { text } = await generateText({
 ### Local Development with Docker
 
 1. Clone the Supabase repository:
+
 ```bash
 git clone --depth 1 https://github.com/supabase/supabase
 ```
 
 2. Navigate to the docker directory:
+
 ```bash
 cd supabase/docker
 ```
 
 3. Copy the example environment file:
+
 ```bash
 cp .env.example .env
 ```
 
 4. Start Supabase:
+
 ```bash
 docker compose up -d
 ```
 
 5. Access the services:
+
 - Supabase Studio: http://localhost:3000
 - PostgreSQL: localhost:5432
 - API Gateway: http://localhost:8000
@@ -228,7 +235,7 @@ export default defineConfig({
     port: 3000,
   },
   // ... rest of config
-});
+})
 ```
 
 ### TypeScript Errors
