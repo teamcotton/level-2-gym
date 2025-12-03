@@ -14,7 +14,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "lint": "eslint .",
-    "test": "vitest",
+    "test": "vitest run",
     "test:e2e": "playwright test",
     "typecheck": "tsc --noEmit"
   },
