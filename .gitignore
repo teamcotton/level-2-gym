@@ -151,3 +151,8 @@ drizzle/
 
 # Turbo
 .turbo/
+
+.history/
+.idea/
+.vscode/
+.git/history/
