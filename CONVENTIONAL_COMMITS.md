@@ -13,6 +13,7 @@ This project enforces [Conventional Commits](https://www.conventionalcommits.org
 ```
 
 **Minimum required format:**
+
 ```
 <type>: <subject>
 ```
@@ -34,6 +35,7 @@ This project enforces [Conventional Commits](https://www.conventionalcommits.org
 ## Examples
 
 ### Simple commits
+
 ```bash
 git commit -m "feat: add user authentication"
 git commit -m "fix: resolve navigation bug"
@@ -41,6 +43,7 @@ git commit -m "docs: update README with setup instructions"
 ```
 
 ### With scope
+
 ```bash
 git commit -m "feat(auth): add login functionality"
 git commit -m "fix(api): handle null responses"
@@ -48,6 +51,7 @@ git commit -m "test(components): add unit tests for Button"
 ```
 
 ### With breaking changes
+
 ```bash
 git commit -m "feat(api): change response format
 
