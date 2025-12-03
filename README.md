@@ -13,6 +13,7 @@ This project is a monorepo with the following structure:
 ## Tech Stack
 
 ### Frontend
+
 - **Framework**: [Astro](https://astro.build/) with React
 - **UI Library**: [Material UI](https://mui.com/)
 - **AI Integration**: [@ai-sdk/google](https://www.npmjs.com/package/@ai-sdk/google) and [ai](https://www.npmjs.com/package/ai)
@@ -23,10 +24,12 @@ This project is a monorepo with the following structure:
   - E2E Tests: [Playwright](https://playwright.dev/)
 
 ### Monorepo Tools
+
 - **Package Manager**: [PNPM](https://pnpm.io/)
 - **Build System**: [Turborepo](https://turbo.build/)
 
 ### Database
+
 - **PostgreSQL**: Self-hosted via [Supabase](https://supabase.com/docs/guides/self-hosting/docker)
 
 ## Prerequisites
