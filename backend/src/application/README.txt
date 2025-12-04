@@ -103,6 +103,7 @@ export class CreateWorkoutDto {
 
 6. USE CASE EXAMPLE (application/use-cases/register-user.use-case.ts):
 
+import { randomUUID } from 'node:crypto'
 import { User } from '../../domain/entities/user'
 import { Email } from '../../domain/value-objects/email'
 import { Password } from '../../domain/value-objects/password'
@@ -156,12 +157,14 @@ export class RegisterUserUseCase {
   }
 
   private generateId(): string {
-    return `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    // Use Node.js built-in randomUUID() for production-ready unique IDs
+    return randomUUID()
   }
 }
 
 7. USE CASE EXAMPLE (application/use-cases/create-workout.use-case.ts):
 
+import { randomUUID } from 'node:crypto'
 import { UserRepositoryPort } from '../ports/user.repository.port'
 import { WorkoutCalculator } from '../../domain/services/workout-calculator'
 import { CreateWorkoutDto } from '../dtos/create-workout.dto'
@@ -195,6 +198,7 @@ export class CreateWorkoutUseCase {
   }
 
   private generateId(): string {
-    return `workout-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    // Use Node.js built-in randomUUID() for production-ready unique IDs
+    return randomUUID()
   }
 }
