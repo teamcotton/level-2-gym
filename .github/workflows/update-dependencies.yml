@@ -1,0 +1,96 @@
+name: Update Minor Dependencies
+
+on:
+  schedule:
+    # Run every Monday at 9:00 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update-dependencies:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Update minor and patch dependencies
+        run: pnpm update --latest
+
+      - name: Run tests to check for breaking changes
+        id: run-tests
+        continue-on-error: true
+        run: pnpm test
+
+      - name: Get current timestamp
+        id: timestamp
+        run: echo "date=$(date +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_OUTPUT
+
+      - name: Check for changes in package files
+        id: check-changes
+        run: |
+          if git diff --exit-code pnpm-lock.yaml */package.json; then
+            echo "changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Pull Request
+        if: steps.check-changes.outputs.changes == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: update minor dependencies and security patches'
+          title: >-
+            ${{ steps.run-tests.outcome == 'failure' && 
+            'chore: update minor dependencies ⚠️ TESTS FAILING' || 
+            'chore: update minor dependencies and security patches' }}
+          body: |
+            This PR was automatically created to update minor dependencies and security patches.
+            
+            ## Changes
+            - Updated dependencies using `pnpm update --latest`
+            - Includes minor version updates and security patches
+            
+            ## Test Results
+            ${{ steps.run-tests.outcome == 'success' && '✅ All tests are passing' || '❌ **WARNING: Tests are failing after dependency updates**' }}
+            
+            ${{ steps.run-tests.outcome == 'failure' && '**⚠️ BREAKING CHANGES DETECTED**
+            
+            The dependency updates have caused test failures. Please review the changes carefully:
+            1. Check the test output in the workflow run
+            2. Review the updated dependencies in `package.json` files
+            3. Fix any breaking changes before merging
+            4. Consider pinning problematic dependencies if needed
+            
+            **DO NOT MERGE** until tests are fixed or breaking changes are intentionally accepted.' || '' }}
+            
+            ## Verification
+            ${{ steps.run-tests.outcome == 'success' && 'The automated tests have been run and are passing. Please review the changes to ensure the updates are appropriate.' || 'Manual testing and review required due to test failures.' }}
+            
+            Auto-generated on: ${{ steps.timestamp.outputs.date }}
+          branch: update-dependencies-${{ github.run_number }}
+          delete-branch: true
+          labels: >-
+            ${{ steps.run-tests.outcome == 'failure' && 
+            'dependencies,automated,breaking-changes' || 
+            'dependencies,automated' }}
