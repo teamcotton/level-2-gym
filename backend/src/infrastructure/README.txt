@@ -112,6 +112,7 @@ export class EnvConfig {
 4. FASTIFY CONFIGURATION (infrastructure/http/fastify.config.ts):
 
 import Fastify, { FastifyInstance, FastifyServerOptions } from 'fastify'
+import fastifyCors from '@fastify/cors'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import { EnvConfig } from '../config/env.config'
@@ -134,7 +135,7 @@ export function createFastifyApp(): FastifyInstance {
   const app = Fastify(options)
 
   // Register CORS
-  app.register(require('@fastify/cors'), {
+  app.register(fastifyCors, {
     origin: true
   })
 
