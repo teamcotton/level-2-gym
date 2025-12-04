@@ -3,12 +3,7 @@ import swagger from '@fastify/swagger'
 import swaggerUI from '@fastify/swagger-ui'
 import { readFileSync } from 'fs'
 import { join } from 'path'
-import { fileURLToPath } from 'url'
-import { dirname } from 'path'
 import { parse } from 'yaml'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
 
 export function buildApp(options?: FastifyServerOptions): FastifyInstance {
   const fastify = Fastify({
@@ -17,7 +12,7 @@ export function buildApp(options?: FastifyServerOptions): FastifyInstance {
   })
 
   // Load OpenAPI specification
-  const openapiPath = join(__dirname, '..', 'openapi.yaml')
+  const openapiPath = join(import.meta.dirname, '..', 'openapi.yaml')
   const openapiSpec = parse(readFileSync(openapiPath, 'utf8'))
 
   // Register Swagger
