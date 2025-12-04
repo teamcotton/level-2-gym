@@ -1,0 +1,111 @@
+extends:
+  - spectral:oas
+
+rules:
+  # OpenAPI Rules
+  info-contact: error
+  info-description: error
+  info-license: warn
+  license-url: warn
+  openapi-tags: error
+  operation-description: error
+  operation-operationId: error
+  operation-tags: error
+  operation-tag-defined: error
+  path-params: error
+  path-declarations-must-exist: error
+  path-keys-no-trailing-slash: error
+  path-not-include-query: error
+  
+  # Custom rules for API-first development
+  operation-success-response:
+    description: Operation must have at least one success response (2xx)
+    severity: error
+    given: $.paths[*][*]
+    then:
+      field: responses
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          properties:
+            '200': true
+            '201': true
+            '202': true
+            '203': true
+            '204': true
+          anyOf:
+            - required: ['200']
+            - required: ['201']
+            - required: ['202']
+            - required: ['203']
+            - required: ['204']
+  
+  no-http-verbs-in-path:
+    description: Path should not contain HTTP verbs
+    severity: warn
+    given: $.paths[*]~
+    then:
+      function: pattern
+      functionOptions:
+        notMatch: '/(get|post|put|delete|patch|head|options)/'
+  
+  response-error-object:
+    description: Error responses should have proper schema
+    severity: error
+    given: $.paths[*][*].responses[?(@property.match(/^4|^5/))].content.application/json
+    then:
+      field: schema
+      function: truthy
+  
+  request-validation:
+    description: POST/PUT/PATCH operations should have request body validation
+    severity: error
+    given: $.paths[*][?(@property === 'post' || @property === 'put' || @property === 'patch')]
+    then:
+      field: requestBody
+      function: truthy
+
+  # Security rules
+  operation-security-defined:
+    description: Operations should define security requirements where appropriate
+    severity: warn
+    given: $.paths[*][?(@property !== 'get')]
+    then:
+      field: security
+      function: defined
+
+  # Schema validation rules
+  schema-properties-define-required:
+    description: Schemas with required fields should define them
+    severity: error
+    given: $.components.schemas[*][?(@.required)]
+    then:
+      field: properties
+      function: truthy
+  
+  schema-description:
+    description: Schemas should have descriptions
+    severity: warn
+    given: $.components.schemas[*]
+    then:
+      field: description
+      function: truthy
+
+  # Response rules
+  success-response-schema:
+    description: Success responses should have schema defined
+    severity: error
+    given: $.paths[*][*].responses[?(@property.match(/^2/))].content.application/json
+    then:
+      field: schema
+      function: truthy
+
+  # Parameter rules
+  parameter-description:
+    description: Parameters should have descriptions
+    severity: error
+    given: $.paths[*][*].parameters[*]
+    then:
+      field: description
+      function: truthy

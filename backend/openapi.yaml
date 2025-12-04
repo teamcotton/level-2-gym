@@ -1,0 +1,231 @@
+openapi: 3.1.0
+info:
+  title: Level 2 Gym API
+  description: API for managing gym members, workouts, and training programs
+  version: 0.0.1
+  contact:
+    name: Level 2 Gym
+    email: api@level2gym.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000
+    description: Development server (HTTP)
+  - url: https://localhost:3000
+    description: Development server (HTTPS)
+
+tags:
+  - name: health
+    description: Health check endpoints
+  - name: users
+    description: User management operations
+
+paths:
+  /:
+    get:
+      summary: API root endpoint
+      description: Returns basic API information
+      operationId: getRoot
+      tags:
+        - health
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Level 2 Gym API
+                required:
+                  - message
+
+  /health:
+    get:
+      summary: Health check
+      description: Returns the current health status of the API
+      operationId: getHealth
+      tags:
+        - health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok, degraded, down]
+                    example: ok
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: '2025-12-04T12:00:00.000Z'
+                required:
+                  - status
+                  - timestamp
+
+  /users/register:
+    post:
+      summary: Register a new user
+      description: Creates a new user account
+      operationId: registerUser
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterUserRequest'
+      responses:
+        '201':
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterUserResponse'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{id}:
+    get:
+      summary: Get user by ID
+      description: Retrieves a user's profile information
+      operationId: getUserById
+      tags:
+        - users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The user's unique identifier
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    RegisterUserRequest:
+      type: object
+      description: Request payload for registering a new user
+      required:
+        - email
+        - password
+        - name
+      properties:
+        email:
+          type: string
+          format: email
+          example: john.doe@example.com
+          description: User's email address
+        password:
+          type: string
+          format: password
+          minLength: 8
+          example: SecurePass123!
+          description: User's password (minimum 8 characters)
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          example: John Doe
+          description: User's full name
+
+    RegisterUserResponse:
+      type: object
+      description: Response returned after successful user registration
+      required:
+        - success
+        - data
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          description: Registration result data
+          required:
+            - userId
+          properties:
+            userId:
+              type: string
+              format: uuid
+              example: 550e8400-e29b-41d4-a716-446655440000
+
+    User:
+      type: object
+      description: User profile information
+      required:
+        - id
+        - email
+        - name
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        email:
+          type: string
+          format: email
+          example: john.doe@example.com
+        name:
+          type: string
+          example: John Doe
+        createdAt:
+          type: string
+          format: date-time
+          example: '2025-12-04T12:00:00.000Z'
+
+    Error:
+      type: object
+      description: Standard error response object
+      required:
+        - success
+        - error
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: Invalid request data
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authenticated requests
+
+security: []

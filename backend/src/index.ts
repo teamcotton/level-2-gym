@@ -47,6 +47,7 @@ const start = async () => {
     await fastify.listen({ port, host })
     const protocol = useHttps ? 'https' : 'http'
     console.log(`Server listening on ${protocol}://${host}:${port}`)
+    console.log(`📚 API Documentation: ${protocol}://${host}:${port}/docs`)
   } catch (err) {
     fastify.log.error(err)
     process.exit(1)

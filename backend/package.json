@@ -14,14 +14,23 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "api:lint": "spectral lint openapi.yaml",
+    "api:lint:json": "spectral lint openapi.yaml --format json",
+    "api:docs": "echo 'API docs available at http://localhost:3000/docs when server is running'"
   },
   "dependencies": {
+    "@fastify/swagger": "^9.6.1",
+    "@fastify/swagger-ui": "^5.2.3",
     "dotenv": "^17.2.3",
-    "fastify": "^5.2.3"
+    "fastify": "^5.2.3",
+    "yaml": "^2.8.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@stoplight/spectral-cli": "^6.15.0",
+    "@stoplight/spectral-core": "^1.20.0",
+    "@stoplight/spectral-rulesets": "^1.22.0",
     "@total-typescript/ts-reset": "^0.6.1",
     "@types/node": "^24.10.1",
     "@typescript-eslint/eslint-plugin": "^8.48.1",
