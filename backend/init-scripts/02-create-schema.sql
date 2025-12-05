@@ -18,6 +18,8 @@ $$ LANGUAGE plpgsql;
 
 -- Example: Create a sample table with best practices
 -- (Remove or modify this based on your needs)
+-- Note: uuidv7() is a PostgreSQL 17+ native function providing time-ordered UUIDs
+-- which improve database performance for indexed primary keys (no extension required)
 CREATE TABLE IF NOT EXISTS app.sample_table (
   id UUID PRIMARY KEY DEFAULT uuidv7(),
   name TEXT NOT NULL,

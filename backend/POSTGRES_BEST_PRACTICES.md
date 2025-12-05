@@ -186,8 +186,10 @@ Extensions installed via `01-create-extensions.sql`:
 
 - **pg_stat_statements**: Query performance tracking
 - **pgcrypto**: Cryptographic functions
-- **uuid-ossp**: UUID generation
+- **uuid-ossp**: Legacy UUID generation (uuid_generate_v4(), etc.)
 - **citext**: Case-insensitive text (for emails)
+
+**Note**: PostgreSQL 17+ includes native `uuidv7()` function without requiring extensions. UUID v7 provides time-ordered UUIDs which improve database performance for indexed primary keys.
 
 Configuration in `postgresql.conf`:
 
