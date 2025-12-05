@@ -13,3 +13,4 @@ wal_archive/
 
 # PostgreSQL logs (if mounted)
 postgres-config/log/
+frontend/next-env.d.ts
