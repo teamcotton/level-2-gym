@@ -137,6 +137,7 @@ CREATE TABLE IF NOT EXISTS users (
 ```
 
 **UUID v7 vs SERIAL for Primary Keys**:
+
 - **UUID v7**: Time-ordered UUIDs improve index performance, globally unique, suitable for distributed systems
 - **SERIAL**: Sequential integers, smaller storage (4/8 bytes vs 16 bytes), simpler for debugging
 - PostgreSQL 17+ provides native `uuidv7()` without requiring extensions
