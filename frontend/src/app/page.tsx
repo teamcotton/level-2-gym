@@ -1,6 +1,6 @@
 import { Box, Container, Typography } from '@mui/material'
 
-import SampleComponent from '../components/SampleComponent'
+import SampleComponent from '../components/SampleComponent.js'
 
 export default function Home() {
   return (
