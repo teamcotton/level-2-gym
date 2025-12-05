@@ -55,9 +55,9 @@ export class User {
     this.email = newEmail
   }
 
-  updatePassword(oldPassword: string, newPassword: Password): void {
+  async updatePassword(oldPassword: string, newPassword: Password): Promise<void> {
     // Business rule: Must verify old password before updating
-    if (!this.password.matches(oldPassword)) {
+    if (!(await this.password.matches(oldPassword))) {
       throw new Error('Old password is incorrect')
     }
     this.password = newPassword
