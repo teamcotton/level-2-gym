@@ -1,4 +1,4 @@
-import Fastify, { FastifyInstance, FastifyServerOptions } from 'fastify'
+import Fastify, { type FastifyInstance, type FastifyServerOptions } from 'fastify'
 import swagger from '@fastify/swagger'
 import swaggerUI from '@fastify/swagger-ui'
 import { readFileSync } from 'fs'

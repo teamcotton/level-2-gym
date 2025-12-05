@@ -19,7 +19,7 @@ $$ LANGUAGE plpgsql;
 -- Example: Create a sample table with best practices
 -- (Remove or modify this based on your needs)
 CREATE TABLE IF NOT EXISTS app.sample_table (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT uuidv7(),
   name TEXT NOT NULL,
   email CITEXT UNIQUE NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
