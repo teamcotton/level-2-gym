@@ -6,6 +6,7 @@ export enum ErrorCode {
 
   // Validation errors
   VALIDATION_ERROR = 'VALIDATION_ERROR',
+  TYPE_ERROR = 'TYPO_ERROR',
   INVALID_EMAIL = 'INVALID_EMAIL',
   INVALID_PASSWORD = 'INVALID_PASSWORD',
 

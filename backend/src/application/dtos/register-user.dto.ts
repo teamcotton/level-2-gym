@@ -1,4 +1,5 @@
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
+import { isString } from '../../shared/guards/type.guards.js'
 
 export class RegisterUserDto {
   constructor(
@@ -8,13 +9,13 @@ export class RegisterUserDto {
   ) {}
 
   static validate(data: any): RegisterUserDto {
-    if (!data.email || typeof data.email !== 'string') {
+    if (!data.email || !isString(data.email)) {
       throw new ValidationException('Email is required and must be a string')
     }
-    if (!data.password || typeof data.password !== 'string') {
+    if (!data.password || !isString(data.password)) {
       throw new ValidationException('Password is required and must be a string')
     }
-    if (!data.name || typeof data.name !== 'string') {
+    if (!data.name || !isString(data.name)) {
       throw new ValidationException('Name is required and must be a string')
     }
 
