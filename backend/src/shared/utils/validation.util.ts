@@ -1,3 +1,6 @@
+import { isValidUUID } from 'uuidv7-utilities'
+import type { IsValidUUID } from 'uuidv7-utilities'
+
 /**
  * Utility class for common validation operations.
  * All methods are static and can be used without instantiation.
@@ -86,7 +89,7 @@ export class ValidationUtil {
    * - Separated by hyphens
    *
    * Accepts both lowercase and uppercase hexadecimal characters.
-   * Works with UUID versions 1-5.
+   * Works with UUID versions.
    *
    * @param value - The string to validate as a UUID
    * @returns True if the string is a valid UUID format, false otherwise
@@ -100,9 +103,8 @@ export class ValidationUtil {
    * ValidationUtil.isUUID('123e4567e89b12d3a456426614174000') // false (missing hyphens)
    * ```
    */
-  static isUUID(value: string): boolean {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-    return uuidRegex.test(value)
+  static isUUID(value: string): IsValidUUID {
+    return isValidUUID(value)
   }
 
   /**

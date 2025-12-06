@@ -98,6 +98,9 @@ importers:
       obscured:
         specifier: ^2.0.4
         version: 2.0.4
+      uuidv7-utilities:
+        specifier: ^3.1.0
+        version: 3.1.0
       yaml:
         specifier: ^2.8.2
         version: 2.8.2
@@ -5009,6 +5012,9 @@ packages:
   utility-types@3.11.0:
     resolution: {integrity: sha512-6Z7Ma2aVEWisaL6TvBCy7P8rm2LQoPv6dJ7ecIaIixHcwfbJ0x7mWdbcwlIM5IGQxPZSFYeqRCqlOOeKoJYMkw==}
     engines: {node: '>= 4'}
+
+  uuidv7-utilities@3.1.0:
+    resolution: {integrity: sha512-e9btGsWLIcikhx3/JZrZt3jPmMXgC4LH7nCALZ3tP7QAsAIGN2+e2j/l2IJmFzquMKBOpojmzcYM/1Q2X75vpw==}
 
   validate-npm-package-license@3.0.4:
     resolution: {integrity: sha512-DpKm2Ui/xN7/HQKCtpZxoRWBhZ9Z0kqtygG8XCgNQ8ZlDnxuQmWhj566j8fN4Cu3/JmbhsDo7fcAJq4s9h27Ew==}
@@ -10437,6 +10443,8 @@ snapshots:
   urijs@1.19.11: {}
 
   utility-types@3.11.0: {}
+
+  uuidv7-utilities@3.1.0: {}
 
   validate-npm-package-license@3.0.4:
     dependencies:
