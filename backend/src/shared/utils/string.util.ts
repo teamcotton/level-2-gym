@@ -105,17 +105,25 @@ export class StringUtil {
    * **Security Note:** Do NOT use Math.random() for security-sensitive values.
    * This method uses cryptographically secure random number generation.
    *
-   * @param length - The desired length of the random string
+   * @param length - The desired length of the random string (must be >= 0)
    * @returns A random string containing uppercase, lowercase letters, and digits
+   * @throws {ValidationException} If length is negative
    *
    * @example
    * ```typescript
    * StringUtil.randomString(16) // 'aB3dE9fG2hI5jK8l'
    * StringUtil.randomString(32) // 'X9mK2pQr4sT6vW8yA0cE1gI3jL5nP7'
    * StringUtil.randomString(8)  // 'Xy7Mn2Kp'
+   * StringUtil.randomString(0)  // ''
    * ```
    */
   static randomString(length: number): string {
+    if (length < 0) {
+      throw new ValidationException('Length must be a non-negative number')
+    }
+    if (length === 0) {
+      return ''
+    }
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
     const bytes = crypto.randomBytes(length)
     let result = ''
@@ -134,7 +142,7 @@ export class StringUtil {
    *
    * @param email - The email address to mask
    * @returns The masked email address
-   * @throws {Error} If the email format is invalid (missing @ or domain)
+   * @throws {ValidationException} If the email format is invalid (missing @ or domain)
    *
    * @example
    * ```typescript
@@ -146,6 +154,9 @@ export class StringUtil {
    * ```
    */
   static maskEmail(email: string): string {
+    if (email.split('@').length !== 2) {
+      throw new ValidationException('Invalid email format')
+    }
     const [localPart, domain] = email.split('@')
     if (!localPart || !domain) {
       throw new ValidationException('Invalid email format')

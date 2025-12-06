@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { ValidationException } from '../../../src/shared/exceptions/validation.exception.js'
 import { StringUtil } from '../../../src/shared/utils/string.util.js'
 
 describe('StringUtil', () => {
@@ -169,6 +170,21 @@ describe('StringUtil', () => {
       }
       expect(results.size).toBe(10) // All unique
     })
+
+    it('should handle zero length', () => {
+      const result = StringUtil.randomString(0)
+      expect(result).toBe('')
+      expect(result).toHaveLength(0)
+    })
+
+    it('should throw ValidationException for negative length', () => {
+      expect(() => StringUtil.randomString(-5)).toThrow(ValidationException)
+      expect(() => StringUtil.randomString(-5)).toThrow('Length must be a non-negative number')
+    })
+
+    it('should throw ValidationException for negative length -1', () => {
+      expect(() => StringUtil.randomString(-1)).toThrow(ValidationException)
+    })
   })
 
   describe('maskEmail', () => {
@@ -224,6 +240,10 @@ describe('StringUtil', () => {
 
     it('should throw error for string with multiple @ symbols', () => {
       expect(() => StringUtil.maskEmail('user@@example.com')).toThrow('Invalid email format')
+    })
+
+    it('should throw error for string with multiple @ symbols in different positions', () => {
+      expect(() => StringUtil.maskEmail('user@domain@example.com')).toThrow('Invalid email format')
     })
   })
 
