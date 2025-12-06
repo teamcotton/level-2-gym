@@ -98,6 +98,12 @@ export class Password<T extends string = string> {
    * ```
    */
   static fromHash(hashedValue: string): Password {
+    // Basic validation: non-empty and matches bcrypt hash format
+    // Bcrypt hashes typically start with $2a$, $2b$, or $2y$ and are 60 chars long
+    const bcryptRegex = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/
+    if (!hashedValue || !bcryptRegex.test(hashedValue)) {
+      throw new ValidationException('Invalid bcrypt hash provided to Password.fromHash')
+    }
     return new Password(hashedValue)
   }
 

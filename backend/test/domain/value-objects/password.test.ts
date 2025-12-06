@@ -71,8 +71,8 @@ describe('Password', () => {
   })
 
   describe('fromHash', () => {
-    it('should create a password from a hash', () => {
-      const hash = '$2b$10$abcdefghijklmnopqrstuv'
+    it('should create a password from a valid bcrypt hash', () => {
+      const hash = '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy'
       const password = Password.fromHash(hash)
       expect(password).toBeInstanceOf(Password)
     })
@@ -83,15 +83,46 @@ describe('Password', () => {
       expect(password.getHash()).toBe(hash)
     })
 
-    it('should accept any string as hash without validation', () => {
-      const invalidHash = 'not-a-real-hash'
-      const password = Password.fromHash(invalidHash)
-      expect(password.getHash()).toBe(invalidHash)
+    it('should accept $2a$ bcrypt hash format', () => {
+      const hash = '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy'
+      const password = Password.fromHash(hash)
+      expect(password.getHash()).toBe(hash)
     })
 
-    it('should accept empty string as hash', () => {
-      const password = Password.fromHash('')
-      expect(password.getHash()).toBe('')
+    it('should accept $2y$ bcrypt hash format', () => {
+      const hash = '$2y$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy'
+      const password = Password.fromHash(hash)
+      expect(password.getHash()).toBe(hash)
+    })
+
+    it('should throw ValidationException for invalid hash format', () => {
+      const invalidHash = 'not-a-real-hash'
+      expect(() => Password.fromHash(invalidHash)).toThrow(ValidationException)
+      expect(() => Password.fromHash(invalidHash)).toThrow(
+        'Invalid bcrypt hash provided to Password.fromHash'
+      )
+    })
+
+    it('should throw ValidationException for empty string', () => {
+      expect(() => Password.fromHash('')).toThrow(ValidationException)
+      expect(() => Password.fromHash('')).toThrow(
+        'Invalid bcrypt hash provided to Password.fromHash'
+      )
+    })
+
+    it('should throw ValidationException for hash with wrong length', () => {
+      const shortHash = '$2b$10$tooshort'
+      expect(() => Password.fromHash(shortHash)).toThrow(ValidationException)
+    })
+
+    it('should throw ValidationException for hash with wrong prefix', () => {
+      const wrongPrefix = '$3b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy'
+      expect(() => Password.fromHash(wrongPrefix)).toThrow(ValidationException)
+    })
+
+    it('should throw ValidationException for hash with invalid characters', () => {
+      const invalidChars = '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh@#'
+      expect(() => Password.fromHash(invalidChars)).toThrow(ValidationException)
     })
   })
 
@@ -218,7 +249,7 @@ describe('Password', () => {
     })
 
     it('should work with fromHash using string literal types', () => {
-      const hash = '$2b$10$abcdefghijklmnopqrstuv' as const
+      const hash = '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy' as const
       const password = Password.fromHash(hash)
       expect(password).toBeInstanceOf(Password)
     })
