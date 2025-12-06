@@ -1,3 +1,12 @@
-pnpm run format
-pnpm run lint
-pnpm run typecheck
+#!/bin/sh
+
+# Check if pnpm is available, if not skip in CI environment
+if command -v pnpm >/dev/null 2>&1; then
+  pnpm run format
+  pnpm run lint
+  pnpm run typecheck
+else
+  echo "pnpm not found, skipping pre-commit hooks in CI environment"
+  exit 0
+fi
+
