@@ -6,5 +6,5 @@ export interface UserRepositoryPort {
   findByEmail(email: string): Promise<User | null>
   update(user: User): Promise<void>
   delete(id: string): Promise<void>
-  existsByEmail(email: User): Promise<boolean>
+  existsByEmail(email: string): Promise<boolean>
 }
