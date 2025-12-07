@@ -51,6 +51,7 @@ describe('ErrorCode', () => {
         'INTERNAL_ERROR',
         'DATABASE_ERROR',
         'EXTERNAL_SERVICE_ERROR',
+        'TYPE_ERROR',
       ]
 
       const actualCodes = Object.values(ErrorCode)
