@@ -2,9 +2,23 @@ import { Tiktoken } from 'js-tiktoken/lite'
 import o200k_base from 'js-tiktoken/ranks/o200k_base'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
+import { ValidationException } from '../../shared/exceptions/validation.exception.js'
 
 /**
- * Singleton class for tokenizing content using OpenAI's o200k_base tokenizer.
+ * @class TokeniseOpenAI
+ * @classDesc Singleton class for tokenizing content using OpenAI's o200k_base tokenizer.
+ *
+ * This class is a singleton to ensure only one instance of the tokenizer is created.
+ * The tokenizer is created on first use and cached for future use.
+ *
+ * IMPORTANT: This class uses synchronous file I/O to read the file contents.
+ * It is recommended to use this class in a separate process to avoid blocking the main thread.
+ * IMPORTANT: Singletons do not play nicely in dependency injection frameworks,
+ * so this class should not be injected into other classes. Consider using a factory pattern instead.
+ * Or Change this to a regular class
+ * The reason I choose a Singleton is to avoid the overhead of creating multiple tokenizer instances,
+ * apparently there is a .free() method that can be called to free up memory, but it doesn't
+ * seem to be a feature
  *
  * @example
  * ```typescript
@@ -50,8 +64,8 @@ class TokeniseOpenAI {
     try {
       return this.tokenizer.encode(content)
     } catch (error) {
-      throw new Error(
-        `Failed to tokenize content: ${error instanceof Error ? error.message : 'Unknown error'}`
+      throw new ValidationException(
+        'Invalid file path: paths cannot contain directory traversal (..), forward slashes (/), or backslashes (\\). Only filenames in the current directory are allowed.'
       )
     }
   }
