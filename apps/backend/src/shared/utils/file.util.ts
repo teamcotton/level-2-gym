@@ -153,9 +153,11 @@ export class FileUtil {
           path: FileUtil.getRelativePath(fullPath),
         }
       } else {
-        throw new ValidationException(
-          `Path is neither a file nor directory: ${FileUtil.getRelativePath(fullPath)}`
-        )
+        return {
+          success: false,
+          message: `Path is neither a file nor directory: ${FileUtil.getRelativePath(fullPath)}`,
+          path: FileUtil.getRelativePath(fullPath),
+        }
       }
     } catch (error) {
       if (error instanceof ValidationException) {
