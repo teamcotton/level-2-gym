@@ -115,7 +115,7 @@ export default function AIChatPage() {
               ))}
               {isLoading && (
                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                  <Avatar sx={{ bgcolor: 'secondary.main' }}>
+                  <Avatar sx={{ bgcolor: 'secondary.main', color: 'text.primary' }}>
                     <SmartToyIcon />
                   </Avatar>
                   <CircularProgress size={24} />

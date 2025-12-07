@@ -1,3 +1,17 @@
+# Load nvm if available
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+# Use .nvmrc if present
+if [ -f .nvmrc ]; then
+  nvm use 2>/dev/null || true
+fi
+
+# Try to enable corepack if available
+if command -v corepack >/dev/null 2>&1; then
+  corepack enable 2>/dev/null || true
+fi
+
 # Check if pnpm is available, fail in CI if missing, warn and skip locally
 if command -v pnpm >/dev/null 2>&1; then
   pnpm run format
