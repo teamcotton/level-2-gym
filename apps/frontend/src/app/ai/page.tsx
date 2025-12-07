@@ -38,28 +38,33 @@ export default function AIChatPage() {
     e.preventDefault()
     if (!input.trim() || isLoading) return
 
-    const parts: Array<
-      { type: 'text'; text: string } | { type: 'file'; mediaType: string; url: string }
-    > = [
-      {
-        type: 'text',
-        text: input,
-      },
-    ]
+    setIsLoading(true) // Set to true when starting
 
-    if (selectedFile) {
-      parts.push({
-        type: 'file',
-        mediaType: selectedFile.type,
-        url: await fileToDataURL(selectedFile),
-      })
+    try {
+      const parts: Array<
+        { type: 'text'; text: string } | { type: 'file'; mediaType: string; url: string }
+      > = [
+        {
+          type: 'text',
+          text: input,
+        },
+      ]
+
+      if (selectedFile) {
+        parts.push({
+          type: 'file',
+          mediaType: selectedFile.type,
+          url: await fileToDataURL(selectedFile),
+        })
+      }
+
+      sendMessage({ parts })
+
+      setInput('')
+      setSelectedFile(null)
+    } finally {
+      setIsLoading(false) // Always set to false when done
     }
-
-    sendMessage({ parts })
-
-    setInput('')
-    setSelectedFile(null)
-    setIsLoading(false)
   }
 
   const handleFileSelect = (file: File | null) => {
