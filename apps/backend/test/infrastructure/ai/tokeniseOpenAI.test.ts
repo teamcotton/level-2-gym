@@ -1,6 +1,13 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { TokeniseOpenAI } from '../../../src/infrastructure/ai/tokeniseOpenAI.js'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const FIXTURES_DIR = path.join(__dirname, 'fixtures')
 
 describe('TokeniseOpenAI', () => {
   describe('Singleton Pattern', () => {
@@ -49,7 +56,7 @@ describe('TokeniseOpenAI', () => {
     })
 
     it('should tokenize a simple text file', () => {
-      const tokens = tokenizer.tokeniseFile('sample.txt')
+      const tokens = tokenizer.tokeniseFile(path.join(FIXTURES_DIR, 'sample.txt'))
 
       expect(Array.isArray(tokens)).toBe(true)
       expect(tokens.length).toBeGreaterThan(0)
@@ -57,14 +64,14 @@ describe('TokeniseOpenAI', () => {
     })
 
     it('should tokenize an empty file', () => {
-      const tokens = tokenizer.tokeniseFile('empty.txt')
+      const tokens = tokenizer.tokeniseFile(path.join(FIXTURES_DIR, 'empty.txt'))
 
       expect(Array.isArray(tokens)).toBe(true)
       expect(tokens.length).toBe(0)
     })
 
     it('should tokenize files with special characters', () => {
-      const tokens = tokenizer.tokeniseFile('special-chars.txt')
+      const tokens = tokenizer.tokeniseFile(path.join(FIXTURES_DIR, 'special-chars.txt'))
 
       expect(Array.isArray(tokens)).toBe(true)
       expect(tokens.length).toBeGreaterThan(0)
@@ -72,21 +79,38 @@ describe('TokeniseOpenAI', () => {
     })
 
     it('should return consistent tokens for the same file', () => {
-      const tokens1 = tokenizer.tokeniseFile('sample.txt')
-      const tokens2 = tokenizer.tokeniseFile('sample.txt')
+      const tokens1 = tokenizer.tokeniseFile(path.join(FIXTURES_DIR, 'sample.txt'))
+      const tokens2 = tokenizer.tokeniseFile(path.join(FIXTURES_DIR, 'sample.txt'))
 
       expect(tokens1).toEqual(tokens2)
     })
 
     it('should return different tokens for different files', () => {
-      const tokens1 = tokenizer.tokeniseFile('sample.txt')
-      const tokens2 = tokenizer.tokeniseFile('special-chars.txt')
+      const tokens1 = tokenizer.tokeniseFile(path.join(FIXTURES_DIR, 'sample.txt'))
+      const tokens2 = tokenizer.tokeniseFile(path.join(FIXTURES_DIR, 'special-chars.txt'))
 
       expect(tokens1).not.toEqual(tokens2)
     })
+
+    it('should validate file path is within base directory when baseDir is provided', () => {
+      const filePath = path.join(FIXTURES_DIR, 'sample.txt')
+      const tokens = tokenizer.tokeniseFile(filePath, FIXTURES_DIR)
+
+      expect(Array.isArray(tokens)).toBe(true)
+      expect(tokens.length).toBeGreaterThan(0)
+    })
+
+    it('should reject file path outside base directory', () => {
+      const filePath = path.join(FIXTURES_DIR, 'sample.txt')
+      const wrongBaseDir = path.join(__dirname, 'wrong-dir')
+
+      expect(() => tokenizer.tokeniseFile(filePath, wrongBaseDir)).toThrow(
+        /outside the allowed base directory/
+      )
+    })
   })
 
-  describe('Path Validation', () => {
+  describe('tokeniseContent', () => {
     let tokenizer: TokeniseOpenAI
 
     beforeEach(() => {
@@ -96,20 +120,43 @@ describe('TokeniseOpenAI', () => {
       tokenizer = TokeniseOpenAI.getInstance()
     })
 
-    it('should reject paths with parent directory traversal (..)', () => {
-      expect(() => tokenizer.tokeniseFile('../secret.txt')).toThrow('Invalid file path')
+    it('should tokenize simple text content', () => {
+      const content = 'Hello, world!'
+      const tokens = tokenizer.tokeniseContent(content)
+
+      expect(Array.isArray(tokens)).toBe(true)
+      expect(tokens.length).toBeGreaterThan(0)
+      expect(tokens.every((token) => typeof token === 'number')).toBe(true)
     })
 
-    it('should reject paths with forward slashes', () => {
-      expect(() => tokenizer.tokeniseFile('subdir/file.txt')).toThrow('Invalid file path')
+    it('should tokenize empty content', () => {
+      const tokens = tokenizer.tokeniseContent('')
+
+      expect(Array.isArray(tokens)).toBe(true)
+      expect(tokens.length).toBe(0)
     })
 
-    it('should reject paths with backslashes', () => {
-      expect(() => tokenizer.tokeniseFile('subdir\\file.txt')).toThrow('Invalid file path')
+    it('should tokenize content with special characters', () => {
+      const content = 'Special characters: 特殊文字 émojis 🎉'
+      const tokens = tokenizer.tokeniseContent(content)
+
+      expect(Array.isArray(tokens)).toBe(true)
+      expect(tokens.length).toBeGreaterThan(0)
     })
 
-    it('should reject paths with multiple parent directory traversals', () => {
-      expect(() => tokenizer.tokeniseFile('../../etc/passwd')).toThrow('Invalid file path')
+    it('should return consistent tokens for the same content', () => {
+      const content = 'Test content'
+      const tokens1 = tokenizer.tokeniseContent(content)
+      const tokens2 = tokenizer.tokeniseContent(content)
+
+      expect(tokens1).toEqual(tokens2)
+    })
+
+    it('should return different tokens for different content', () => {
+      const tokens1 = tokenizer.tokeniseContent('Hello')
+      const tokens2 = tokenizer.tokeniseContent('World')
+
+      expect(tokens1).not.toEqual(tokens2)
     })
   })
 
@@ -124,18 +171,18 @@ describe('TokeniseOpenAI', () => {
     })
 
     it('should throw an error for non-existent files', () => {
-      expect(() => tokenizer.tokeniseFile('non-existent-file.txt')).toThrow(
-        /Failed to tokenize file "non-existent-file.txt"/
-      )
+      const nonExistentPath = path.join(FIXTURES_DIR, 'non-existent-file.txt')
+      expect(() => tokenizer.tokeniseFile(nonExistentPath)).toThrow(/Failed to read file/)
     })
 
-    it('should include the original error message in the thrown error', () => {
-      expect(() => tokenizer.tokeniseFile('non-existent-file.txt')).toThrow(
+    it('should include the file path in the error message', () => {
+      const nonExistentPath = path.join(FIXTURES_DIR, 'non-existent-file.txt')
+      expect(() => tokenizer.tokeniseFile(nonExistentPath)).toThrow(
         expect.objectContaining({
-          message: expect.stringContaining('Failed to tokenize file'),
+          message: expect.stringContaining('Failed to read file'),
         })
       )
-      expect(() => tokenizer.tokeniseFile('non-existent-file.txt')).toThrow(
+      expect(() => tokenizer.tokeniseFile(nonExistentPath)).toThrow(
         expect.objectContaining({
           message: expect.stringContaining('non-existent-file.txt'),
         })
@@ -148,8 +195,8 @@ describe('TokeniseOpenAI', () => {
       const instance1 = TokeniseOpenAI.getInstance()
       const instance2 = TokeniseOpenAI.getInstance()
 
-      const tokens1 = instance1.tokeniseFile('sample.txt')
-      const tokens2 = instance2.tokeniseFile('sample.txt')
+      const tokens1 = instance1.tokeniseFile(path.join(FIXTURES_DIR, 'sample.txt'))
+      const tokens2 = instance2.tokeniseFile(path.join(FIXTURES_DIR, 'sample.txt'))
 
       expect(tokens1).toEqual(tokens2)
       expect(instance1).toBe(instance2)
@@ -158,13 +205,25 @@ describe('TokeniseOpenAI', () => {
     it('should handle multiple file tokenizations in sequence', () => {
       const tokenizer = TokeniseOpenAI.getInstance()
 
-      const tokens1 = tokenizer.tokeniseFile('sample.txt')
-      const tokens2 = tokenizer.tokeniseFile('empty.txt')
-      const tokens3 = tokenizer.tokeniseFile('special-chars.txt')
+      const tokens1 = tokenizer.tokeniseFile(path.join(FIXTURES_DIR, 'sample.txt'))
+      const tokens2 = tokenizer.tokeniseFile(path.join(FIXTURES_DIR, 'empty.txt'))
+      const tokens3 = tokenizer.tokeniseFile(path.join(FIXTURES_DIR, 'special-chars.txt'))
 
       expect(tokens1.length).toBeGreaterThan(0)
       expect(tokens2.length).toBe(0)
       expect(tokens3.length).toBeGreaterThan(0)
+    })
+
+    it('should handle both file and content tokenization', () => {
+      const tokenizer = TokeniseOpenAI.getInstance()
+
+      const fileTokens = tokenizer.tokeniseFile(path.join(FIXTURES_DIR, 'sample.txt'))
+      const contentTokens = tokenizer.tokeniseContent(
+        'Hello, this is a test file for tokenization.'
+      )
+
+      // Both should produce the same tokens for the same content
+      expect(fileTokens).toEqual(contentTokens)
     })
   })
 
@@ -179,7 +238,7 @@ describe('TokeniseOpenAI', () => {
     })
 
     it('should return an array of numbers', () => {
-      const tokens = tokenizer.tokeniseFile('sample.txt')
+      const tokens = tokenizer.tokeniseFile(path.join(FIXTURES_DIR, 'sample.txt'))
 
       expect(Array.isArray(tokens)).toBe(true)
       tokens.forEach((token) => {
@@ -189,7 +248,7 @@ describe('TokeniseOpenAI', () => {
     })
 
     it('should return positive token IDs', () => {
-      const tokens = tokenizer.tokeniseFile('sample.txt')
+      const tokens = tokenizer.tokeniseFile(path.join(FIXTURES_DIR, 'sample.txt'))
 
       tokens.forEach((token) => {
         expect(token).toBeGreaterThanOrEqual(0)
