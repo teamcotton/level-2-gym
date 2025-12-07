@@ -1,3 +1,4 @@
+import { Box } from '@mui/material'
 import type { UIDataTypes, UIMessagePart, UITools } from 'ai'
 import { Streamdown } from 'streamdown'
 
@@ -19,8 +20,15 @@ export const Message = ({
     })
     .join('')
   return (
-    <div className="prose prose-invert my-6">
+    <Box
+      sx={{
+        color: 'rgba(0, 0, 0, 0.87) !important',
+        '& p': { color: 'rgba(0, 0, 0, 0.87) !important' },
+        '& div': { color: 'rgba(0, 0, 0, 0.87) !important' },
+        '& *': { color: 'rgba(0, 0, 0, 0.87) !important' },
+      }}
+    >
       <Streamdown>{prefix + text}</Streamdown>
-    </div>
+    </Box>
   )
 }

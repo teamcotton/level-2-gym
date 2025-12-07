@@ -1,4 +1,5 @@
 import Fastify, { type FastifyInstance, type FastifyServerOptions } from 'fastify'
+import cors from '@fastify/cors'
 import swagger from '@fastify/swagger'
 import swaggerUI from '@fastify/swagger-ui'
 import { readFileSync } from 'fs'
@@ -9,6 +10,14 @@ export function buildApp(options?: FastifyServerOptions): FastifyInstance {
   const fastify = Fastify({
     logger: true,
     ...options,
+  })
+
+  // Register CORS with permissive policy for development
+  fastify.register(cors, {
+    origin: true, // Allow all origins
+    credentials: true, // Allow credentials
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 
   // Load OpenAPI specification
