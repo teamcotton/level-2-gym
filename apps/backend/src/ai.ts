@@ -30,15 +30,15 @@ export const POST = async (req: Request): Promise<Response> => {
     },
     onFinish({ text, finishReason, usage, response, totalUsage }) {
       // Called once when the full output is complete
-      console.log("\n--- DONE ---");
-      console.log("Full text:", text);
-      console.log("Finish reason:", finishReason);
-      console.log("Usage info:", usage, totalUsage);
+      console.log('\n--- DONE ---')
+      console.log('Full text:', text)
+      console.log('Finish reason:', finishReason)
+      console.log('Usage info:', usage, totalUsage)
       // response.messages contains the final message object(s)
     },
     onError({ error }) {
-      console.error("Stream error:", error);
-    }
+      console.error('Stream error:', error)
+    },
   })
 
   const stream = streamTextResult.toUIMessageStream()
