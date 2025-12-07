@@ -66,37 +66,36 @@ class TokeniseOpenAI {
    * @throws {Error} If the file cannot be read, path validation fails, or tokenization fails
    */
   public tokeniseFile(filePath: string, baseDir?: string): number[] {
+    // Resolve to absolute path
+    const resolvedPath = path.resolve(filePath)
+
+    // If baseDir is provided, validate that the file is within the base directory
+    if (baseDir) {
+      const resolvedBaseDir = path.resolve(baseDir)
+
+      // Use path.relative to check for path traversal
+      const relativePath = path.relative(resolvedBaseDir, resolvedPath)
+
+      // If the relative path starts with '..' or is absolute, the file is outside baseDir
+      if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+        throw new Error(
+          `File path "${filePath}" is outside the allowed base directory "${baseDir}"`
+        )
+      }
+    }
+
+    // Read the file - wrap only file I/O errors
+    let input: string
     try {
-      // Resolve to absolute path
-      const resolvedPath = path.resolve(filePath)
-
-      // If baseDir is provided, validate that the file is within the base directory
-      if (baseDir) {
-        const resolvedBaseDir = path.resolve(baseDir)
-
-        // Use path.relative to check for path traversal
-        const relativePath = path.relative(resolvedBaseDir, resolvedPath)
-
-        // If the relative path starts with '..' or is absolute, the file is outside baseDir
-        if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
-          throw new Error(
-            `File path "${filePath}" is outside the allowed base directory "${baseDir}"`
-          )
-        }
-      }
-
-      const input = readFileSync(resolvedPath, 'utf-8')
-      return this.tokeniseContent(input)
+      input = readFileSync(resolvedPath, 'utf-8')
     } catch (error) {
-      // Re-throw if it's already our custom error
-      if (error instanceof Error && error.message.includes('outside the allowed base directory')) {
-        throw error
-      }
-
       throw new Error(
-        `Failed to tokenize file "${filePath}": ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to read file "${filePath}": ${error instanceof Error ? error.message : 'Unknown error'}`
       )
     }
+
+    // Let tokenization errors propagate as-is
+    return this.tokeniseContent(input)
   }
 }
 

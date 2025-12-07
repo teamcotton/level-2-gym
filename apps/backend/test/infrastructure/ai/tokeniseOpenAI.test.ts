@@ -172,11 +172,16 @@ describe('TokeniseOpenAI', () => {
 
     it('should throw an error for non-existent files', () => {
       const nonExistentPath = path.join(FIXTURES_DIR, 'non-existent-file.txt')
-      expect(() => tokenizer.tokeniseFile(nonExistentPath)).toThrow(/Failed to tokenize file/)
+      expect(() => tokenizer.tokeniseFile(nonExistentPath)).toThrow(/Failed to read file/)
     })
 
     it('should include the file path in the error message', () => {
       const nonExistentPath = path.join(FIXTURES_DIR, 'non-existent-file.txt')
+      expect(() => tokenizer.tokeniseFile(nonExistentPath)).toThrow(
+        expect.objectContaining({
+          message: expect.stringContaining('Failed to read file'),
+        })
+      )
       expect(() => tokenizer.tokeniseFile(nonExistentPath)).toThrow(
         expect.objectContaining({
           message: expect.stringContaining('non-existent-file.txt'),
