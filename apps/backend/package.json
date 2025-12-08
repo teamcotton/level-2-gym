@@ -18,7 +18,12 @@
     "typecheck": "tsc --noEmit",
     "api:lint": "spectral lint openapi.yaml",
     "api:lint:json": "spectral lint openapi.yaml --format json",
-    "api:docs": "echo 'API docs available at http://localhost:3000/docs when server is running'"
+    "api:docs": "echo 'API docs available at http://localhost:3000/docs when server is running'",
+    "db:generate": "drizzle-kit generate",
+    "db:studio": "drizzle-kit studio",
+    "db:apply": "docker exec -i level2gym-postgres psql -U postgres -d level2gym < drizzle/0000_mean_moondragon.sql",
+    "db:drop": "docker exec -i level2gym-postgres psql -U postgres -d level2gym < drizzle/drop_all_tables.sql",
+    "db:reset": "pnpm db:drop && pnpm db:apply"
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.44",

@@ -1,5 +1,5 @@
 
-CREATE TABLE user (
+CREATE TABLE users (
     user_id     UUID PRIMARY KEY DEFAULT uuidv7(),
     name        TEXT NOT NULL,
     password    TEXT NOT NULL CHECK (length(password) = 60), -- bcrypt hash
@@ -10,7 +10,7 @@ CREATE TABLE user (
 -- Chats table: Stores chat sessions
 CREATE TABLE chats (
     id UUID PRIMARY KEY,
-    user_id UUID NOT NULL REFERENCES user(user_id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -103,7 +103,7 @@ COMMENT ON COLUMN parts."order" IS 'Order of parts within a message for proper s
 -- Audit log table: Tracks all significant actions and changes in the system
 CREATE TABLE audit_log (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
-    user_id UUID REFERENCES user(user_id) ON DELETE SET NULL,
+    user_id UUID REFERENCES users(user_id) ON DELETE SET NULL,
     entity_type VARCHAR(50) NOT NULL,
     entity_id UUID NOT NULL,
     action VARCHAR(50) NOT NULL,
