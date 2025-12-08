@@ -24,7 +24,7 @@ CREATE TABLE messages (
     id UUID PRIMARY KEY,
     chat_id UUID NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    role VARCHAR NOT NULL
+    role VARCHAR NOT NULL CONSTRAINT namechk CHECK (char_length(name) <= 15)
 );
 
 -- Indexes for messages table
