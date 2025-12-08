@@ -68,11 +68,15 @@ export function buildApp(options?: FastifyServerOptions): FastifyInstance {
       }
     })
 
+    console.log(request.url)
+
     const req = new Request(`https://localhost${request.url}`, {
       method: 'POST',
       headers,
       body: JSON.stringify(request.body),
     })
+
+    console.log(req)
 
     // Get the streaming response from the AI handler
     const response = await POST(req)
