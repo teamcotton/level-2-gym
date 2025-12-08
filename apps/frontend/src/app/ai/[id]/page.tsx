@@ -236,75 +236,75 @@ export default function AIChatPage({ params }: { params: Promise<{ id: string }>
               bgcolor: 'grey.50',
             }}
           >
-          {messages.length === 0 ? (
-            <Box
-              sx={{
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <MessageIntroComponent />
-            </Box>
-          ) : (
-            <Stack spacing={2}>
-              {messages.map((message, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    display: 'flex',
-                    gap: 2,
-                    alignItems: 'flex-start',
-                    flexDirection: message.role === 'user' ? 'row-reverse' : 'row',
-                  }}
-                >
-                  <Avatar
+            {messages.length === 0 ? (
+              <Box
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <MessageIntroComponent />
+              </Box>
+            ) : (
+              <Stack spacing={2}>
+                {messages.map((message, index) => (
+                  <Box
+                    key={index}
                     sx={{
-                      bgcolor: message.role === 'user' ? 'primary.main' : 'secondary.main',
-                      color: message.role === 'user' ? 'primary.contrastText' : 'text.primary',
+                      display: 'flex',
+                      gap: 2,
+                      alignItems: 'flex-start',
+                      flexDirection: message.role === 'user' ? 'row-reverse' : 'row',
                     }}
                   >
-                    {message.role === 'user' ? <PersonIcon /> : <SmartToyIcon />}
-                  </Avatar>
-                  <Paper
-                    sx={{
-                      p: 2,
-                      maxWidth: '70%',
-                      bgcolor: message.role === 'user' ? 'primary.light' : 'white',
-                      color: message.role === 'user' ? 'primary.contrastText' : 'text.primary',
-                    }}
-                  >
-                    <Box sx={{ whiteSpace: 'pre-wrap' }}>
-                      <Message key={message.id} role={message.role} parts={message.parts} />
-                    </Box>
-                  </Paper>
-                </Box>
-              ))}
-              {isLoading && (
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                  <Avatar sx={{ bgcolor: 'secondary.main', color: 'text.primary' }}>
-                    <SmartToyIcon />
-                  </Avatar>
-                  <CircularProgress size={24} />
-                </Box>
-              )}
-              <div ref={messagesEndRef} />
-            </Stack>
-          )}
-        </Box>
-        <ChatInput
-          input={input}
-          onChange={(e) => setInput(e.target.value)}
-          onSubmit={handleSubmit}
-          isLoading={isLoading}
-          enableFileUpload={true}
-          onFileSelect={handleFileSelect}
-          selectedFile={selectedFile}
-        />
-      </Paper>
-    </Box>
-    <Snackbar
+                    <Avatar
+                      sx={{
+                        bgcolor: message.role === 'user' ? 'primary.main' : 'secondary.main',
+                        color: message.role === 'user' ? 'primary.contrastText' : 'text.primary',
+                      }}
+                    >
+                      {message.role === 'user' ? <PersonIcon /> : <SmartToyIcon />}
+                    </Avatar>
+                    <Paper
+                      sx={{
+                        p: 2,
+                        maxWidth: '70%',
+                        bgcolor: message.role === 'user' ? 'primary.light' : 'white',
+                        color: message.role === 'user' ? 'primary.contrastText' : 'text.primary',
+                      }}
+                    >
+                      <Box sx={{ whiteSpace: 'pre-wrap' }}>
+                        <Message key={message.id} role={message.role} parts={message.parts} />
+                      </Box>
+                    </Paper>
+                  </Box>
+                ))}
+                {isLoading && (
+                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                    <Avatar sx={{ bgcolor: 'secondary.main', color: 'text.primary' }}>
+                      <SmartToyIcon />
+                    </Avatar>
+                    <CircularProgress size={24} />
+                  </Box>
+                )}
+                <div ref={messagesEndRef} />
+              </Stack>
+            )}
+          </Box>
+          <ChatInput
+            input={input}
+            onChange={(e) => setInput(e.target.value)}
+            onSubmit={handleSubmit}
+            isLoading={isLoading}
+            enableFileUpload={true}
+            onFileSelect={handleFileSelect}
+            selectedFile={selectedFile}
+          />
+        </Paper>
+      </Box>
+      <Snackbar
         open={!!errorMessage}
         autoHideDuration={6000}
         onClose={() => setErrorMessage('')}
