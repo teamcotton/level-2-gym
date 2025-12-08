@@ -37,15 +37,20 @@ describe('DatabaseUtil', () => {
     })
 
     it('should return false for non-object values', () => {
-      expect(DatabaseUtil.isDuplicateKeyError('duplicate key value violates unique constraint')).toBe(false)
+      expect(
+        DatabaseUtil.isDuplicateKeyError('duplicate key value violates unique constraint')
+      ).toBe(false)
       expect(DatabaseUtil.isDuplicateKeyError(123)).toBe(false)
       expect(DatabaseUtil.isDuplicateKeyError(true)).toBe(false)
     })
 
     it('should return true for Error objects with code 23505', () => {
-      const error = Object.assign(new Error('duplicate key value violates unique constraint "users_email_key"'), {
-        code: '23505',
-      })
+      const error = Object.assign(
+        new Error('duplicate key value violates unique constraint "users_email_key"'),
+        {
+          code: '23505',
+        }
+      )
 
       expect(DatabaseUtil.isDuplicateKeyError(error)).toBe(true)
     })
