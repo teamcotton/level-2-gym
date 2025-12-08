@@ -11,7 +11,7 @@ export class EnvConfig {
   static readonly DATABASE_SSL_ENABLED = process.env.DATABASE_SSL_ENABLED || 'false'
   static readonly DATABASE_SSL_REJECT_UNAUTHORIZED =
     process.env.DATABASE_SSL_REJECT_UNAUTHORIZED || 'true'
-  static readonly PORT = process.env.PORT || 3000
+  static readonly PORT = process.env.PORT || '3000'
   static readonly LOG_LEVEL = process.env.LOG_LEVEL || 'info'
 
   static validate(): void {

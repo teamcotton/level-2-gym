@@ -6,14 +6,18 @@ export class PinoLoggerService implements LoggerPort {
   private logger: pino.Logger
 
   constructor() {
+    const isDevelopment = EnvConfig.NODE_ENV !== 'production'
+
     this.logger = pino({
       level: EnvConfig.LOG_LEVEL,
-      transport: {
-        target: 'pino-pretty',
-        options: {
-          colorize: true,
+      ...(isDevelopment && {
+        transport: {
+          target: 'pino-pretty',
+          options: {
+            colorize: true,
+          },
         },
-      },
+      }),
     })
   }
 
