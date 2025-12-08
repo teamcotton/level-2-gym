@@ -185,6 +185,7 @@ export function RegistrationForm({
             <Typography variant="body2" color="text.secondary">
               Already have an account?{' '}
               <MuiLink
+                type="button"
                 component="button"
                 variant="body2"
                 onClick={() => router.push('/signin')}

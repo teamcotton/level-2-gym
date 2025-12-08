@@ -51,8 +51,7 @@ export function useRegistrationForm() {
     } else {
       const result = EmailSchema.safeParse(formData.email)
       if (!result.success) {
-        newErrors.email = 'Please enter a valid email address'
-      }
+        newErrors.email = result.error.issues[0]?.message || 'Please enter a valid email address'      }
     }
 
     // Name validation
@@ -67,7 +66,7 @@ export function useRegistrationForm() {
     } else {
       const result = PasswordSchema.safeParse(formData.password)
       if (!result.success) {
-        newErrors.password = 'Password must be at least 12 characters'
+        newErrors.password = newErrors.password = result.error.issues[0]?.message || 'Password must be at least 12 characters'
       }
     }
 

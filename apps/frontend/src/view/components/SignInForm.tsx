@@ -135,6 +135,7 @@ export function SignInForm({
 
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
               <MuiLink
+                type="button"
                 component="button"
                 variant="body2"
                 onClick={() => router.push('/forgot-password')}
@@ -172,6 +173,7 @@ export function SignInForm({
             <Typography variant="body2" color="text.secondary">
               Don&apos;t have an account?{' '}
               <MuiLink
+                type="button"
                 component="button"
                 variant="body2"
                 onClick={() => router.push('/registration')}
