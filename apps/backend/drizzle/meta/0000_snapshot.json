@@ -137,7 +137,7 @@
         "audit_log_user_id_user_user_id_fk": {
           "name": "audit_log_user_id_user_user_id_fk",
           "tableFrom": "audit_log",
-          "tableTo": "user",
+          "tableTo": "users",
           "columnsFrom": ["user_id"],
           "columnsTo": ["user_id"],
           "onDelete": "set null",
