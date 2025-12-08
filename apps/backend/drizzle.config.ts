@@ -3,8 +3,7 @@ import { obscured } from 'obscured'
 import { EnvConfig } from './src/infrastructure/config/env.config.js'
 import { ValidationException } from './src/shared/exceptions/validation.exception.js'
 
-const dbUrl = obscured.value(EnvConfig.DATABASE_URL)
-if (!dbUrl) {
+if (!obscured.value(EnvConfig.DATABASE_URL)) {
   throw new ValidationException('DATABASE_URL is required for drizzle-kit operations')
 }
 
