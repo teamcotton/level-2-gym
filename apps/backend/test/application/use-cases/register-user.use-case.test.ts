@@ -6,8 +6,7 @@ import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
 import type { UserRepositoryPort } from '../../../src/application/ports/user.repository.port.js'
 import { RegisterUserUseCase } from '../../../src/application/use-cases/register-user.use-case.js'
 import { User } from '../../../src/domain/entities/user.js'
-import { Email } from '../../../src/domain/value-objects/email.js'
-import { Password } from '../../../src/domain/value-objects/password.js'
+import { ConflictException } from '../../../src/shared/exceptions/conflict.exception.js'
 import { ValidationException } from '../../../src/shared/exceptions/validation.exception.js'
 
 describe('RegisterUserUseCase', () => {
@@ -51,8 +50,6 @@ describe('RegisterUserUseCase', () => {
       it('should register a new user successfully', async () => {
         const dto = new RegisterUserDto('john@example.com', 'SecurePass123!', 'John Doe')
 
-        // Mock repository to return no existing user
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
         vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
         vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
 
@@ -67,23 +64,9 @@ describe('RegisterUserUseCase', () => {
         )
       })
 
-      it('should check for existing user by email', async () => {
-        const dto = new RegisterUserDto('john@example.com', 'SecurePass123!', 'John Doe')
-
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
-        vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
-        vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
-
-        await useCase.execute(dto)
-
-        expect(mockUserRepository.findByEmail).toHaveBeenCalledTimes(1)
-        expect(mockUserRepository.findByEmail).toHaveBeenCalledWith('john@example.com')
-      })
-
       it('should save the user to the repository', async () => {
         const dto = new RegisterUserDto('john@example.com', 'SecurePass123!', 'John Doe')
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
         vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
         vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
 
@@ -99,7 +82,6 @@ describe('RegisterUserUseCase', () => {
       it('should send a welcome email to the user', async () => {
         const dto = new RegisterUserDto('john@example.com', 'SecurePass123!', 'John Doe')
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
         vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
         vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
 
@@ -115,7 +97,6 @@ describe('RegisterUserUseCase', () => {
       it('should log registration start with email', async () => {
         const dto = new RegisterUserDto('john@example.com', 'SecurePass123!', 'John Doe')
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
         vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
         vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
 
@@ -129,7 +110,6 @@ describe('RegisterUserUseCase', () => {
       it('should log successful registration with userId', async () => {
         const dto = new RegisterUserDto('john@example.com', 'SecurePass123!', 'John Doe')
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
         vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
         vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
 
@@ -144,7 +124,6 @@ describe('RegisterUserUseCase', () => {
         const dto1 = new RegisterUserDto('john@example.com', 'SecurePass123!', 'John Doe')
         const dto2 = new RegisterUserDto('jane@example.com', 'SecurePass456!', 'Jane Smith')
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
         vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
         vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
 
@@ -155,74 +134,54 @@ describe('RegisterUserUseCase', () => {
       })
     })
 
-    describe('existing user validation', () => {
-      it('should throw error when user with email already exists', async () => {
+    describe('duplicate email handling', () => {
+      it('should throw ConflictException when database rejects duplicate email', async () => {
         const dto = new RegisterUserDto('existing@example.com', 'SecurePass123!', 'John Doe')
 
-        // Mock existing user
-        const existingEmail = new Email('existing@example.com')
-        const existingPassword = await Password.create('OldPassword123!')
-        const existingUser = new User(
-          'existing-user-id',
-          existingEmail,
-          existingPassword,
-          'Existing User'
+        // Simulate PostgreSQL unique constraint violation error (code 23505)
+        const duplicateKeyError = Object.assign(
+          new Error('duplicate key value violates unique constraint'),
+          {
+            code: '23505',
+          }
         )
+        vi.mocked(mockUserRepository.save).mockRejectedValue(duplicateKeyError)
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(existingUser)
-
+        await expect(useCase.execute(dto)).rejects.toThrow(ConflictException)
         await expect(useCase.execute(dto)).rejects.toThrow('User with this email already exists')
       })
 
-      it('should not save user when email already exists', async () => {
+      it('should not send welcome email when duplicate email is detected', async () => {
         const dto = new RegisterUserDto('existing@example.com', 'SecurePass123!', 'John Doe')
 
-        const existingEmail = new Email('existing@example.com')
-        const existingPassword = await Password.create('OldPassword123!')
-        const existingUser = new User(
-          'existing-user-id',
-          existingEmail,
-          existingPassword,
-          'Existing User'
+        const duplicateKeyError = Object.assign(
+          new Error('duplicate key value violates unique constraint'),
+          {
+            code: '23505',
+          }
         )
+        vi.mocked(mockUserRepository.save).mockRejectedValue(duplicateKeyError)
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(existingUser)
-
-        await expect(useCase.execute(dto)).rejects.toThrow()
-
-        expect(mockUserRepository.save).not.toHaveBeenCalled()
-      })
-
-      it('should not send welcome email when user already exists', async () => {
-        const dto = new RegisterUserDto('existing@example.com', 'SecurePass123!', 'John Doe')
-
-        const existingEmail = new Email('existing@example.com')
-        const existingPassword = await Password.create('OldPassword123!')
-        const existingUser = new User(
-          'existing-user-id',
-          existingEmail,
-          existingPassword,
-          'Existing User'
-        )
-
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(existingUser)
-
-        await expect(useCase.execute(dto)).rejects.toThrow()
+        await expect(useCase.execute(dto)).rejects.toThrow(ConflictException)
 
         expect(mockEmailService.sendWelcomeEmail).not.toHaveBeenCalled()
       })
 
-      it('should check for existing user with case-insensitive email', async () => {
-        const dto = new RegisterUserDto('JOHN@EXAMPLE.COM', 'SecurePass123!', 'John Doe')
+      it('should handle race condition with concurrent duplicate registrations', async () => {
+        const dto = new RegisterUserDto('race@example.com', 'SecurePass123!', 'Test User')
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
-        vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
-        vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
+        // Simulate race condition where both requests get past any checks
+        // but database rejects the second one
+        const duplicateKeyError = Object.assign(
+          new Error('duplicate key value violates unique constraint'),
+          {
+            code: '23505',
+          }
+        )
+        vi.mocked(mockUserRepository.save).mockRejectedValue(duplicateKeyError)
 
-        await useCase.execute(dto)
-
-        // Email should be normalized to lowercase by Email value object
-        expect(mockUserRepository.findByEmail).toHaveBeenCalledWith('JOHN@EXAMPLE.COM')
+        await expect(useCase.execute(dto)).rejects.toThrow(ConflictException)
+        await expect(useCase.execute(dto)).rejects.toThrow('User with this email already exists')
       })
     })
 
@@ -230,7 +189,6 @@ describe('RegisterUserUseCase', () => {
       it('should not fail registration if welcome email fails to send', async () => {
         const dto = new RegisterUserDto('john@example.com', 'SecurePass123!', 'John Doe')
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
         vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
         vi.mocked(mockEmailService.sendWelcomeEmail).mockRejectedValue(
           new Error('Email service down')
@@ -246,7 +204,6 @@ describe('RegisterUserUseCase', () => {
       it('should log error when welcome email fails to send', async () => {
         const dto = new RegisterUserDto('john@example.com', 'SecurePass123!', 'John Doe')
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
         vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
 
         const emailError = new Error('Email service down')
@@ -264,7 +221,6 @@ describe('RegisterUserUseCase', () => {
       it('should still save user even if email service fails', async () => {
         const dto = new RegisterUserDto('john@example.com', 'SecurePass123!', 'John Doe')
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
         vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
         vi.mocked(mockEmailService.sendWelcomeEmail).mockRejectedValue(
           new Error('Email service down')
@@ -280,7 +236,6 @@ describe('RegisterUserUseCase', () => {
       it('should create Email value object from dto email', async () => {
         const dto = new RegisterUserDto('test@example.com', 'SecurePass123!', 'Test User')
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
         vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
         vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
 
@@ -294,7 +249,6 @@ describe('RegisterUserUseCase', () => {
       it('should create Password value object from dto password', async () => {
         const dto = new RegisterUserDto('test@example.com', 'SecurePass123!', 'Test User')
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
         vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
         vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
 
@@ -311,7 +265,6 @@ describe('RegisterUserUseCase', () => {
       it('should create User entity with all properties', async () => {
         const dto = new RegisterUserDto('test@example.com', 'SecurePass123!', 'Test User')
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
         vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
         vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
 
@@ -325,8 +278,6 @@ describe('RegisterUserUseCase', () => {
       it('should throw ValidationException for invalid email format', async () => {
         const dto = new RegisterUserDto('invalid-email', 'SecurePass123!', 'Test User')
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
-
         // Email validation happens when creating Email value object
         await expect(useCase.execute(dto)).rejects.toThrow(ValidationException)
         await expect(useCase.execute(dto)).rejects.toThrow('Invalid email format')
@@ -335,8 +286,6 @@ describe('RegisterUserUseCase', () => {
       it('should throw ValidationException for weak password', async () => {
         const dto = new RegisterUserDto('test@example.com', 'weak', 'Test User')
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
-
         // Password validation happens when creating Password value object
         await expect(useCase.execute(dto)).rejects.toThrow(ValidationException)
         await expect(useCase.execute(dto)).rejects.toThrow('Password must be at least 8 characters')
@@ -344,10 +293,9 @@ describe('RegisterUserUseCase', () => {
     })
 
     describe('repository failure handling', () => {
-      it('should throw error when repository save fails', async () => {
+      it('should throw error when repository save fails with non-duplicate error', async () => {
         const dto = new RegisterUserDto('test@example.com', 'SecurePass123!', 'Test User')
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
         vi.mocked(mockUserRepository.save).mockRejectedValue(
           new Error('Database connection failed')
         )
@@ -355,20 +303,9 @@ describe('RegisterUserUseCase', () => {
         await expect(useCase.execute(dto)).rejects.toThrow('Database connection failed')
       })
 
-      it('should throw error when repository findByEmail fails', async () => {
-        const dto = new RegisterUserDto('test@example.com', 'SecurePass123!', 'Test User')
-
-        vi.mocked(mockUserRepository.findByEmail).mockRejectedValue(
-          new Error('Database query failed')
-        )
-
-        await expect(useCase.execute(dto)).rejects.toThrow('Database query failed')
-      })
-
       it('should not send email if repository save fails', async () => {
         const dto = new RegisterUserDto('test@example.com', 'SecurePass123!', 'Test User')
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
         vi.mocked(mockUserRepository.save).mockRejectedValue(
           new Error('Database connection failed')
         )
@@ -385,7 +322,6 @@ describe('RegisterUserUseCase', () => {
         const longName = 'A'.repeat(500)
         const dto = new RegisterUserDto('test@example.com', 'SecurePass123!', longName)
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
         vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
         vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
 
@@ -402,7 +338,6 @@ describe('RegisterUserUseCase', () => {
         const specialName = "O'Brien-Smith (Jr.) <test@example.com>"
         const dto = new RegisterUserDto('test@example.com', 'SecurePass123!', specialName)
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
         vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
         vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
 
@@ -418,22 +353,19 @@ describe('RegisterUserUseCase', () => {
       it('should handle email with subdomain', async () => {
         const dto = new RegisterUserDto('user@mail.company.co.uk', 'SecurePass123!', 'Test User')
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
         vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
         vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
 
         const result = await useCase.execute(dto)
 
         expect(result.userId).toBeDefined()
-        expect(mockUserRepository.findByEmail).toHaveBeenCalledWith('user@mail.company.co.uk')
       })
 
-      it('should handle concurrent registrations', async () => {
+      it('should handle concurrent registrations with different emails', async () => {
         const dto1 = new RegisterUserDto('user1@example.com', 'SecurePass123!', 'User One')
         const dto2 = new RegisterUserDto('user2@example.com', 'SecurePass456!', 'User Two')
         const dto3 = new RegisterUserDto('user3@example.com', 'SecurePass789!', 'User Three')
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
         vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
         vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
 
@@ -457,7 +389,6 @@ describe('RegisterUserUseCase', () => {
       it('should call logger methods in correct order', async () => {
         const dto = new RegisterUserDto('test@example.com', 'SecurePass123!', 'Test User')
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
         vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
         vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
 
@@ -472,7 +403,6 @@ describe('RegisterUserUseCase', () => {
       it('should only log error when email service fails', async () => {
         const dto = new RegisterUserDto('test@example.com', 'SecurePass123!', 'Test User')
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
         vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
         vi.mocked(mockEmailService.sendWelcomeEmail).mockRejectedValue(new Error('Email failed'))
 
@@ -485,7 +415,6 @@ describe('RegisterUserUseCase', () => {
       it('should not log error when registration is successful', async () => {
         const dto = new RegisterUserDto('test@example.com', 'SecurePass123!', 'Test User')
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
         vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
         vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
 
@@ -499,7 +428,6 @@ describe('RegisterUserUseCase', () => {
       it('should return object with userId property', async () => {
         const dto = new RegisterUserDto('test@example.com', 'SecurePass123!', 'Test User')
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
         vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
         vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
 
@@ -512,7 +440,6 @@ describe('RegisterUserUseCase', () => {
       it('should return userId matching saved user id', async () => {
         const dto = new RegisterUserDto('test@example.com', 'SecurePass123!', 'Test User')
 
-        vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
         vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
         vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
 
