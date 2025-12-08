@@ -15,6 +15,10 @@ export const pool = new Pool({
     EnvConfig.DATABASE_SSL_ENABLED === 'true'
       ? { rejectUnauthorized: EnvConfig.DATABASE_SSL_REJECT_UNAUTHORIZED !== 'false' }
       : false,
+  connectionTimeoutMillis: parseInt(EnvConfig.DATABASE_CONNECTION_TIMEOUT_MS),
+  idleTimeoutMillis: parseInt(EnvConfig.DATABASE_IDLE_TIMEOUT_MS),
+  max: parseInt(EnvConfig.DATABASE_POOL_MAX),
+  min: parseInt(EnvConfig.DATABASE_POOL_MIN),
 })
 
 pool.on('error', (err) => {

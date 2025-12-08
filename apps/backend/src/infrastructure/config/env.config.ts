@@ -17,6 +17,11 @@ export class EnvConfig {
   static readonly MODEL_NAME = process.env.MODEL_NAME
   static readonly PORT = process.env.PORT || '3000'
   static readonly LOG_LEVEL = process.env.LOG_LEVEL || 'info'
+  static readonly DATABASE_CONNECTION_TIMEOUT_MS =
+    process.env.DATABASE_CONNECTION_TIMEOUT_MS || '5000'
+  static readonly DATABASE_IDLE_TIMEOUT_MS = process.env.DATABASE_IDLE_TIMEOUT_MS || '30000'
+  static readonly DATABASE_POOL_MAX = process.env.DATABASE_POOL_MAX || '20'
+  static readonly DATABASE_POOL_MIN = process.env.DATABASE_POOL_MIN || '5'
 
   static validate(): void {
     const missing = requiredEnvs.filter((key) => !process.env[key])

@@ -163,5 +163,14 @@ describe('Database Index', () => {
 
       expect(pool.options.ssl).toBe(false)
     })
+
+    it('should configure pool with correct timeout and size settings', async () => {
+      process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/testdb'
+      const { pool } = await import('../../../src/infrastructure/database/index.js')
+
+      expect(pool.options.connectionTimeoutMillis).toBe(5000)
+      expect(pool.options.idleTimeoutMillis).toBe(30000)
+      expect(pool.options.max).toBe(20)
+    })
   })
 })
