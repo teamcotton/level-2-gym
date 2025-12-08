@@ -2,6 +2,12 @@ import { Box } from '@mui/material'
 import type { UIDataTypes, UIMessagePart, UITools } from 'ai'
 import { Streamdown } from 'streamdown'
 
+interface ToolInput {
+  path?: string
+  pattern?: string
+  content?: string
+}
+
 interface ToolConfig {
   emoji: string
   label: string
@@ -10,7 +16,7 @@ interface ToolConfig {
   titleColor: string
   textColor: string
   displayField: 'path' | 'pattern'
-  extraFields?: (input: any) => string[]
+  extraFields?: (input: ToolInput) => string[]
 }
 
 const TOOL_CONFIGS: Record<string, ToolConfig> = {
@@ -22,7 +28,7 @@ const TOOL_CONFIGS: Record<string, ToolConfig> = {
     titleColor: '#93c5fd',
     textColor: '#bfdbfe',
     displayField: 'path',
-    extraFields: (input: any) => [
+    extraFields: (input: ToolInput) => [
       `Content length: ${input?.content?.length || 0} characters`,
     ],
   },
@@ -86,10 +92,9 @@ const renderToolPart = (part: UIMessagePart<UIDataTypes, UITools>, index: number
   const config = TOOL_CONFIGS[part.type]
   if (!config) return null
 
+  const input = part.input as ToolInput
   const displayValue =
-    config.displayField === 'path'
-      ? (part.input as { path?: string })?.path || 'Unknown'
-      : (part.input as { pattern?: string })?.pattern || 'Unknown'
+    config.displayField === 'path' ? input.path || 'Unknown' : input.pattern || 'Unknown'
 
   return (
     <Box
@@ -109,7 +114,7 @@ const renderToolPart = (part: UIMessagePart<UIDataTypes, UITools>, index: number
         {config.displayField === 'path' ? 'Path' : 'Pattern'}: {displayValue}
       </Box>
       {config.extraFields &&
-        config.extraFields(part.input).map((field, i) => (
+        config.extraFields(input).map((field, i) => (
           <Box key={i} sx={{ color: config.textColor }}>
             {field}
           </Box>
