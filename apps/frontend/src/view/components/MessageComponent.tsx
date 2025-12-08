@@ -150,10 +150,7 @@ export const Message = ({
       }}
     >
       <Streamdown>{prefix + text}</Streamdown>
-      {parts.map((part, index) => {
-        if (part.type === 'text') return null
-        return renderToolPart(part, index)
-      })}
+      {parts.map((part, index) => renderToolPart(part, index))}
     </Box>
   )
 }
