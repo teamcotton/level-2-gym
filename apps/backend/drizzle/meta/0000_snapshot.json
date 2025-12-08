@@ -1,5 +1,5 @@
 {
-  "id": "d6202cde-99bc-4e5a-baca-dc8793b95c56",
+  "id": "3093ddb9-d696-4923-b1cf-55645b61b262",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -134,8 +134,8 @@
         }
       },
       "foreignKeys": {
-        "audit_log_user_id_user_user_id_fk": {
-          "name": "audit_log_user_id_user_user_id_fk",
+        "audit_log_user_id_users_user_id_fk": {
+          "name": "audit_log_user_id_users_user_id_fk",
           "tableFrom": "audit_log",
           "tableTo": "users",
           "columnsFrom": ["user_id"],
@@ -220,10 +220,10 @@
         }
       },
       "foreignKeys": {
-        "chats_user_id_user_user_id_fk": {
-          "name": "chats_user_id_user_user_id_fk",
+        "chats_user_id_users_user_id_fk": {
+          "name": "chats_user_id_users_user_id_fk",
           "tableFrom": "chats",
-          "tableTo": "user",
+          "tableTo": "users",
           "columnsFrom": ["user_id"],
           "columnsTo": ["user_id"],
           "onDelete": "cascade",
@@ -537,8 +537,8 @@
       },
       "isRLSEnabled": false
     },
-    "public.user": {
-      "name": "user",
+    "public.users": {
+      "name": "users",
       "schema": "",
       "columns": {
         "user_id": {
@@ -578,8 +578,8 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "user_email_unique": {
-          "name": "user_email_unique",
+        "users_email_unique": {
+          "name": "users_email_unique",
           "nullsNotDistinct": false,
           "columns": ["email"]
         }
@@ -588,7 +588,7 @@
       "checkConstraints": {
         "password_length_check": {
           "name": "password_length_check",
-          "value": "length(\"user\".\"password\") = 60"
+          "value": "length(\"users\".\"password\") = 60"
         }
       },
       "isRLSEnabled": false
