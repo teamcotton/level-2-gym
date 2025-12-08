@@ -21,6 +21,9 @@ describe('PinoLoggerService', () => {
     process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
     if (logLevel !== undefined) {
       process.env.LOG_LEVEL = logLevel
+    } else {
+      // Ensure LOG_LEVEL is not set to test default behavior
+      delete process.env.LOG_LEVEL
     }
     const { PinoLoggerService } =
       await import('../../../../src/adapters/secondary/services/logger.service.js')
@@ -50,9 +53,6 @@ describe('PinoLoggerService', () => {
 
   describe('constructor', () => {
     it('should initialize pino logger with default log level', async () => {
-      // Explicitly delete LOG_LEVEL to test default behavior
-      delete process.env.LOG_LEVEL
-      
       const pino = (await import('pino')).default
       await createLoggerService()
 
