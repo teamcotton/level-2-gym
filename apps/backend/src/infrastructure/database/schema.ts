@@ -94,7 +94,7 @@ export const messages = pgTable(
 /**
  * Parts table: Stores message parts with polymorphic structure based on type field
  * Type discriminator values: text, reasoning, file, source_url, source_document,
- * step-start, data (for custom data parts like darkness, weather, etc.)
+ * step-start, data (for custom data parts - currently supports darkness, extensible for weather, etc.)
  */
 export const parts = pgTable(
   'parts',

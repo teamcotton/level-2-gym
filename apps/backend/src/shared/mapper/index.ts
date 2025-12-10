@@ -116,6 +116,10 @@ export const mapDBPartToUIMessagePart = (part: MyDBUIMessagePartSelect): MyUIMes
         type: part.type,
       }
     case 'data':
+      // Type assertion is safe here because:
+      // 1. Database CHECK constraint ensures dataContent is not null for 'data' type
+      // 2. Application layer validates data structure before insertion
+      // 3. JSONB preserves the original structure
       return {
         type: part.type,
         data: part.dataContent as MyDataPart,
