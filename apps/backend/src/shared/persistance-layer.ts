@@ -37,13 +37,14 @@ async function acquireLock(): Promise<void> {
       return // Lock acquired successfully
     } catch (error) {
       // Check if the error is because the file already exists
-      const isLockHeld = error && typeof error === 'object' && 'code' in error && error.code === 'EEXIST'
-      
+      const isLockHeld =
+        error && typeof error === 'object' && 'code' in error && error.code === 'EEXIST'
+
       if (!isLockHeld) {
         // Re-throw unexpected errors (e.g., permission issues)
         throw error
       }
-      
+
       // Lock file exists, check if we've timed out
       if (Date.now() - startTime > LOCK_TIMEOUT) {
         throw new Error('Failed to acquire lock: timeout exceeded')
@@ -63,7 +64,8 @@ async function releaseLock(): Promise<void> {
     await fs.unlink(LOCK_FILE_PATH)
   } catch (error) {
     // Only ignore "file not found" errors
-    const isNotFound = error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT'
+    const isNotFound =
+      error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT'
     if (!isNotFound) {
       // Log or re-throw other errors (e.g., permission issues)
       console.error('Failed to release lock:', error)
