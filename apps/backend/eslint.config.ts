@@ -15,6 +15,9 @@ const config: Linter.Config[] = [
     },
     languageOptions: {
       parser: tsParser,
+      globals: {
+        Request: 'readonly', // Web API Request used in tests
+      },
     },
     rules: {
       'no-console': 'off', // Console is fine in backend
