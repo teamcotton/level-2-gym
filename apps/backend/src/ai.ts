@@ -141,18 +141,61 @@ export const POST = async (req: Request): Promise<Response> => {
           const { readFile } = await import('fs/promises')
           const { join } = await import('path')
 
+          // Simple list of English stopwords for keyword extraction
+          const STOPWORDS = new Set([
+            'the', 'and', 'a', 'an', 'of', 'to', 'in', 'on', 'for', 'with', 'at', 'by', 'from', 'up', 'about', 'into', 'over', 'after', 'under', 'above', 'below', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 'can', 'will', 'just', 'should', 'could', 'would', 'may', 'might', 'so', 'than', 'too', 'very', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'them', 'his', 'her', 'their', 'our', 'your', 'my', 'me', 'him', 'who', 'whom', 'which', 'what', 'when', 'where', 'why', 'how'
+          ])
+
+          function extractKeywords(text: string): string[] {
+            return text
+              .toLowerCase()
+              .replace(/[^a-z0-9\s]/g, ' ')
+              .split(/\s+/)
+              .filter(word => word && !STOPWORDS.has(word))
+          }
+
           try {
             // Read the Heart of Darkness text file
             const textPath = join(process.cwd(), 'data', 'heart-of-darkness.txt')
             const heartOfDarknessText = await readFile(textPath, 'utf-8')
 
-            // Return the full text as context for the AI to use in answering
+            // Split text into paragraphs (by double newlines)
+            const paragraphs = heartOfDarknessText.split(/\n\s*\n/)
+
+            // Extract keywords from the question
+            const questionKeywords = extractKeywords(question)
+
+            // Score each paragraph by number of keyword matches
+            const scoredParagraphs = paragraphs.map((para, idx) => {
+              const paraWords = extractKeywords(para)
+              const matchCount = questionKeywords.reduce(
+                (count, kw) => count + (paraWords.includes(kw) ? 1 : 0),
+                0
+              )
+              return { idx, para, matchCount }
+            })
+
+            // Sort paragraphs by matchCount descending, then by length descending
+            scoredParagraphs.sort((a, b) => {
+              if (b.matchCount !== a.matchCount) return b.matchCount - a.matchCount
+              return b.para.length - a.para.length
+            })
+
+            // Select top 3 relevant paragraphs (or fewer if not enough)
+            const topParagraphs = scoredParagraphs.slice(0, 3).filter(p => p.matchCount > 0)
+
+            // If no relevant paragraphs found, fall back to the first paragraph
+            const contextParagraphs =
+              topParagraphs.length > 0
+                ? topParagraphs.map(p => p.para)
+                : [paragraphs[0]]
+
             return {
               question,
-              textLength: heartOfDarknessText.length,
-              context: heartOfDarknessText,
+              context: contextParagraphs,
+              contextParagraphCount: contextParagraphs.length,
               instructions:
-                'Use the provided full text of Heart of Darkness to answer the question comprehensively and accurately. Reference specific passages where relevant.',
+                'Use only the provided relevant excerpts from Heart of Darkness to answer the question. Reference the excerpts where appropriate.',
             }
           } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
