@@ -1,16 +1,16 @@
-interface RequestFactoryInterface {
-  newRequest(): void
+interface RequestUtilInterface {
+  newRequest(): Request
 }
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'OPTIONS'
 type Headers = Record<PropertyKey, string | undefined>
-type RequestBody = Record<PropertyKey, unknown>
+type RequestBody = Record<PropertyKey, unknown> | undefined
 
 /**
  * Utility class for creating standard Request objects from HTTP request components.
  *
  * @example
- * const requestClass = new RequestBuilder(
+ * const requestClass = new RequestUtil(
  *   'https://api.example.com/data',
  *   'POST',
  *   { 'Content-Type': 'application/json' },
@@ -18,13 +18,12 @@ type RequestBody = Record<PropertyKey, unknown>
  * )
  * const request = requestClass.newRequest()
  */
-export class RequestFactory implements RequestFactoryInterface {
+export class RequestUtil implements RequestUtilInterface {
   private readonly url: string
   private readonly method: HttpMethod
   private readonly headers: Headers
   private readonly body: RequestBody
-  constructor(url: string, method: HttpMethod, headers: Headers, body: RequestBody) {
-    this.url = url
+  constructor(url: string, method: HttpMethod, headers: Headers = {}, body?: RequestBody) {    this.url = url
     this.method = method
     this.headers = headers
     this.body = body
@@ -32,7 +31,8 @@ export class RequestFactory implements RequestFactoryInterface {
   public newRequest(): Request {
     // Clone headers to avoid mutating the original
     const headers = { ...this.headers }
-    // Only set body and Content-Type for methods that support a body
+    // PATCH is intentionally included as a body-supporting method per HTTP spec.
+    // TRACE and CONNECT are not supported by the current HttpMethod type.
     if (this.method !== 'GET' && this.method !== 'DELETE' && this.method !== 'OPTIONS') {
       // Check for Content-Type header (case-insensitive)
       const hasContentType = Object.keys(headers).some(
