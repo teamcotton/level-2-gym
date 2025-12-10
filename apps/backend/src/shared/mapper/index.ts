@@ -1,4 +1,5 @@
 import type { MyUIMessagePart, MyDataPart } from '../types/index.js'
+import { dataPartSchema } from '../types/index.js'
 import type {
   MyDBUIMessagePart,
   MyDBUIMessagePartSelect,
@@ -116,13 +117,17 @@ export const mapDBPartToUIMessagePart = (part: MyDBUIMessagePartSelect): MyUIMes
         type: part.type,
       }
     case 'data':
-      // Type assertion is safe here because:
-      // 1. Database CHECK constraint ensures dataContent is not null for 'data' type
-      // 2. Application layer validates data structure before insertion
-      // 3. JSONB preserves the original structure
-      return {
-        type: part.type,
-        data: part.dataContent as MyDataPart,
+      // Validate data structure at runtime to ensure database integrity
+      try {
+        const validatedData = dataPartSchema.parse(part.dataContent)
+        return {
+          type: part.type,
+          data: validatedData,
+        }
+      } catch (error) {
+        throw new Error(
+          `Invalid data part structure in database: ${error instanceof Error ? error.message : 'Unknown error'}`
+        )
       }
     default:
       throw new Error(`Unsupported part type: ${part.type}`)

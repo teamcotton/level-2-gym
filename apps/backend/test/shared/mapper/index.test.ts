@@ -167,5 +167,37 @@ describe('Mapper', () => {
         },
       })
     })
+
+    it('should throw error for invalid data part structure from DB', () => {
+      const dbPart: MyDBUIMessagePartSelect = {
+        id: '01234567-89ab-cdef-0123-456789abcdef',
+        messageId,
+        type: 'data',
+        order: 0,
+        createdAt: new Date(),
+        textText: null,
+        reasoningText: null,
+        fileMediaType: null,
+        fileFilename: null,
+        fileUrl: null,
+        sourceUrlSourceId: null,
+        sourceUrlUrl: null,
+        sourceUrlTitle: null,
+        sourceDocumentSourceId: null,
+        sourceDocumentMediaType: null,
+        sourceDocumentTitle: null,
+        sourceDocumentFilename: null,
+        toolToolCallId: null,
+        toolState: null,
+        toolErrorText: null,
+        dataContent: {
+          // Invalid structure - not matching dataPartSchema
+          invalidField: 'this should not be here',
+        },
+        providerMetadata: null,
+      }
+
+      expect(() => mapDBPartToUIMessagePart(dbPart)).toThrow('Invalid data part structure in database')
+    })
   })
 })
