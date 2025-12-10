@@ -53,6 +53,8 @@ export const POST = async (req: Request): Promise<Response> => {
     messages: modelMessages,
     system: ` ${SYSTEM_PROMPT}
       You are a helpful assistant that can use a sandboxed file system to create, edit and delete files.
+      
+      You also have access to the full text of Joseph Conrad's "Heart of Darkness" and can answer detailed questions about the novella using the heartOfDarknessQA tool.
 
       You have access to the following tools:
       - writeFile
@@ -62,6 +64,7 @@ export const POST = async (req: Request): Promise<Response> => {
       - createDirectory
       - exists
       - searchFiles
+      - heartOfDarknessQA (for answering questions about the novella Heart of Darkness)
 
       Use these tools to record notes, create todo lists, and edit documents for the user.
 
@@ -130,6 +133,35 @@ export const POST = async (req: Request): Promise<Response> => {
         }),
         execute: async ({ pattern }) => {
           return fileSystemTools.searchFiles(pattern)
+        },
+      }),
+      heartOfDarknessQA: tool({
+        description:
+          'Answer questions about Joseph Conrad\'s novella "Heart of Darkness" using the full text of the book',
+        inputSchema: z.object({
+          question: z.string().describe('The question to answer about Heart of Darkness'),
+        }),
+        execute: async ({ question }) => {
+          const { readFile } = await import('fs/promises')
+          const { join } = await import('path')
+
+          try {
+            // Read the Heart of Darkness text file
+            const textPath = join(process.cwd(), 'data', 'heart-of-darkness.txt')
+            const heartOfDarknessText = await readFile(textPath, 'utf-8')
+
+            // Return the full text as context for the AI to use in answering
+            return {
+              question,
+              textLength: heartOfDarknessText.length,
+              context: heartOfDarknessText,
+              instructions:
+                'Use the provided full text of Heart of Darkness to answer the question comprehensively and accurately. Reference specific passages where relevant.',
+            }
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+            throw new Error(`Error loading Heart of Darkness text: ${errorMessage}`)
+          }
         },
       }),
     },

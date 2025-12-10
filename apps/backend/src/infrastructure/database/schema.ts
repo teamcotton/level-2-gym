@@ -200,3 +200,6 @@ export const auditLog = pgTable(
     actionIdx: index('audit_log_action_idx').on(table.action),
   })
 )
+
+export type MyDBUIMessagePart = typeof parts.$inferInsert
+export type MyDBUIMessagePartSelect = typeof parts.$inferSelect

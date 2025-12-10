@@ -12,6 +12,8 @@ Contains:
 - Exceptions: Custom error classes used across layers
 - Validators: Generic validation utilities
 - Guards: Type guards and assertion functions
+- Mapper: Utility for mapping objects
+- Types: Custom TypeScript types
 
 Rules:
 - Should contain only generic, reusable code
