@@ -1,4 +1,4 @@
-interface RequestBuilderInterface {
+interface RequestFactoryInterface {
   newRequest(): void
 }
 
@@ -18,7 +18,7 @@ type RequestBody = Record<PropertyKey, unknown>
  * )
  * const request = requestClass.newRequest()
  */
-export class RequestBuilder implements RequestBuilderInterface {
+export class RequestFactory implements RequestFactoryInterface {
   private readonly url: string
   private readonly method: HttpMethod
   private readonly headers: Headers
