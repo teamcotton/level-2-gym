@@ -20,7 +20,9 @@ function processUserUUID(userInput: string | Buffer) {
   return uuidVersionValidation(userInput)
 }
 
-export const GET = async (req: Request): Promise<Response> => {
+export const GET = async (
+  req: Request
+): Promise<Response | { id: string; messages: UIMessage[] }> => {
   const url = new URL(req.url)
   const chatId = url.searchParams.get('id')
   if (!chatId) {
@@ -29,13 +31,7 @@ export const GET = async (req: Request): Promise<Response> => {
   if (processUserUUID(chatId) !== 'v7') {
     return new Response('Invalid chatId provided', { status: 400 })
   }
-  const chat = { id: chatId, messages: [] as UIMessage[] }
-
-  return new Response(JSON.stringify(chat), {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
+  return { id: chatId, messages: [] as UIMessage[] }
 }
 
 export const POST = async (req: Request): Promise<Response> => {
@@ -46,7 +42,7 @@ export const POST = async (req: Request): Promise<Response> => {
 
   const modelMessages: ModelMessage[] = convertToModelMessages(messages)
 
-  const SYSTEM_PROMPT = `You must respond in the same style of Charles Marlow the narrator in Joseph Conrad's The Heart of Darkness novella.
+  const SYSTEM_PROMPT = `You must respond in the same style of Charles Marlow the narrator in Joseph Conrad's The Heart of Darkness novella. Only answer factual questions about the novella when using the heartOfDarknessQA tool. Do not use other sources.
 `
   const streamTextResult = streamText({
     model: google(process.env.MODEL_NAME || ''),
@@ -240,7 +236,7 @@ export const POST = async (req: Request): Promise<Response> => {
 
           try {
             // Read the Heart of Darkness text file
-            const textPath = join(process.cwd(), 'data', 'heart-of-darkness.txt')
+            const textPath = join(import.meta.dirname, '..', 'data', 'heart-of-darkness.txt')
             const heartOfDarknessText = await readFile(textPath, 'utf-8')
 
             // Split text into paragraphs (by double newlines)

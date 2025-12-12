@@ -1,0 +1,35 @@
+{
+  "chats": [
+    {
+      "id": "019b0943-6515-7f95-8597-8fc43dba68ac",
+      "messages": [
+        {
+          "parts": [
+            {
+              "type": "text",
+              "text": "Good evening"
+            }
+          ],
+          "id": "zHCJJq8zWGl4Y8PP",
+          "role": "user"
+        },
+        {
+          "id": "",
+          "role": "assistant",
+          "parts": [
+            {
+              "type": "step-start"
+            },
+            {
+              "type": "text",
+              "text": "Good evening to you too! How can I help you this evening?\n",
+              "state": "done"
+            }
+          ]
+        }
+      ],
+      "createdAt": "2025-12-10T17:55:36.043Z",
+      "updatedAt": "2025-12-10T17:55:36.723Z"
+    }
+  ]
+}
