@@ -15,6 +15,27 @@ describe('RegisterUserDto', () => {
       expect(dto.email).toBe(email)
       expect(dto.password).toBe(password)
       expect(dto.name).toBe(name)
+      expect(dto.role).toBe('user')
+    })
+
+    it('should create a RegisterUserDto with custom role', () => {
+      const email = 'admin@example.com'
+      const password = 'password123'
+      const name = 'Admin User'
+      const role = 'admin'
+
+      const dto = new RegisterUserDto(email, password, name, role)
+
+      expect(dto.email).toBe(email)
+      expect(dto.password).toBe(password)
+      expect(dto.name).toBe(name)
+      expect(dto.role).toBe(role)
+    })
+
+    it('should default to "user" role when not provided', () => {
+      const dto = new RegisterUserDto('test@example.com', 'password123', 'John Doe')
+
+      expect(dto.role).toBe('user')
     })
 
     it('should have readonly properties at compile time', () => {
@@ -57,6 +78,24 @@ describe('RegisterUserDto', () => {
         expect(dto.email).toBe(data.email)
         expect(dto.password).toBe(data.password)
         expect(dto.name).toBe(data.name)
+        expect(dto.role).toBe('user')
+      })
+
+      it('should validate and create RegisterUserDto with custom role', () => {
+        const data = {
+          email: 'admin@example.com',
+          password: 'password123',
+          name: 'Admin User',
+          role: 'admin',
+        }
+
+        const dto = RegisterUserDto.validate(data)
+
+        expect(dto).toBeInstanceOf(RegisterUserDto)
+        expect(dto.email).toBe(data.email)
+        expect(dto.password).toBe(data.password)
+        expect(dto.name).toBe(data.name)
+        expect(dto.role).toBe(data.role)
       })
 
       it('should validate with extra properties in data', () => {
@@ -363,6 +402,120 @@ describe('RegisterUserDto', () => {
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
           'Name is required and must be a string'
+        )
+      })
+    })
+
+    describe('role validation', () => {
+      it('should not throw when role is valid', () => {
+        const data = {
+          email: 'test@example.com',
+          password: 'password123',
+          name: 'John Doe',
+          role: 'moderator',
+        }
+
+        expect(() => RegisterUserDto.validate(data)).not.toThrow()
+      })
+
+      it('should throw ValidationException when role is not a string', () => {
+        const data = {
+          email: 'test@example.com',
+          password: 'password123',
+          name: 'John Doe',
+          role: 123,
+        }
+
+        expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
+        expect(() => RegisterUserDto.validate(data)).toThrow('Role must be a string')
+      })
+
+      it('should throw ValidationException when role is an array', () => {
+        const data = {
+          email: 'test@example.com',
+          password: 'password123',
+          name: 'John Doe',
+          role: ['admin'],
+        }
+
+        expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
+        expect(() => RegisterUserDto.validate(data)).toThrow('Role must be a string')
+      })
+
+      it('should throw ValidationException when role is an object', () => {
+        const data = {
+          email: 'test@example.com',
+          password: 'password123',
+          name: 'John Doe',
+          role: { type: 'admin' },
+        }
+
+        expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
+        expect(() => RegisterUserDto.validate(data)).toThrow('Role must be a string')
+      })
+
+      it('should not throw when role is undefined (defaults to "user")', () => {
+        const data = {
+          email: 'test@example.com',
+          password: 'password123',
+          name: 'John Doe',
+          role: undefined,
+        }
+
+        const dto = RegisterUserDto.validate(data)
+        expect(dto.role).toBe('user')
+      })
+
+      it('should not throw when role is not provided (defaults to "user")', () => {
+        const data = {
+          email: 'test@example.com',
+          password: 'password123',
+          name: 'John Doe',
+        }
+
+        const dto = RegisterUserDto.validate(data)
+        expect(dto.role).toBe('user')
+      })
+
+      it('should throw ValidationException when role is invalid', () => {
+        const data = {
+          email: 'test@example.com',
+          password: 'password123',
+          name: 'John Doe',
+          role: 'superuser',
+        }
+
+        expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
+        expect(() => RegisterUserDto.validate(data)).toThrow(
+          'Invalid role. Must be one of: user, admin, moderator'
+        )
+      })
+
+      it('should throw ValidationException when role is empty string', () => {
+        const data = {
+          email: 'test@example.com',
+          password: 'password123',
+          name: 'John Doe',
+          role: '',
+        }
+
+        expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
+        expect(() => RegisterUserDto.validate(data)).toThrow(
+          'Invalid role. Must be one of: user, admin, moderator'
+        )
+      })
+
+      it('should throw ValidationException when role has wrong case', () => {
+        const data = {
+          email: 'test@example.com',
+          password: 'password123',
+          name: 'John Doe',
+          role: 'Admin',
+        }
+
+        expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
+        expect(() => RegisterUserDto.validate(data)).toThrow(
+          'Invalid role. Must be one of: user, admin, moderator'
         )
       })
     })

@@ -1,6 +1,7 @@
 import { User } from '../../domain/entities/user.js'
 import { Email } from '../../domain/value-objects/email.js'
 import { Password } from '../../domain/value-objects/password.js'
+import { Role } from '../../domain/value-objects/role.js'
 import type { UserRepositoryPort } from '../ports/user.repository.port.js'
 import type { EmailServicePort } from '../ports/email.service.port.js'
 import type { LoggerPort } from '../ports/logger.port.js'
@@ -22,10 +23,11 @@ export class RegisterUserUseCase {
     // Create domain objects
     const email = new Email(dto.email)
     const password = await Password.create(dto.password)
+    const role = new Role(dto.role)
     const userId = this.generateId() // Simplified
 
     // Create user entity
-    const user = new User(userId, email, password, dto.name)
+    const user = new User(userId, email, password, dto.name, role)
 
     // Persist user with race condition handling
     // The database has a unique constraint on email, so if two concurrent requests

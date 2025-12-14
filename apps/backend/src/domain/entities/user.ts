@@ -1,5 +1,6 @@
 import type { EmailType } from '../value-objects/email.js'
 import type { PasswordType } from '../value-objects/password.js'
+import type { RoleType } from '../value-objects/role.js'
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
 
 /**
@@ -12,17 +13,20 @@ import { ValidationException } from '../../shared/exceptions/validation.exceptio
  * - Users have a unique identifier (id) that cannot be changed
  * - Email addresses can only be updated if verified
  * - Password updates require verification of the old password
+ * - Roles define user permissions and can be changed by administrators
  * - All user data is encapsulated and accessed through getter methods
  *
  * @example
  * ```typescript
  * const email = new Email('user@example.com')
  * const password = await Password.create('securePassword123')
- * const user = new User('user-123', email, password, 'John Doe')
+ * const role = new Role('user')
+ * const user = new User('user-123', email, password, 'John Doe', role)
  *
  * // Get user information
  * console.log(user.getEmail()) // 'user@example.com'
  * console.log(user.getName())  // 'John Doe'
+ * console.log(user.getRole())  // 'user'
  *
  * // Update email (if verified)
  * const newEmail = new Email('newemail@example.com')
@@ -31,6 +35,10 @@ import { ValidationException } from '../../shared/exceptions/validation.exceptio
  * // Update password (requires old password verification)
  * const newPassword = await Password.create('newSecurePassword456')
  * await user.updatePassword('securePassword123', newPassword)
+ *
+ * // Update role (admin-only operation)
+ * const newRole = new Role('admin')
+ * user.updateRole(newRole)
  * ```
  */
 export class User {
@@ -41,13 +49,15 @@ export class User {
    * @param email - User's email address (EmailType branded type for type safety)
    * @param password - User's hashed password (PasswordType branded type for type safety)
    * @param name - User's display name
+   * @param role - User's role (RoleType branded type for type safety)
    * @param createdAt - Timestamp when the user was created (defaults to current date/time)
    *
    * @example
    * ```typescript
    * const email = new Email('john@example.com')
    * const password = await Password.create('myPassword123')
-   * const user = new User('user-456', email, password, 'John Smith')
+   * const role = new Role('user')
+   * const user = new User('user-456', email, password, 'John Smith', role)
    * ```
    */
   constructor(
@@ -55,6 +65,7 @@ export class User {
     private email: EmailType,
     private password: PasswordType,
     private name: string,
+    private role: RoleType,
     private createdAt: Date = new Date()
   ) {}
 
@@ -143,5 +154,37 @@ export class User {
    */
   getName(): string {
     return this.name
+  }
+
+  /**
+   * Gets the user's role.
+   *
+   * @returns The user's role as a string
+   *
+   * @example
+   * ```typescript
+   * const role = user.getRole() // 'user'
+   * ```
+   */
+  getRole(): string {
+    return this.role.getValue()
+  }
+
+  /**
+   * Updates the user's role.
+   *
+   * Business Rule: Role changes should typically be restricted to administrators.
+   * This method should be called through a use case that enforces authorization.
+   *
+   * @param newRole - The new role to assign (must be a validated RoleType)
+   *
+   * @example
+   * ```typescript
+   * const newRole = new Role('admin')
+   * user.updateRole(newRole)
+   * ```
+   */
+  updateRole(newRole: RoleType): void {
+    this.role = newRole
   }
 }

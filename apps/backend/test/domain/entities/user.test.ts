@@ -3,17 +3,20 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { User } from '../../../src/domain/entities/user.js'
 import { Email } from '../../../src/domain/value-objects/email.js'
 import { Password } from '../../../src/domain/value-objects/password.js'
+import { Role } from '../../../src/domain/value-objects/role.js'
 import { ValidationException } from '../../../src/shared/exceptions/validation.exception.js'
 
 describe('User Entity', () => {
   let testEmail: Email
   let testPassword: Password
+  let testRole: Role
   let testUser: User
 
   beforeEach(async () => {
     testEmail = new Email('test@example.com')
     testPassword = await Password.create('password123')
-    testUser = new User('user-123', testEmail, testPassword, 'John Doe')
+    testRole = new Role('user')
+    testUser = new User('user-123', testEmail, testPassword, 'John Doe', testRole)
   })
 
   describe('Constructor', () => {
@@ -25,7 +28,7 @@ describe('User Entity', () => {
     })
 
     it('should create a user with default createdAt date', () => {
-      const user = new User('user-456', testEmail, testPassword, 'Jane Doe')
+      const user = new User('user-456', testEmail, testPassword, 'Jane Doe', testRole)
 
       // createdAt should be between beforeCreation and afterCreation
       // We can't directly access createdAt as it's private, but we can verify the user was created
@@ -34,7 +37,7 @@ describe('User Entity', () => {
 
     it('should create a user with custom createdAt date', () => {
       const customDate = new Date('2024-01-01')
-      const user = new User('user-789', testEmail, testPassword, 'Bob Smith', customDate)
+      const user = new User('user-789', testEmail, testPassword, 'Bob Smith', testRole, customDate)
 
       expect(user).toBeInstanceOf(User)
     })
@@ -55,7 +58,7 @@ describe('User Entity', () => {
 
     it('should return normalized lowercase email', () => {
       const upperEmail = new Email('TEST@EXAMPLE.COM')
-      const user = new User('user-123', upperEmail, testPassword, 'Test User')
+      const user = new User('user-123', upperEmail, testPassword, 'Test User', testRole)
 
       expect(user.getEmail()).toBe('test@example.com')
     })
@@ -70,9 +73,51 @@ describe('User Entity', () => {
 
     it('should return the exact name provided in constructor', () => {
       const specialName = "José María O'Brien-Smith"
-      const user = new User('user-123', testEmail, testPassword, specialName)
+      const user = new User('user-123', testEmail, testPassword, specialName, testRole)
 
       expect(user.getName()).toBe(specialName)
+    })
+  })
+
+  describe('getRole()', () => {
+    it('should return the user role as a string', () => {
+      const role = testUser.getRole()
+      expect(role).toBe('user')
+      expect(typeof role).toBe('string')
+    })
+
+    it('should return the correct role for admin users', () => {
+      const adminRole = new Role('admin')
+      const adminUser = new User('admin-123', testEmail, testPassword, 'Admin User', adminRole)
+
+      expect(adminUser.getRole()).toBe('admin')
+    })
+  })
+
+  describe('updateRole()', () => {
+    it('should update user role', () => {
+      const newRole = new Role('admin')
+      testUser.updateRole(newRole)
+
+      expect(testUser.getRole()).toBe('admin')
+    })
+
+    it('should accept RoleType branded type', () => {
+      const moderatorRole = new Role('moderator')
+
+      expect(() => testUser.updateRole(moderatorRole)).not.toThrow()
+      expect(testUser.getRole()).toBe('moderator')
+    })
+
+    it('should allow changing from admin to user', () => {
+      const adminRole = new Role('admin')
+      const userRole = new Role('user')
+
+      testUser.updateRole(adminRole)
+      expect(testUser.getRole()).toBe('admin')
+
+      testUser.updateRole(userRole)
+      expect(testUser.getRole()).toBe('user')
     })
   })
 
@@ -201,14 +246,14 @@ describe('User Entity', () => {
   describe('Type Safety', () => {
     it('should accept Email type for email parameter', () => {
       const email = new Email('typed@example.com')
-      const user = new User('id-123', email, testPassword, 'Test User')
+      const user = new User('id-123', email, testPassword, 'Test User', testRole)
 
       expect(user.getEmail()).toBe('typed@example.com')
     })
 
     it('should accept Password type for password parameter', async () => {
       const password = await Password.create('typedpassword')
-      const user = new User('id-123', testEmail, password, 'Test User')
+      const user = new User('id-123', testEmail, password, 'Test User', testRole)
 
       expect(user).toBeInstanceOf(User)
     })
@@ -224,14 +269,14 @@ describe('User Entity', () => {
 
   describe('Edge Cases', () => {
     it('should handle user with empty name', () => {
-      const user = new User('id-123', testEmail, testPassword, '')
+      const user = new User('id-123', testEmail, testPassword, '', testRole)
 
       expect(user.getName()).toBe('')
     })
 
     it('should handle user with very long name', () => {
       const longName = 'A'.repeat(1000)
-      const user = new User('id-123', testEmail, testPassword, longName)
+      const user = new User('id-123', testEmail, testPassword, longName, testRole)
 
       expect(user.getName()).toBe(longName)
       expect(user.getName().length).toBe(1000)
@@ -247,7 +292,7 @@ describe('User Entity', () => {
       ]
 
       for (const name of specialNames) {
-        const user = new User('id-123', testEmail, testPassword, name)
+        const user = new User('id-123', testEmail, testPassword, name, testRole)
         expect(user.getName()).toBe(name)
       }
     })
@@ -279,7 +324,7 @@ describe('User Entity', () => {
   describe('Integration with Value Objects', () => {
     it('should work with Email value object normalization', () => {
       const mixedCaseEmail = new Email('TeSt@ExAmPlE.CoM')
-      const user = new User('id-123', mixedCaseEmail, testPassword, 'Test User')
+      const user = new User('id-123', mixedCaseEmail, testPassword, 'Test User', testRole)
 
       expect(user.getEmail()).toBe('test@example.com')
     })
@@ -287,7 +332,7 @@ describe('User Entity', () => {
     it('should work with Password value object hashing', async () => {
       const plainPassword = 'mysecretpassword123'
       const hashedPassword = await Password.create(plainPassword)
-      const user = new User('id-123', testEmail, hashedPassword, 'Test User')
+      const user = new User('id-123', testEmail, hashedPassword, 'Test User', testRole)
 
       expect(user).toBeInstanceOf(User)
 
@@ -300,8 +345,8 @@ describe('User Entity', () => {
       const email1 = new Email('same@example.com')
       const email2 = new Email('same@example.com')
 
-      const user1 = new User('id-1', email1, testPassword, 'User 1')
-      const user2 = new User('id-2', email2, testPassword, 'User 2')
+      const user1 = new User('id-1', email1, testPassword, 'User 1', testRole)
+      const user2 = new User('id-2', email2, testPassword, 'User 2', testRole)
 
       expect(user1.getEmail()).toBe(user2.getEmail())
     })
