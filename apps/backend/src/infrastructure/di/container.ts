@@ -10,8 +10,6 @@ import { ResendService } from '../../adapters/secondary/services/email.service.j
 import { PinoLoggerService } from '../../adapters/secondary/services/logger.service.js'
 import { UserController } from '../../adapters/primary/http/user.controller.js'
 
-import { InternalErrorException } from '../../shared/exceptions/internal-error.exception.js'
-
 import { EnvConfig } from '../config/env.config.js'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
