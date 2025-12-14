@@ -21,7 +21,7 @@ export class ResendService implements EmailServicePort {
 
     const emailData = {
       from: EnvConfig.EMAIL_FROM_ADDRESS,
-      to: 'andy.walpole@gmail.com',
+      to,
       subject: 'Hello World',
       html: '<p>Congrats on sending your <strong>first email</strong>!</p>',
     }

@@ -130,8 +130,7 @@ export class Container {
       console.log(`📚 API Documentation: ${protocol}://${host}:${port}/docs`)
     } catch (error) {
       this.logger.error('Failed to start server', error as Error)
-      new InternalErrorException('Failed to start server', error as Error)
-      process.exit(1)
+      throw new InternalErrorException('Failed to start server', error as Error)
     }
   }
 
