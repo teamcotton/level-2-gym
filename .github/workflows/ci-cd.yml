@@ -31,6 +31,9 @@ jobs:
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
 
+    - name: Install Playwright browsers
+      run: cd apps/frontend && pnpm exec playwright install --with-deps chromium
+
     - name: Run format check
       run: pnpm run format:check
 
@@ -39,6 +42,17 @@ jobs:
 
     - name: Run tests
       run: pnpm run test
+
+    - name: Run E2E tests
+      run: cd apps/frontend && pnpm run test:e2e
+
+    - name: Upload Playwright report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-report-${{ matrix.node-version }}
+        path: apps/frontend/playwright-report/
+        retention-days: 30
 
     - name: Build project
       run: pnpm run build
