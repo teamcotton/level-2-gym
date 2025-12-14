@@ -48,7 +48,6 @@
     "apps/*",
     "packages/*"
   ],
-  "packageManager": "pnpm@10.24.0",
-  "preinstall": "npx --yes only-allow pnpm",
-  "preupdate": "npx --yes only-allow pnpm"
+  "packageManager": "pnpm@10.25.0",
+  "preinstall": "npx --yes only-allow pnpm"
 }
