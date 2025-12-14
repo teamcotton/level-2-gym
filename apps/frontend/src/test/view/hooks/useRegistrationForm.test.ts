@@ -213,6 +213,120 @@ describe('useRegistrationForm', () => {
       expect(result.current.errors.name).toBeTruthy()
     })
 
+    it('should show error when name is less than 2 characters', () => {
+      const { result } = renderHook(() => useRegistrationForm())
+
+      act(() => {
+        const handler = result.current.handleChange('name')
+        handler({ target: { value: 'A' } } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        result.current.handleSubmit({
+          preventDefault: () => {},
+        } as React.FormEvent)
+      })
+
+      expect(result.current.errors.name).toBe('Name must be at least 2 characters')
+    })
+
+    it('should show error when name exceeds 200 characters', () => {
+      const { result } = renderHook(() => useRegistrationForm())
+
+      const longName = 'A'.repeat(201)
+
+      act(() => {
+        const handler = result.current.handleChange('name')
+        handler({ target: { value: longName } } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        result.current.handleSubmit({
+          preventDefault: () => {},
+        } as React.FormEvent)
+      })
+
+      expect(result.current.errors.name).toBe('Name must not exceed 200 characters')
+    })
+
+    it('should accept valid name with exactly 2 characters', () => {
+      const { result } = renderHook(() => useRegistrationForm())
+
+      act(() => {
+        const emailHandler = result.current.handleChange('email')
+        emailHandler({
+          target: { value: 'test@example.com' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const nameHandler = result.current.handleChange('name')
+        nameHandler({ target: { value: 'AB' } } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const passwordHandler = result.current.handleChange('password')
+        passwordHandler({
+          target: { value: 'securepassword123' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const confirmHandler = result.current.handleChange('confirmPassword')
+        confirmHandler({
+          target: { value: 'securepassword123' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        result.current.handleSubmit({
+          preventDefault: () => {},
+        } as React.FormEvent)
+      })
+
+      expect(result.current.errors.name).toBe('')
+    })
+
+    it('should accept valid name with exactly 200 characters', () => {
+      const { result } = renderHook(() => useRegistrationForm())
+
+      const maxLengthName = 'A'.repeat(200)
+
+      act(() => {
+        const emailHandler = result.current.handleChange('email')
+        emailHandler({
+          target: { value: 'test@example.com' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const nameHandler = result.current.handleChange('name')
+        nameHandler({ target: { value: maxLengthName } } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const passwordHandler = result.current.handleChange('password')
+        passwordHandler({
+          target: { value: 'securepassword123' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const confirmHandler = result.current.handleChange('confirmPassword')
+        confirmHandler({
+          target: { value: 'securepassword123' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        result.current.handleSubmit({
+          preventDefault: () => {},
+        } as React.FormEvent)
+      })
+
+      expect(result.current.errors.name).toBe('')
+    })
+
     it('should accept valid name', () => {
       const { result } = renderHook(() => useRegistrationForm())
 

@@ -199,4 +199,96 @@ test.describe('Registration Page', () => {
     const form = page.locator('form')
     await expect(form).toBeVisible()
   })
+
+  test('should show error when name is less than 2 characters', async ({ page }) => {
+    const nameInput = page.getByLabel(/^name/i)
+    const submitButton = page.getByRole('button', { name: /create account/i })
+
+    // Fill in name with only 1 character
+    await nameInput.fill('A')
+    await nameInput.blur()
+
+    // Fill other required fields to trigger validation on submit
+    await page.getByLabel(/email address/i).fill('test@example.com')
+    await page
+      .getByLabel(/^password/i, { exact: false })
+      .first()
+      .fill('securepassword123')
+    await page.locator('input[autocomplete="new-password"]').nth(1).fill('securepassword123')
+
+    // Submit form
+    await submitButton.click()
+
+    // Check for error message
+    await expect(page.getByText(/name must be at least 2 characters/i)).toBeVisible()
+  })
+
+  test('should show error when name exceeds 200 characters', async ({ page }) => {
+    const nameInput = page.getByLabel(/^name/i)
+    const submitButton = page.getByRole('button', { name: /create account/i })
+
+    // Fill in name with 201 characters
+    const longName = 'A'.repeat(201)
+    await nameInput.fill(longName)
+    await nameInput.blur()
+
+    // Fill other required fields to trigger validation on submit
+    await page.getByLabel(/email address/i).fill('test@example.com')
+    await page
+      .getByLabel(/^password/i, { exact: false })
+      .first()
+      .fill('securepassword123')
+    await page.locator('input[autocomplete="new-password"]').nth(1).fill('securepassword123')
+
+    // Submit form
+    await submitButton.click()
+
+    // Check for error message
+    await expect(page.getByText(/name must not exceed 200 characters/i)).toBeVisible()
+  })
+
+  test('should accept name with exactly 2 characters', async ({ page }) => {
+    const nameInput = page.getByLabel(/^name/i)
+    const submitButton = page.getByRole('button', { name: /create account/i })
+
+    // Fill in name with exactly 2 characters
+    await nameInput.fill('AB')
+
+    // Fill other required fields
+    await page.getByLabel(/email address/i).fill('test@example.com')
+    await page
+      .getByLabel(/^password/i, { exact: false })
+      .first()
+      .fill('securepassword123')
+    await page.locator('input[autocomplete="new-password"]').nth(1).fill('securepassword123')
+
+    // Submit form
+    await submitButton.click()
+
+    // Should not show name error
+    await expect(page.getByText(/name must be at least 2 characters/i)).toBeHidden()
+  })
+
+  test('should accept name with exactly 200 characters', async ({ page }) => {
+    const nameInput = page.getByLabel(/^name/i)
+    const submitButton = page.getByRole('button', { name: /create account/i })
+
+    // Fill in name with exactly 200 characters
+    const maxLengthName = 'A'.repeat(200)
+    await nameInput.fill(maxLengthName)
+
+    // Fill other required fields
+    await page.getByLabel(/email address/i).fill('test@example.com')
+    await page
+      .getByLabel(/^password/i, { exact: false })
+      .first()
+      .fill('securepassword123')
+    await page.locator('input[autocomplete="new-password"]').nth(1).fill('securepassword123')
+
+    // Submit form
+    await submitButton.click()
+
+    // Should not show name error
+    await expect(page.getByText(/name must not exceed 200 characters/i)).toBeHidden()
+  })
 })
