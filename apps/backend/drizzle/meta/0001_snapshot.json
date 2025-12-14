@@ -586,7 +586,8 @@
           "name": "role",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "'user'"
         },
         "created_at": {
           "name": "created_at",

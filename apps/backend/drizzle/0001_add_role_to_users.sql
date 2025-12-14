@@ -1,2 +1,3 @@
 -- Add role column to users table
-ALTER TABLE "users" ADD COLUMN "role" text NOT NULL;
+-- Adding with a default value to handle existing rows
+ALTER TABLE "users" ADD COLUMN "role" text NOT NULL DEFAULT 'user';
