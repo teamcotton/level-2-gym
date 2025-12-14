@@ -1,10 +1,9 @@
-import type { Obscured } from 'obscured'
 import { obscured } from 'obscured'
 import { useState } from 'react'
 
 import { EmailSchema, NameSchema, PasswordSchema } from '@/domain/auth/index.js'
 
-interface FormData {
+interface FormData extends Record<string, string> {
   email: string
   name: string
   password: string
@@ -41,14 +40,7 @@ export function useRegistrationForm() {
 
   const validateForm = (): boolean => {
     // Obscure sensitive fields before validation
-    // Type assertion needed because FormData lacks index signature for Record<string, unknown>
-    const obscuredData = obscured.obscureKeys(formData as unknown as Record<string, unknown>, [
-      'password',
-      'confirmPassword',
-    ]) as unknown as FormData & {
-      password: Obscured<string>
-      confirmPassword: Obscured<string>
-    }
+    const obscuredData = obscured.obscureKeys(formData, ['password', 'confirmPassword'])
 
     const newErrors: FormErrors = {
       email: '',
