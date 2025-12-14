@@ -8,7 +8,7 @@ CREATE TABLE users (
     name        TEXT NOT NULL,
     password    TEXT NOT NULL CHECK (length(password) = 60), -- bcrypt hash
     email       CITEXT      NOT NULL UNIQUE,
-    role        TEXT NOT NULL CHECK (role IN ('admin_write', 'admin_read', 'user')),
+    role        TEXT NOT NULL CHECK (role IN ('admin', 'moderator', 'user')),
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

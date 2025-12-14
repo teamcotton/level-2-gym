@@ -6,10 +6,13 @@
 
 It is recommend to use Corepack to manage pnpm versions:
 
-Using Corepack
-Due to an issue with outdated signatures in Corepack, Corepack should be updated to its latest version first:
+## Using Corepack
 
+Due to an issue with outdated signatures in Corepack, Corepack should be updated to its latest version first.
+
+```bash
 npm install --global corepack@latest
+```
 
 Since v16.13, Node.js is shipping Corepack for managing package managers. This is an experimental feature, so you need to enable it by running:
 
