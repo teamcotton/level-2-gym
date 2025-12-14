@@ -6,7 +6,7 @@ export const PasswordSchema = z.string().min(12, 'Password must be at least 12 c
 export const NameSchema = z
   .string()
   .min(2, 'Name must be at least 2 characters')
-  .max(200, 'Name must not exceed 200 characters')
+  .max(100, 'Name must not exceed 100 characters')
 
 // Registration form schema
 export const RegistrationFormSchema = z.object({

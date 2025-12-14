@@ -151,7 +151,7 @@ components:
         password:
           type: string
           format: password
-          minLength: 8
+          minLength: 12
           example: SecurePass123!
           description: User's password (minimum 12 characters)
         name:

@@ -223,12 +223,12 @@ test.describe('Registration Page', () => {
     await expect(page.getByText(/name must be at least 2 characters/i)).toBeVisible()
   })
 
-  test('should show error when name exceeds 200 characters', async ({ page }) => {
+  test('should show error when name exceeds 100 characters', async ({ page }) => {
     const nameInput = page.getByLabel(/^name/i)
     const submitButton = page.getByRole('button', { name: /create account/i })
 
-    // Fill in name with 201 characters
-    const longName = 'A'.repeat(201)
+    // Fill in name with 101 characters
+    const longName = 'A'.repeat(101)
     await nameInput.fill(longName)
     await nameInput.blur()
 
@@ -244,7 +244,7 @@ test.describe('Registration Page', () => {
     await submitButton.click()
 
     // Check for error message
-    await expect(page.getByText(/name must not exceed 200 characters/i)).toBeVisible()
+    await expect(page.getByText(/name must not exceed 100 characters/i)).toBeVisible()
   })
 
   test('should accept name with exactly 2 characters', async ({ page }) => {
@@ -269,12 +269,12 @@ test.describe('Registration Page', () => {
     await expect(page.getByText(/name must be at least 2 characters/i)).toBeHidden()
   })
 
-  test('should accept name with exactly 200 characters', async ({ page }) => {
+  test('should accept name with exactly 100 characters', async ({ page }) => {
     const nameInput = page.getByLabel(/^name/i)
     const submitButton = page.getByRole('button', { name: /create account/i })
 
-    // Fill in name with exactly 200 characters
-    const maxLengthName = 'A'.repeat(200)
+    // Fill in name with exactly 100 characters
+    const maxLengthName = 'A'.repeat(100)
     await nameInput.fill(maxLengthName)
 
     // Fill other required fields
@@ -289,6 +289,6 @@ test.describe('Registration Page', () => {
     await submitButton.click()
 
     // Should not show name error
-    await expect(page.getByText(/name must not exceed 200 characters/i)).toBeHidden()
+    await expect(page.getByText(/name must not exceed 100 characters/i)).toBeHidden()
   })
 })

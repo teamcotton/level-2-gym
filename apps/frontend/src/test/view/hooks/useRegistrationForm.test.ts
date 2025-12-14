@@ -230,10 +230,10 @@ describe('useRegistrationForm', () => {
       expect(result.current.errors.name).toBe('Name must be at least 2 characters')
     })
 
-    it('should show error when name exceeds 200 characters', () => {
+    it('should show error when name exceeds 100 characters', () => {
       const { result } = renderHook(() => useRegistrationForm())
 
-      const longName = 'A'.repeat(201)
+      const longName = 'A'.repeat(101)
 
       act(() => {
         const handler = result.current.handleChange('name')
@@ -246,7 +246,7 @@ describe('useRegistrationForm', () => {
         } as React.FormEvent)
       })
 
-      expect(result.current.errors.name).toBe('Name must not exceed 200 characters')
+      expect(result.current.errors.name).toBe('Name must not exceed 100 characters')
     })
 
     it('should accept valid name with exactly 2 characters', () => {
@@ -287,10 +287,10 @@ describe('useRegistrationForm', () => {
       expect(result.current.errors.name).toBe('')
     })
 
-    it('should accept valid name with exactly 200 characters', () => {
+    it('should accept valid name with exactly 100 characters', () => {
       const { result } = renderHook(() => useRegistrationForm())
 
-      const maxLengthName = 'A'.repeat(200)
+      const maxLengthName = 'A'.repeat(100)
 
       act(() => {
         const emailHandler = result.current.handleChange('email')
