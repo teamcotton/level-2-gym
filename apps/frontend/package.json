@@ -33,6 +33,7 @@
     "ai": "^5.0.108",
     "modern-normalize": "^3.0.1",
     "next": "^16.0.7",
+    "obscured": "^2.0.4",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "shiki": "^3.19.0",
@@ -69,7 +70,6 @@
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-sort-destructure-keys": "^2.0.0",
     "jsdom": "^27.2.0",
-    "obscured": "^2.0.4",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.48.1",
     "vitest": "^4.0.15"
