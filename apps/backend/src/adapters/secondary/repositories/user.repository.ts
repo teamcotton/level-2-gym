@@ -68,7 +68,7 @@ export class PostgresUserRepository implements UserRepositoryPort {
           name: userEntity.getName(),
           role: userEntity.getRole(),
         })
-        .where(eq(user.userId, user.userId))
+        .where(eq(user.userId, userEntity.id))
     } catch (error) {
       if (DatabaseUtil.isDuplicateKeyError(error)) {
         throw new ConflictException('User with this email already exists', {

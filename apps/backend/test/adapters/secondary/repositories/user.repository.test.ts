@@ -359,7 +359,9 @@ describe('PostgresUserRepository', () => {
         vi.mocked(db.insert).mockReturnValue(mockInsert() as any)
 
         await expect(repository.save(testUser)).rejects.toThrow(ConflictException)
-        await expect(repository.save(testUser)).rejects.toThrow('User with this email already exists')
+        await expect(repository.save(testUser)).rejects.toThrow(
+          'User with this email already exists'
+        )
       })
 
       it('should throw DatabaseException on general database error', async () => {
@@ -415,7 +417,9 @@ describe('PostgresUserRepository', () => {
         vi.mocked(db.update).mockReturnValue(mockUpdate() as any)
 
         await expect(repository.update(testUser)).rejects.toThrow(ConflictException)
-        await expect(repository.update(testUser)).rejects.toThrow('User with this email already exists')
+        await expect(repository.update(testUser)).rejects.toThrow(
+          'User with this email already exists'
+        )
       })
 
       it('should throw DatabaseException on general database error', async () => {
@@ -453,7 +457,9 @@ describe('PostgresUserRepository', () => {
         const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
         vi.mocked(db.select).mockReturnValue(mockSelect() as any)
 
-        await expect(repository.existsByEmail('test@example.com')).rejects.toThrow(DatabaseException)
+        await expect(repository.existsByEmail('test@example.com')).rejects.toThrow(
+          DatabaseException
+        )
         await expect(repository.existsByEmail('test@example.com')).rejects.toThrow(
           'Failed to check if user exists by email'
         )
