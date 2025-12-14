@@ -55,9 +55,9 @@ export class Container {
 
       let httpsOptions: FastifyServerOptions | undefined
       if (useHttps) {
-        // __dirname points to src/ or dist/ directory
-        // Go up one level to backend/, then into certs/
-        const certsPath = join(__dirname, '..', 'certs')
+        // __dirname points to src/infrastructure/di/ directory
+        // Go up to backend root, then into certs/
+        const certsPath = join(__dirname, '../../..', 'certs')
 
         try {
           httpsOptions = {
@@ -124,9 +124,9 @@ cd apps/backend/certs && openssl req -x509 -newkey rsa:4096 \\
 
   async start(): Promise<void> {
     try {
-      const port = process.env.PORT ? Number.parseInt(process.env.PORT) : 3001
+      const port = Number.parseInt(EnvConfig.PORT)
       const host = process.env.HOST || '127.0.0.1'
-      const isDevelopment = process.env.NODE_ENV !== 'production'
+      const isDevelopment = EnvConfig.NODE_ENV !== 'production'
       const useHttps = isDevelopment && process.env.USE_HTTPS === 'true'
 
       await this.app.listen({ port, host })

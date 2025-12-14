@@ -7,6 +7,8 @@ import cors from '@fastify/cors'
 import { parse } from 'yaml'
 import swagger from '@fastify/swagger'
 import swaggerUI from '@fastify/swagger-ui'
+import { fileURLToPath } from 'node:url'
+import { dirname } from 'node:path'
 
 export function createFastifyApp(options?: FastifyServerOptions): FastifyInstance {
   /* const options: FastifyServerOptions = {
@@ -49,8 +51,11 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 
+  const __filename = fileURLToPath(import.meta.url)
+  const __dirname = dirname(__filename)
+
   // Load OpenAPI specification
-  const openapiPath = join(import.meta.dirname, '..', 'openapi.yaml')
+  const openapiPath = join(__dirname, '../../..', 'openapi.yaml')
   const openapiSpec = parse(readFileSync(openapiPath, 'utf8'))
 
   // Register Swagger
