@@ -44,6 +44,18 @@ export const user = pgTable(
 )
 
 /**
+ * The DBUser type uses $inferInsert which is meant for insert operations.
+ * Since this repository also performs read operations (findById, findByEmail),
+ * you should also export a type for select operations using $inferSelect.
+ * This would be: export type DBUserSelect = typeof user.$inferSelect
+ *
+ * The select type will include generated/default fields with their proper types,
+ * while the insert type represents the input shape for inserts.
+ */
+export type DBUser = typeof user.$inferInsert
+export type DBUserSelect = typeof user.$inferSelect
+
+/**
  * Chats table: Stores chat sessions linked to users
  */
 export const chats = pgTable(

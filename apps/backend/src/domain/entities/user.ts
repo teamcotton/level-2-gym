@@ -187,4 +187,17 @@ export class User {
   updateRole(newRole: RoleType): void {
     this.role = newRole
   }
+
+  /**
+   * Gets the user's password hash.
+   *
+   * @returns The hashed password string
+   * @example
+   * ```typescript
+   * const passwordHash = user.getPasswordHash()
+   * ```
+   */
+  getPasswordHash(): string {
+    return this.password.getHash()
+  }
 }
