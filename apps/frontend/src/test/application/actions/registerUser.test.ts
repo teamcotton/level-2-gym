@@ -41,11 +41,7 @@ describe('registerUser', () => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            email: userData.email,
-            name: userData.name,
-            password: '[OBSCURED]',
-          }),
+          body: JSON.stringify(userData),
         })
       )
     })
@@ -226,11 +222,7 @@ describe('registerUser', () => {
       expect(global.fetch).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
-          body: JSON.stringify({
-            email: userData.email,
-            name: userData.name,
-            password: '[OBSCURED]',
-          }),
+          body: JSON.stringify(userData),
         })
       )
     })

@@ -22,7 +22,7 @@ export async function registerUser(data: RegisterUserData): Promise<RegisterUser
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
 
-    // Obscure the password before sending to API
+    // Obscure sensitive data in memory to prevent exposure in logs/debugging
     const obscuredData = obscured.obscureKeys(data, ['password'])
 
     const response = await fetch(`${apiUrl}/users/register`, {
@@ -30,7 +30,12 @@ export async function registerUser(data: RegisterUserData): Promise<RegisterUser
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(obscuredData),
+      // Extract the actual password value for API transmission
+      body: JSON.stringify({
+        email: data.email,
+        name: data.name,
+        password: obscured.value(obscuredData.password),
+      }),
     })
 
     const result = (await response.json()) as RegisterUserResponse
