@@ -1,4 +1,4 @@
-import { sql } from 'drizzle-orm'
+import { relations, sql } from 'drizzle-orm'
 import {
   pgTable,
   uuid,
@@ -104,6 +104,9 @@ export const messages = pgTable(
     roleLengthCheck: check('role_length_check', sql`char_length(${table.role}) <= 15`),
   })
 )
+
+export type DBMessages = typeof messages.$inferInsert
+export type DBMessagesSelect = typeof messages.$inferSelect
 
 /**
  * Parts table: Stores message parts with polymorphic structure based on type field
@@ -221,6 +224,25 @@ export const auditLog = pgTable(
     actionIdx: index('audit_log_action_idx').on(table.action),
   })
 )
+
+export const chatsRelations = relations(chats, ({ many }) => ({
+  messages: many(messages),
+}))
+
+export const messagesRelations = relations(messages, ({ one, many }) => ({
+  chat: one(chats, {
+    fields: [messages.chatId],
+    references: [chats.id],
+  }),
+  parts: many(parts),
+}))
+
+export const partsRelations = relations(parts, ({ one }) => ({
+  message: one(messages, {
+    fields: [parts.messageId],
+    references: [messages.id],
+  }),
+}))
 
 export type MyDBUIMessagePart = typeof parts.$inferInsert
 export type MyDBUIMessagePartSelect = typeof parts.$inferSelect

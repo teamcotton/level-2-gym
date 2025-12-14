@@ -3,7 +3,12 @@ import { obscured } from 'obscured'
 
 dotenv.config()
 
-const requiredEnvs: string[] = ['DATABASE_URL', 'GOOGLE_GENERATIVE_AI_API_KEY', 'MODEL_NAME']
+const requiredEnvs: string[] = [
+  'DATABASE_URL',
+  'GOOGLE_GENERATIVE_AI_API_KEY',
+  'MODEL_NAME',
+  'RESEND_API_KEY',
+]
 
 export class EnvConfig {
   static readonly NODE_ENV = process.env.NODE_ENV || 'development'
@@ -24,6 +29,7 @@ export class EnvConfig {
   static readonly DATABASE_POOL_MIN = process.env.DATABASE_POOL_MIN || '5'
   static readonly DATABASE_POOL_MAX_LIFETIME_SECONDS =
     process.env.DATABASE_POOL_MAX_LIFETIME_SECONDS || '60'
+  static readonly RESEND_API_KEY = obscured.make(process.env.RESEND_API_KEY)
 
   static validate(): void {
     const missing = requiredEnvs.filter((key) => !process.env[key])

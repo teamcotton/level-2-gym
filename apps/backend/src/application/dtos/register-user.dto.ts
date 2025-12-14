@@ -1,7 +1,6 @@
 import { TypeException } from '../../shared/exceptions/type.exception.js'
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
 import { isString } from '../../shared/guards/type.guards.js'
-import { USER_ROLES } from '../../domain/value-objects/role.js'
 
 export class RegisterUserDto {
   constructor(
