@@ -34,7 +34,9 @@ describe('Role', () => {
 
     it('should throw error for role with incorrect case', () => {
       expect(() => new Role('USER')).toThrow('Invalid role. Must be one of: user, admin, moderator')
-      expect(() => new Role('Admin')).toThrow('Invalid role. Must be one of: user, admin, moderator')
+      expect(() => new Role('Admin')).toThrow(
+        'Invalid role. Must be one of: user, admin, moderator'
+      )
     })
 
     it('should throw error for numeric value', () => {

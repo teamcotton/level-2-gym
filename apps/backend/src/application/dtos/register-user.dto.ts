@@ -24,13 +24,11 @@ export class RegisterUserDto {
     if (!data.name || !isString(data.name)) {
       throw new ValidationException('Name is required and must be a string')
     }
-    if (data.role && !isString(data.role)) {
+    if (data.role !== undefined && !isString(data.role)) {
       throw new ValidationException('Role must be a string')
     }
-    if (data.role && !(USER_ROLES as readonly string[]).includes(data.role)) {
-      throw new ValidationException(
-        `Invalid role. Must be one of: ${USER_ROLES.join(', ')}`
-      )
+    if (data.role !== undefined && !(USER_ROLES as readonly string[]).includes(data.role)) {
+      throw new ValidationException(`Invalid role. Must be one of: ${USER_ROLES.join(', ')}`)
     }
 
     return new RegisterUserDto(data.email, data.password, data.name, data.role)

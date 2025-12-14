@@ -48,9 +48,7 @@ export class Role {
 
   private validate(role: string): void {
     if (!(USER_ROLES as readonly string[]).includes(role)) {
-      throw new ValidationException(
-        `Invalid role. Must be one of: ${USER_ROLES.join(', ')}`
-      )
+      throw new ValidationException(`Invalid role. Must be one of: ${USER_ROLES.join(', ')}`)
     }
   }
 
