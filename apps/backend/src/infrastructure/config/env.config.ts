@@ -31,6 +31,8 @@ export class EnvConfig {
     process.env.DATABASE_POOL_MAX_LIFETIME_SECONDS || '60'
   static readonly RESEND_API_KEY = obscured.make(process.env.RESEND_API_KEY)
   static readonly EMAIL_FROM_ADDRESS = process.env.EMAIL_FROM_ADDRESS || ''
+  static readonly HOST = process.env.HOST || '127.0.0.1'
+  static readonly USE_HTTPS = process.env.USE_HTTPS || 'true'
 
   static validate(): void {
     const missing = requiredEnvs.filter((key) => !process.env[key])

@@ -188,6 +188,176 @@ describe('EnvConfig', () => {
     })
   })
 
+  describe('HOST', () => {
+    it('should be a static readonly property', async () => {
+      process.env.HOST = '0.0.0.0'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      const descriptor = Object.getOwnPropertyDescriptor(EnvConfig, 'HOST')
+      expect(descriptor).toBeDefined()
+      expect(descriptor?.configurable).toBe(true)
+      expect(descriptor?.enumerable).toBe(true)
+    })
+
+    it('should use HOST from environment when set', async () => {
+      process.env.HOST = '0.0.0.0'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.HOST).toBe('0.0.0.0')
+    })
+
+    it('should default to "127.0.0.1" when HOST is not set', async () => {
+      delete process.env.HOST
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.HOST).toBe('127.0.0.1')
+    })
+
+    it('should have type string', async () => {
+      process.env.HOST = 'localhost'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(typeof EnvConfig.HOST).toBe('string')
+      expect(EnvConfig.HOST).toBe('localhost')
+    })
+
+    it('should not be obscured (plain string value)', async () => {
+      process.env.HOST = '192.168.1.100'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // HOST should be a plain string, not obscured
+      expect(typeof EnvConfig.HOST).toBe('string')
+      expect(EnvConfig.HOST).toBe('192.168.1.100')
+      // Should not have obscured behavior
+      expect(String(EnvConfig.HOST)).toBe('192.168.1.100')
+    })
+
+    it('should accept IPv4 addresses', async () => {
+      process.env.HOST = '192.168.1.1'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.HOST).toBe('192.168.1.1')
+    })
+
+    it('should accept IPv6 addresses', async () => {
+      process.env.HOST = '::1'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.HOST).toBe('::1')
+    })
+  })
+
+  describe('USE_HTTPS', () => {
+    it('should be a static readonly property', async () => {
+      process.env.USE_HTTPS = 'false'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      const descriptor = Object.getOwnPropertyDescriptor(EnvConfig, 'USE_HTTPS')
+      expect(descriptor).toBeDefined()
+      expect(descriptor?.configurable).toBe(true)
+      expect(descriptor?.enumerable).toBe(true)
+    })
+
+    it('should use USE_HTTPS from environment when set', async () => {
+      process.env.USE_HTTPS = 'false'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.USE_HTTPS).toBe('false')
+    })
+
+    it('should default to "true" when USE_HTTPS is not set', async () => {
+      delete process.env.USE_HTTPS
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.USE_HTTPS).toBe('true')
+    })
+
+    it('should have type string', async () => {
+      process.env.USE_HTTPS = 'true'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(typeof EnvConfig.USE_HTTPS).toBe('string')
+      expect(EnvConfig.USE_HTTPS).toBe('true')
+    })
+
+    it('should not be obscured (plain string value)', async () => {
+      process.env.USE_HTTPS = 'false'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // USE_HTTPS should be a plain string, not obscured
+      expect(typeof EnvConfig.USE_HTTPS).toBe('string')
+      expect(EnvConfig.USE_HTTPS).toBe('false')
+      // Should not have obscured behavior
+      expect(String(EnvConfig.USE_HTTPS)).toBe('false')
+    })
+
+    it('should accept "true" value', async () => {
+      process.env.USE_HTTPS = 'true'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.USE_HTTPS).toBe('true')
+    })
+
+    it('should accept "false" value', async () => {
+      process.env.USE_HTTPS = 'false'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.USE_HTTPS).toBe('false')
+    })
+
+    it('should accept any string value (not strictly boolean)', async () => {
+      process.env.USE_HTTPS = 'yes'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // USE_HTTPS is a string, so it accepts any value
+      expect(EnvConfig.USE_HTTPS).toBe('yes')
+      expect(typeof EnvConfig.USE_HTTPS).toBe('string')
+    })
+  })
+
   describe('validate()', () => {
     it('should have DATABASE_URL validation logic', async () => {
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
@@ -296,6 +466,30 @@ describe('EnvConfig', () => {
       expect(EnvConfig.EMAIL_FROM_ADDRESS).toBeDefined()
       expect(typeof EnvConfig.EMAIL_FROM_ADDRESS).toBe('string')
       expect(EnvConfig.EMAIL_FROM_ADDRESS).toBe('test@example.com')
+    })
+
+    it('should have static HOST property accessible without instantiation', async () => {
+      process.env.HOST = '0.0.0.0'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.HOST).toBeDefined()
+      expect(typeof EnvConfig.HOST).toBe('string')
+      expect(EnvConfig.HOST).toBe('0.0.0.0')
+    })
+
+    it('should have static USE_HTTPS property accessible without instantiation', async () => {
+      process.env.USE_HTTPS = 'false'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.USE_HTTPS).toBeDefined()
+      expect(typeof EnvConfig.USE_HTTPS).toBe('string')
+      expect(EnvConfig.USE_HTTPS).toBe('false')
     })
 
     it('should have static validate method accessible without instantiation', async () => {

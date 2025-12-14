@@ -123,9 +123,9 @@ cd apps/backend/certs && openssl req -x509 -newkey rsa:4096 \\
   async start(): Promise<void> {
     try {
       const port = Number.parseInt(EnvConfig.PORT)
-      const host = process.env.HOST || '127.0.0.1'
+      const host = EnvConfig.HOST
       const isDevelopment = EnvConfig.NODE_ENV !== 'production'
-      const useHttps = isDevelopment && process.env.USE_HTTPS === 'true'
+      const useHttps = isDevelopment && EnvConfig.USE_HTTPS === 'true'
 
       await this.app.listen({ port, host })
       const protocol = useHttps ? 'https' : 'http'

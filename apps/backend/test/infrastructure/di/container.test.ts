@@ -25,6 +25,8 @@ vi.mock('../../../src/infrastructure/config/env.config.js', () => ({
     validate: vi.fn(),
     NODE_ENV: 'test',
     PORT: '3000',
+    HOST: '127.0.0.1',
+    USE_HTTPS: 'true',
     RESEND_API_KEY: 'test-api-key',
     LOG_LEVEL: 'silent',
     DATABASE_URL: 'postgresql://test:test@localhost:5432/test',
@@ -224,6 +226,14 @@ describe('Container', () => {
     })
 
     it('should use HTTP protocol in test environment', async () => {
+      // Temporarily set USE_HTTPS to 'false' to test HTTP protocol
+      const originalUseHttps = EnvConfig.USE_HTTPS
+      Object.defineProperty(EnvConfig, 'USE_HTTPS', {
+        value: 'false',
+        writable: true,
+        configurable: true,
+      })
+
       const container = Container.getInstance()
       vi.mocked(container.app.listen).mockResolvedValue(undefined as any)
 
@@ -232,6 +242,13 @@ describe('Container', () => {
       expect(container.logger.info).toHaveBeenCalledWith(
         expect.stringContaining('http://127.0.0.1:3000')
       )
+
+      // Restore original value
+      Object.defineProperty(EnvConfig, 'USE_HTTPS', {
+        value: originalUseHttps,
+        writable: true,
+        configurable: true,
+      })
     })
 
     it('should log error and exit on startup failure', async () => {
@@ -252,8 +269,13 @@ describe('Container', () => {
     })
 
     it('should use custom host from environment', async () => {
-      const originalHost = process.env.HOST
-      process.env.HOST = '0.0.0.0'
+      // Update the mocked EnvConfig HOST value
+      const originalHost = EnvConfig.HOST
+      Object.defineProperty(EnvConfig, 'HOST', {
+        value: '0.0.0.0',
+        writable: true,
+        configurable: true,
+      })
 
       const container = Container.getInstance()
       const mockListen = vi.fn().mockResolvedValue(undefined)
@@ -266,7 +288,12 @@ describe('Container', () => {
         host: '0.0.0.0',
       })
 
-      process.env.HOST = originalHost
+      // Restore original value
+      Object.defineProperty(EnvConfig, 'HOST', {
+        value: originalHost,
+        writable: true,
+        configurable: true,
+      })
     })
   })
 
