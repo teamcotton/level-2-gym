@@ -4,7 +4,7 @@
 
 ### Installation
 
-It is recommend to use Corepack to manage pnpm versions:
+It is recommended to use Corepack to manage pnpm versions:
 
 ## Using Corepack
 
