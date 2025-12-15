@@ -1,76 +1,161 @@
+'use client'
+
+import { Alert, Box, Container, TextField, Typography } from '@mui/material'
+import { DataGrid, type GridColDef } from '@mui/x-data-grid'
+import { useEffect, useState } from 'react'
+
 import type { User } from '@/domain/user/user.js'
 
-import AdminClient from './AdminClient.js'
+export default function AdminPage() {
+  const [users, setUsers] = useState<readonly User[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  // TODO: Replace with actual user role from authentication
+  const currentUserRole = 'admin' as 'admin' | 'moderator' | 'user'
 
-interface GetUsersResult {
-  users: readonly User[]
-  error: string | null
-}
+  useEffect(() => {
+    async function fetchUsers() {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/users', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          cache: 'no-store',
+        })
 
-async function getUsers(): Promise<GetUsersResult> {
-  try {
-    const apiUrl = process.env.BACKEND_AI_CALLBACK_URL
-    if (!apiUrl) {
-      console.warn('BACKEND_AI_CALLBACK_URL not set')
-      return {
-        users: [],
-        error: 'Server configuration error: API URL not set. Please contact support.',
+        if (!response.ok) {
+          setError(
+            `Failed to load users: Server returned ${response.status} ${response.statusText}. Please try refreshing the page.`
+          )
+          setUsers([])
+          return
+        }
+
+        const data = (await response.json()) as {
+          success: boolean
+          data: Array<{
+            userId: string
+            email: string
+            name: string
+            role: string
+            createdAt: string
+          }>
+        }
+
+        // Map userId to id for MUI DataGrid compatibility
+        const mappedUsers =
+          data.data?.map((user) => ({
+            id: user.userId,
+            name: user.name,
+            email: user.email,
+            role: user.role as 'user' | 'admin' | 'moderator',
+            createdAt: user.createdAt,
+          })) || []
+
+        setUsers(mappedUsers)
+        setError(null)
+      } catch (err) {
+        console.warn('Error fetching users:', err)
+        setError(
+          'Unable to load users: Network error or server unavailable. Please check your connection and try again.'
+        )
+        setUsers([])
+      } finally {
+        setLoading(false)
       }
     }
 
-    // eslint-disable-next-line no-console
-    console.log('Fetching users from API:', `${apiUrl}/users`)
+    fetchUsers()
+  }, [])
 
-    const response = await fetch(`${apiUrl}/users`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      cache: 'no-store', // Don't cache, always fetch fresh data
-    })
+  // Define columns
+  const columns: GridColDef<User>[] = [
+    { field: 'name', headerName: 'Name', width: 200 },
+    { field: 'email', headerName: 'Email', width: 250 },
+    { field: 'role', headerName: 'Role', width: 150 },
+    {
+      field: 'createdAt',
+      headerName: 'Created At',
+      width: 200,
+      valueFormatter: (value) => new Date(value).toLocaleDateString(),
+    },
+  ]
 
-    if (!response.ok) {
-      console.warn('Failed to fetch users from API')
-      return {
-        users: [],
-        error: `Failed to load users: Server returned ${response.status} ${response.statusText}. Please try refreshing the page.`,
-      }
-    }
+  // Filter users based on search query (searches name, email, and role)
+  const filteredUsers = users.filter((user) => {
+    if (!searchQuery) return true
 
-    const data = (await response.json()) as {
-      success: boolean
-      data: Array<{
-        userId: string
-        email: string
-        name: string
-        role: string
-        createdAt: string
-      }>
-    }
-    // Map userId to id for MUI DataGrid compatibility
-    const users =
-      data.data?.map((user) => ({
-        id: user.userId,
-        name: user.name,
-        email: user.email,
-        role: user.role as 'user' | 'admin' | 'moderator',
-        createdAt: user.createdAt,
-      })) || []
+    const query = searchQuery.toLowerCase()
+    return (
+      user.name.toLowerCase().includes(query) ||
+      user.email.toLowerCase().includes(query) ||
+      user.role.toLowerCase().includes(query)
+    )
+  })
 
-    return { users, error: null }
-    // No finally block needed: agent is request-local, not global
-  } catch (error) {
-    console.warn('Error fetching users:', error)
-    return {
-      users: [],
-      error:
-        'Unable to load users: Network error or server unavailable. Please check your connection and try again.',
-    }
-  }
-}
+  return (
+    <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 600 }}>
+          User Management
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          {currentUserRole === 'admin'
+            ? 'Manage user accounts and roles'
+            : 'View user accounts (read-only access)'}
+        </Typography>
+      </Box>
 
-export default async function AdminPage() {
-  const { error, users } = await getUsers()
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
 
-  return <AdminClient error={error} users={users} />
+      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'flex-end' }}>
+        <TextField
+          label="Search users"
+          variant="outlined"
+          size="small"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          sx={{ width: 300 }}
+          placeholder="Search by name, email, or role..."
+        />
+      </Box>
+
+      <Box sx={{ height: 600, width: '100%' }}>
+        <DataGrid
+          rows={filteredUsers}
+          columns={columns}
+          loading={loading}
+          initialState={{
+            pagination: {
+              paginationModel: { pageSize: 10, page: 0 },
+            },
+            sorting: {
+              sortModel: [{ field: 'createdAt', sort: 'desc' }],
+            },
+          }}
+          pageSizeOptions={[10, 25, 50, 100]}
+          checkboxSelection={currentUserRole === 'admin'}
+          disableRowSelectionOnClick
+          sx={{
+            '& .MuiDataGrid-cell': {
+              cursor: currentUserRole === 'admin' ? 'pointer' : 'default',
+            },
+          }}
+        />
+      </Box>
+
+      {currentUserRole === 'moderator' && (
+        <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
+          Note: You have read-only access. Contact an administrator to modify user data.
+        </Typography>
+      )}
+    </Container>
+  )
 }

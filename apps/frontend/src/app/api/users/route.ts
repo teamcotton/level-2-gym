@@ -14,13 +14,36 @@ export async function GET() {
       )
     }
 
-    const response = await fetch(`${apiUrl}/users`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      cache: 'no-store', // Don't cache, always fetch fresh data
-    })
+    // For development with self-signed certificates, disable SSL verification
+    const isLocalDevelopment = apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1')
+
+    let response: Response
+
+    if (isLocalDevelopment && apiUrl.startsWith('https')) {
+      // Use dynamic import to avoid issues in production builds
+      const https = await import('https')
+      const nodeFetch = (await import('node-fetch')).default
+
+      const agent = new https.Agent({
+        rejectUnauthorized: false,
+      })
+
+      response = (await nodeFetch(`${apiUrl}/users`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        agent,
+      })) as unknown as Response
+    } else {
+      response = await fetch(`${apiUrl}/users`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-store',
+      })
+    }
 
     const result = (await response.json()) as User
 
