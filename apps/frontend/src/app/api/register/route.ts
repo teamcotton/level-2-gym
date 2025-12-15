@@ -1,20 +1,6 @@
 import { obscured } from 'obscured'
 
-interface RegisterUserData extends Record<string, string> {
-  email: string
-  name: string
-  password: string
-}
-
-interface RegisterUserResponse {
-  success: boolean
-  data?: {
-    userId: string
-    email: string
-    name: string
-  }
-  error?: string
-}
+import type { RegisterUserData, RegisterUserResponse } from '@/domain/auth/index.js'
 
 export async function POST(request: Request) {
   try {
@@ -62,7 +48,11 @@ export async function POST(request: Request) {
 
     return Response.json(result, { status: 200 })
   } catch (error) {
-    console.error('Registration API error:', error)
+    if (error instanceof Error) {
+      console.error('Registration API error:', error.message, error.stack)
+    } else {
+      console.error('Registration API error: An unexpected error occurred')
+    }
     return Response.json(
       {
         success: false,

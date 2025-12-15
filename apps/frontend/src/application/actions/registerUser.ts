@@ -1,24 +1,8 @@
 'use server'
-
-interface RegisterUserData extends Record<string, string> {
-  email: string
-  name: string
-  password: string
-}
-
-interface RegisterUserResponse {
-  success: boolean
-  data?: {
-    userId: string
-    email: string
-    name: string
-  }
-  error?: string
-}
+import type { RegisterUserData, RegisterUserResponse } from '@/domain/auth/index.js'
 
 export async function registerUser(data: RegisterUserData): Promise<RegisterUserResponse> {
   try {
-    // Call the Next.js API route instead of calling backend directly
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:4321'
     const response = await fetch(`${baseUrl}/api/register`, {
       method: 'POST',
