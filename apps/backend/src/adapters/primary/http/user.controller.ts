@@ -20,11 +20,11 @@ export class UserController {
     try {
       // Extract pagination parameters from query string
       const query = request.query as { limit?: string; offset?: string }
-      const limit = query.limit ? parseInt(query.limit, 10) : undefined
-      const offset = query.offset ? parseInt(query.offset, 10) : undefined
+      const limit = query.limit ? Number.parseInt(query.limit, 10) : undefined
+      const offset = query.offset ? Number.parseInt(query.offset, 10) : undefined
 
       // Validate pagination parameters
-      if (limit !== undefined && (isNaN(limit) || limit < 1 || limit > 100)) {
+      if (limit !== undefined && (Number.isNaN(limit) || limit < 1 || limit > 100)) {
         reply.code(400).send({
           success: false,
           error: 'Invalid limit parameter. Must be between 1 and 100.',
@@ -32,7 +32,7 @@ export class UserController {
         return
       }
 
-      if (offset !== undefined && (isNaN(offset) || offset < 0)) {
+      if (offset !== undefined && (Number.isNaN(offset) || offset < 0)) {
         reply.code(400).send({
           success: false,
           error: 'Invalid offset parameter. Must be 0 or greater.',
