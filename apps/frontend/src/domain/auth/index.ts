@@ -25,3 +25,20 @@ export const SignInFormSchema = z.object({
 // Types
 export type RegistrationFormData = z.infer<typeof RegistrationFormSchema>
 export type SignInFormData = z.infer<typeof SignInFormSchema>
+
+export interface RegisterUserData extends Record<string, string> {
+  email: string
+  name: string
+  password: string
+}
+
+export interface RegisterUserResponse {
+  success: boolean
+  data?: {
+    userId: string
+    email: string
+    name: string
+  }
+  error?: string
+}
+
