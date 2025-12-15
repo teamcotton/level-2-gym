@@ -21,7 +21,9 @@ async function getUsers(): Promise<GetUsersResult> {
     // eslint-disable-next-line no-console
     console.log('Fetching users from API:', `${apiUrl}/users`)
 
-    const response = await fetch(`${apiUrl}/users`, {
+    // Fetch with a large page size to get all users for client-side pagination
+    // In production, consider implementing server-side pagination instead
+    const response = await fetch(`${apiUrl}/users?pageSize=100`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -37,7 +39,7 @@ async function getUsers(): Promise<GetUsersResult> {
       }
     }
 
-    const data = (await response.json()) as {
+    const responseData = (await response.json()) as {
       success: boolean
       data: Array<{
         userId: string
@@ -46,18 +48,25 @@ async function getUsers(): Promise<GetUsersResult> {
         role: string
         createdAt: string
       }>
+      pagination?: {
+        page: number
+        pageSize: number
+        total: number
+        totalPages: number
+      }
     }
     // Map userId to id for MUI DataGrid compatibility
-    const users =
-      data.data?.map((user) => ({
-        id: user.userId,
-        name: user.name,
-        email: user.email,
-        role: user.role as 'user' | 'admin' | 'moderator',
-        createdAt: user.createdAt,
-      })) || []
-
-    return { users, error: null }
+    return {
+      users:
+        responseData.data?.map((user) => ({
+          id: user.userId,
+          name: user.name,
+          email: user.email,
+          role: user.role as 'user' | 'admin' | 'moderator',
+          createdAt: user.createdAt,
+        })) || [],
+      error: null,
+    }
     // No finally block needed: agent is request-local, not global
   } catch (error) {
     console.warn('Error fetching users:', error)

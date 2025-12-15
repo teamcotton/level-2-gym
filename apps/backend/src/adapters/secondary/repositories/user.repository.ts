@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { eq, count } from 'drizzle-orm'
 import { db } from '../../../infrastructure/database/index.js'
 import { user } from '../../../infrastructure/database/schema.js'
 import type { DBUserSelect } from '../../../infrastructure/database/schema.js'
@@ -6,7 +6,11 @@ import { User } from '../../../domain/entities/user.js'
 import { Email } from '../../../domain/value-objects/email.js'
 import { Password } from '../../../domain/value-objects/password.js'
 import { Role } from '../../../domain/value-objects/role.js'
-import type { UserRepositoryPort } from '../../../application/ports/user.repository.port.js'
+import type {
+  UserRepositoryPort,
+  PaginationParams,
+  PaginatedResult,
+} from '../../../application/ports/user.repository.port.js'
 import { DatabaseException } from '../../../shared/exceptions/database.exception.js'
 import { ConflictException } from '../../../shared/exceptions/conflict.exception.js'
 import { DatabaseUtil } from '../../../shared/utils/database.util.js'
@@ -32,10 +36,28 @@ export class PostgresUserRepository implements UserRepositoryPort {
     }
   }
 
-  async findAll(): Promise<User[]> {
+  async findAll(pagination?: PaginationParams): Promise<PaginatedResult<User>> {
     try {
-      const result = await db.select().from(user)
-      return result.map((record) => this.toDomain(record))
+      // Default pagination values with validation
+      const page = Math.max(1, pagination?.page ?? 1)
+      const pageSize = Math.max(1, Math.min(100, pagination?.pageSize ?? 10))
+      const offset = (page - 1) * pageSize
+
+      // Fetch total count
+      const [totalResult] = await db.select({ count: count() }).from(user)
+      const total = totalResult?.count ?? 0
+
+      // Fetch paginated results
+      const result = await db.select().from(user).limit(pageSize).offset(offset)
+      const users = result.map((record) => this.toDomain(record))
+
+      return {
+        data: users,
+        total,
+        page,
+        pageSize,
+        totalPages: Math.ceil(total / pageSize),
+      }
     } catch (error) {
       throw new DatabaseException('Failed to find all users', { error })
     }

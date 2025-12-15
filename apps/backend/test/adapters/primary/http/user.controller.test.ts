@@ -11,7 +11,7 @@ describe('UserController', () => {
   let controller: UserController
   let mockRegisterUserUseCase: RegisterUserUseCase
   let mockGetAllUsersUseCase: GetAllUsersUseCase
-  let mockRequest: FastifyRequest
+  let mockRequest: any
   let mockReply: FastifyReply
 
   beforeEach(() => {
@@ -578,6 +578,251 @@ describe('UserController', () => {
       await controller.getUser(mockRequestWithParams, mockReply)
 
       expect(mockReply.send).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('getAllUsers()', () => {
+    beforeEach(() => {
+      mockRequest = {
+        query: {},
+      } as FastifyRequest<{ Querystring: { page?: string; pageSize?: string } }>
+    })
+
+    describe('successful retrieval', () => {
+      it('should get all users without pagination parameters', async () => {
+        const mockResult = {
+          data: [
+            {
+              userId: 'user-1',
+              email: 'user1@example.com',
+              name: 'User One',
+              role: 'user',
+              createdAt: new Date(),
+            },
+          ],
+          total: 1,
+          page: 1,
+          pageSize: 10,
+          totalPages: 1,
+        }
+
+        vi.mocked(mockGetAllUsersUseCase.execute).mockResolvedValue(mockResult)
+
+        await controller.getAllUsers(
+          mockRequest as FastifyRequest<{ Querystring: { page?: string; pageSize?: string } }>,
+          mockReply
+        )
+
+        expect(mockGetAllUsersUseCase.execute).toHaveBeenCalledWith(undefined)
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: true,
+          data: mockResult.data,
+          pagination: {
+            page: 1,
+            pageSize: 10,
+            total: 1,
+            totalPages: 1,
+          },
+        })
+      })
+
+      it('should get all users with pagination parameters', async () => {
+        mockRequest.query = { page: '2', pageSize: '20' }
+
+        const mockResult = {
+          data: [
+            {
+              userId: 'user-1',
+              email: 'user1@example.com',
+              name: 'User One',
+              role: 'user',
+              createdAt: new Date(),
+            },
+          ],
+          total: 50,
+          page: 2,
+          pageSize: 20,
+          totalPages: 3,
+        }
+
+        vi.mocked(mockGetAllUsersUseCase.execute).mockResolvedValue(mockResult)
+
+        await controller.getAllUsers(
+          mockRequest as FastifyRequest<{ Querystring: { page?: string; pageSize?: string } }>,
+          mockReply
+        )
+
+        expect(mockGetAllUsersUseCase.execute).toHaveBeenCalledWith({ page: 2, pageSize: 20 })
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: true,
+          data: mockResult.data,
+          pagination: {
+            page: 2,
+            pageSize: 20,
+            total: 50,
+            totalPages: 3,
+          },
+        })
+      })
+
+      it('should handle only page parameter', async () => {
+        mockRequest.query = { page: '3' }
+
+        const mockResult = {
+          data: [],
+          total: 25,
+          page: 3,
+          pageSize: 10,
+          totalPages: 3,
+        }
+
+        vi.mocked(mockGetAllUsersUseCase.execute).mockResolvedValue(mockResult)
+
+        await controller.getAllUsers(
+          mockRequest as FastifyRequest<{ Querystring: { page?: string; pageSize?: string } }>,
+          mockReply
+        )
+
+        expect(mockGetAllUsersUseCase.execute).toHaveBeenCalledWith({ page: 3, pageSize: 10 })
+      })
+
+      it('should handle only pageSize parameter', async () => {
+        mockRequest.query = { pageSize: '50' }
+
+        const mockResult = {
+          data: [],
+          total: 100,
+          page: 1,
+          pageSize: 50,
+          totalPages: 2,
+        }
+
+        vi.mocked(mockGetAllUsersUseCase.execute).mockResolvedValue(mockResult)
+
+        await controller.getAllUsers(
+          mockRequest as FastifyRequest<{ Querystring: { page?: string; pageSize?: string } }>,
+          mockReply
+        )
+
+        expect(mockGetAllUsersUseCase.execute).toHaveBeenCalledWith({ page: 1, pageSize: 50 })
+      })
+    })
+
+    describe('validation errors', () => {
+      it('should return 400 for invalid page parameter (not a number)', async () => {
+        mockRequest.query = { page: 'invalid' }
+
+        await controller.getAllUsers(
+          mockRequest as FastifyRequest<{ Querystring: { page?: string; pageSize?: string } }>,
+          mockReply
+        )
+
+        expect(mockGetAllUsersUseCase.execute).not.toHaveBeenCalled()
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid page parameter. Must be a positive integer.',
+        })
+      })
+
+      it('should return 400 for page less than 1', async () => {
+        mockRequest.query = { page: '0' }
+
+        await controller.getAllUsers(
+          mockRequest as FastifyRequest<{ Querystring: { page?: string; pageSize?: string } }>,
+          mockReply
+        )
+
+        expect(mockGetAllUsersUseCase.execute).not.toHaveBeenCalled()
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid page parameter. Must be a positive integer.',
+        })
+      })
+
+      it('should return 400 for negative page', async () => {
+        mockRequest.query = { page: '-1' }
+
+        await controller.getAllUsers(
+          mockRequest as FastifyRequest<{ Querystring: { page?: string; pageSize?: string } }>,
+          mockReply
+        )
+
+        expect(mockGetAllUsersUseCase.execute).not.toHaveBeenCalled()
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+      })
+
+      it('should return 400 for invalid pageSize parameter (not a number)', async () => {
+        mockRequest.query = { pageSize: 'xyz' }
+
+        await controller.getAllUsers(
+          mockRequest as FastifyRequest<{ Querystring: { page?: string; pageSize?: string } }>,
+          mockReply
+        )
+
+        expect(mockGetAllUsersUseCase.execute).not.toHaveBeenCalled()
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid pageSize parameter. Must be between 1 and 100.',
+        })
+      })
+
+      it('should return 400 for pageSize less than 1', async () => {
+        mockRequest.query = { pageSize: '0' }
+
+        await controller.getAllUsers(
+          mockRequest as FastifyRequest<{ Querystring: { page?: string; pageSize?: string } }>,
+          mockReply
+        )
+
+        expect(mockGetAllUsersUseCase.execute).not.toHaveBeenCalled()
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid pageSize parameter. Must be between 1 and 100.',
+        })
+      })
+
+      it('should return 400 for pageSize greater than 100', async () => {
+        mockRequest.query = { pageSize: '101' }
+
+        await controller.getAllUsers(
+          mockRequest as FastifyRequest<{ Querystring: { page?: string; pageSize?: string } }>,
+          mockReply
+        )
+
+        expect(mockGetAllUsersUseCase.execute).not.toHaveBeenCalled()
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid pageSize parameter. Must be between 1 and 100.',
+        })
+      })
+    })
+
+    describe('error handling', () => {
+      it('should handle database errors', async () => {
+        mockRequest.query = {}
+
+        vi.mocked(mockGetAllUsersUseCase.execute).mockRejectedValue(
+          new Error('Database connection failed')
+        )
+
+        await controller.getAllUsers(
+          mockRequest as FastifyRequest<{ Querystring: { page?: string; pageSize?: string } }>,
+          mockReply
+        )
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Database connection failed',
+        })
+      })
     })
   })
 

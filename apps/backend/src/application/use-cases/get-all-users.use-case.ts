@@ -1,4 +1,8 @@
-import type { UserRepositoryPort } from '../ports/user.repository.port.js'
+import type {
+  UserRepositoryPort,
+  PaginationParams,
+  PaginatedResult,
+} from '../ports/user.repository.port.js'
 import type { LoggerPort } from '../ports/logger.port.js'
 
 export interface UserDto {
@@ -15,13 +19,13 @@ export class GetAllUsersUseCase {
     private readonly logger: LoggerPort
   ) {}
 
-  async execute(): Promise<UserDto[]> {
-    this.logger.info('Fetching all users')
+  async execute(pagination?: PaginationParams): Promise<PaginatedResult<UserDto>> {
+    this.logger.info('Fetching all users', { pagination })
 
     try {
-      const users = await this.userRepository.findAll()
+      const result = await this.userRepository.findAll(pagination)
 
-      const userDtos = users.map((user) => ({
+      const userDtos = result.data.map((user) => ({
         userId: user.id,
         email: user.getEmail(),
         name: user.getName(),
@@ -29,9 +33,20 @@ export class GetAllUsersUseCase {
         createdAt: user.getCreatedAt(),
       }))
 
-      this.logger.info('Successfully fetched all users', { count: userDtos.length })
+      const paginatedResult: PaginatedResult<UserDto> = {
+        data: userDtos,
+        total: result.total,
+        page: result.page,
+        pageSize: result.pageSize,
+        totalPages: result.totalPages,
+      }
 
-      return userDtos
+      this.logger.info('Successfully fetched all users', {
+        count: userDtos.length,
+        total: result.total,
+      })
+
+      return paginatedResult
     } catch (error) {
       this.logger.error('Failed to fetch all users', error as Error)
       throw error

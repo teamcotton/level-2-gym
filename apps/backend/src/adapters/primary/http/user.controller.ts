@@ -16,13 +16,48 @@ export class UserController {
     app.get('/users', this.getAllUsers.bind(this))
   }
 
-  async getAllUsers(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+  async getAllUsers(
+    request: FastifyRequest<{
+      Querystring: { page?: string; pageSize?: string }
+    }>,
+    reply: FastifyReply
+  ): Promise<void> {
     try {
-      const users = await this.getAllUsersUseCase.execute()
+      // Parse and validate pagination parameters
+      const page = request.query.page ? parseInt(request.query.page, 10) : undefined
+      const pageSize = request.query.pageSize ? parseInt(request.query.pageSize, 10) : undefined
+
+      // Validate pagination parameters
+      if (page !== undefined && (isNaN(page) || page < 1)) {
+        reply.code(400).send({
+          success: false,
+          error: 'Invalid page parameter. Must be a positive integer.',
+        })
+        return
+      }
+
+      if (pageSize !== undefined && (isNaN(pageSize) || pageSize < 1 || pageSize > 100)) {
+        reply.code(400).send({
+          success: false,
+          error: 'Invalid pageSize parameter. Must be between 1 and 100.',
+        })
+        return
+      }
+
+      const pagination =
+        page || pageSize ? { page: page ?? 1, pageSize: pageSize ?? 10 } : undefined
+
+      const result = await this.getAllUsersUseCase.execute(pagination)
 
       reply.code(200).send({
         success: true,
-        data: users,
+        data: result.data,
+        pagination: {
+          page: result.page,
+          pageSize: result.pageSize,
+          total: result.total,
+          totalPages: result.totalPages,
+        },
       })
     } catch (error) {
       const err = error as Error
