@@ -37,6 +37,7 @@ export class RegisterUserUseCase {
     try {
       await this.userRepository.save(user)
     } catch (error) {
+      this.logger.error('Failed to save user', error as Error, { userId })
       if (DatabaseUtil.isDuplicateKeyError(error)) {
         throw new ConflictException('User with this email already exists', { email: dto.email })
       }

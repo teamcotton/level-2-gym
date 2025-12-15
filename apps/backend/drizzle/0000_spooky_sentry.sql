@@ -1,14 +1,3 @@
--- Create tables in dependency order: parent tables first
-CREATE TABLE "users" (
-	"user_id" uuid PRIMARY KEY DEFAULT uuidv7() NOT NULL,
-	"name" text NOT NULL,
-	"password" text NOT NULL,
-	"email" citext NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	CONSTRAINT "users_email_unique" UNIQUE("email"),
-	CONSTRAINT "password_length_check" CHECK (length("users"."password") = 60)
-);
---> statement-breakpoint
 CREATE TABLE "audit_log" (
 	"id" uuid PRIMARY KEY DEFAULT uuidv7() NOT NULL,
 	"user_id" uuid,
@@ -57,19 +46,33 @@ CREATE TABLE "parts" (
 	"tool_tool_call_id" varchar,
 	"tool_state" varchar,
 	"tool_error_text" varchar,
+	"data_content" jsonb,
 	"provider_metadata" jsonb,
 	CONSTRAINT "text_text_required_if_type_is_text" CHECK (CASE WHEN "parts"."type" = 'text' THEN "parts"."text_text" IS NOT NULL ELSE TRUE END),
 	CONSTRAINT "reasoning_text_required_if_type_is_reasoning" CHECK (CASE WHEN "parts"."type" = 'reasoning' THEN "parts"."reasoning_text" IS NOT NULL ELSE TRUE END),
 	CONSTRAINT "file_fields_required_if_type_is_file" CHECK (CASE WHEN "parts"."type" = 'file' THEN "parts"."file_media_type" IS NOT NULL AND "parts"."file_url" IS NOT NULL ELSE TRUE END),
 	CONSTRAINT "source_url_fields_required_if_type_is_source_url" CHECK (CASE WHEN "parts"."type" = 'source_url' THEN "parts"."source_url_source_id" IS NOT NULL AND "parts"."source_url_url" IS NOT NULL ELSE TRUE END),
-	CONSTRAINT "source_document_fields_required_if_type_is_source_document" CHECK (CASE WHEN "parts"."type" = 'source_document' THEN "parts"."source_document_source_id" IS NOT NULL AND "parts"."source_document_media_type" IS NOT NULL AND "parts"."source_document_title" IS NOT NULL ELSE TRUE END)
+	CONSTRAINT "source_document_fields_required_if_type_is_source_document" CHECK (CASE WHEN "parts"."type" = 'source_document' THEN "parts"."source_document_source_id" IS NOT NULL AND "parts"."source_document_media_type" IS NOT NULL AND "parts"."source_document_title" IS NOT NULL ELSE TRUE END),
+	CONSTRAINT "data_content_required_if_type_is_data" CHECK (CASE WHEN "parts"."type" = 'data' THEN "parts"."data_content" IS NOT NULL ELSE TRUE END)
 );
 --> statement-breakpoint
--- Add foreign key constraints after all tables exist
-ALTER TABLE "audit_log" ADD CONSTRAINT "audit_log_user_id_users_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "chats" ADD CONSTRAINT "chats_user_id_users_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "messages" ADD CONSTRAINT "messages_chat_id_chats_id_fk" FOREIGN KEY ("chat_id") REFERENCES "chats"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "parts" ADD CONSTRAINT "parts_message_id_messages_id_fk" FOREIGN KEY ("message_id") REFERENCES "messages"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE TABLE "users" (
+	"user_id" uuid PRIMARY KEY DEFAULT uuidv7() NOT NULL,
+	"name" text NOT NULL,
+	"password" text NOT NULL,
+	"email" "citext" NOT NULL,
+	"role" text DEFAULT 'user' NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "users_email_unique" UNIQUE("email"),
+	CONSTRAINT "password_length_check" CHECK (length("users"."password") = 60),
+	CONSTRAINT "role_check" CHECK ("users"."role" IN ('user', 'admin', 'moderator')),
+	CONSTRAINT "name_length_check" CHECK (length("users"."name") >= 2 AND length("users"."name") <= 100)
+);
+--> statement-breakpoint
+ALTER TABLE "audit_log" ADD CONSTRAINT "audit_log_user_id_users_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("user_id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "chats" ADD CONSTRAINT "chats_user_id_users_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("user_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "messages" ADD CONSTRAINT "messages_chat_id_chats_id_fk" FOREIGN KEY ("chat_id") REFERENCES "public"."chats"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "parts" ADD CONSTRAINT "parts_message_id_messages_id_fk" FOREIGN KEY ("message_id") REFERENCES "public"."messages"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "audit_log_user_id_idx" ON "audit_log" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "audit_log_entity_type_entity_id_idx" ON "audit_log" USING btree ("entity_type","entity_id");--> statement-breakpoint
 CREATE INDEX "audit_log_created_at_idx" ON "audit_log" USING btree ("created_at" DESC);--> statement-breakpoint

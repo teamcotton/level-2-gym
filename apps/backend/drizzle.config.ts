@@ -1,10 +1,9 @@
 import { defineConfig } from 'drizzle-kit'
-import { obscured } from 'obscured'
-import { EnvConfig } from './src/infrastructure/config/env.config.js'
-import { ValidationException } from './src/shared/exceptions/validation.exception.js'
 
-if (!obscured.value(EnvConfig.DATABASE_URL)) {
-  throw new ValidationException('DATABASE_URL is required for drizzle-kit operations')
+const DATABASE_URL = process.env.DATABASE_URL
+
+if (!DATABASE_URL) {
+  throw new Error('DATABASE_URL is required for drizzle-kit operations')
 }
 
 export default defineConfig({
@@ -12,8 +11,9 @@ export default defineConfig({
   out: './drizzle',
   dialect: 'postgresql',
   dbCredentials: {
-    url: obscured.value(EnvConfig.DATABASE_URL) || '',
+    url: DATABASE_URL,
   },
+  schemaFilter: ['public'],
   strict: true,
   verbose: true,
 })

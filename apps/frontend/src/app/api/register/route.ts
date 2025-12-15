@@ -20,17 +20,6 @@ export async function POST(request: Request) {
   try {
     const body = (await request.json()) as RegisterUserData
 
-    // Validate required fields
-    if (!body.email || !body.name || !body.password) {
-      return Response.json(
-        {
-          success: false,
-          error: 'Missing required fields',
-        },
-        { status: 400 }
-      )
-    }
-
     const apiUrl = process.env.BACKEND_AI_CALLBACK_URL
 
     if (!apiUrl) {

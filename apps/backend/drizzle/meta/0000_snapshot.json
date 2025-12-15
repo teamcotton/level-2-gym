@@ -1,5 +1,5 @@
 {
-  "id": "3093ddb9-d696-4923-b1cf-55645b61b262",
+  "id": "b21c9fb9-44ba-477b-9c13-547388a07998",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -138,8 +138,12 @@
           "name": "audit_log_user_id_users_user_id_fk",
           "tableFrom": "audit_log",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -224,8 +228,12 @@
           "name": "chats_user_id_users_user_id_fk",
           "tableFrom": "chats",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -310,8 +318,12 @@
           "name": "messages_chat_id_chats_id_fk",
           "tableFrom": "messages",
           "tableTo": "chats",
-          "columnsFrom": ["chat_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "chat_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -454,6 +466,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "data_content": {
+          "name": "data_content",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
         "provider_metadata": {
           "name": "provider_metadata",
           "type": "jsonb",
@@ -504,8 +522,12 @@
           "name": "parts_message_id_messages_id_fk",
           "tableFrom": "parts",
           "tableTo": "messages",
-          "columnsFrom": ["message_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "message_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -533,6 +555,10 @@
         "source_document_fields_required_if_type_is_source_document": {
           "name": "source_document_fields_required_if_type_is_source_document",
           "value": "CASE WHEN \"parts\".\"type\" = 'source_document' THEN \"parts\".\"source_document_source_id\" IS NOT NULL AND \"parts\".\"source_document_media_type\" IS NOT NULL AND \"parts\".\"source_document_title\" IS NOT NULL ELSE TRUE END"
+        },
+        "data_content_required_if_type_is_data": {
+          "name": "data_content_required_if_type_is_data",
+          "value": "CASE WHEN \"parts\".\"type\" = 'data' THEN \"parts\".\"data_content\" IS NOT NULL ELSE TRUE END"
         }
       },
       "isRLSEnabled": false
@@ -566,6 +592,13 @@
           "primaryKey": false,
           "notNull": true
         },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'user'"
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -581,7 +614,9 @@
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": ["email"]
+          "columns": [
+            "email"
+          ]
         }
       },
       "policies": {},
@@ -589,6 +624,14 @@
         "password_length_check": {
           "name": "password_length_check",
           "value": "length(\"users\".\"password\") = 60"
+        },
+        "role_check": {
+          "name": "role_check",
+          "value": "\"users\".\"role\" IN ('user', 'admin', 'moderator')"
+        },
+        "name_length_check": {
+          "name": "name_length_check",
+          "value": "length(\"users\".\"name\") >= 2 AND length(\"users\".\"name\") <= 100"
         }
       },
       "isRLSEnabled": false

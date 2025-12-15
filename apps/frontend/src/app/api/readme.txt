@@ -1,0 +1,1 @@
+Use api routes for server-side data fetching and mutations

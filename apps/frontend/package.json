@@ -8,7 +8,7 @@
     "pnpm": ">=10"
   },
   "scripts": {
-    "dev": "next dev -p 4321",
+    "dev": "NODE_TLS_REJECT_UNAUTHORIZED=0 next dev -p 4321",
     "build": "next build",
     "start": "next start -p 4321",
     "lint": "eslint .",
