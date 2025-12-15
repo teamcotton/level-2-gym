@@ -72,7 +72,7 @@ describe('registerUser', () => {
 
       await registerUser(userData)
 
-      expect(global.fetch).toHaveBeenCalledWith(`/api/register`, expect.any(Object))
+      expect(global.fetch).toHaveBeenCalledWith(`${customBaseUrl}/api/register`, expect.any(Object))
 
       delete process.env.NEXT_PUBLIC_BASE_URL
     })

@@ -3,8 +3,8 @@ import type { RegisterUserData, RegisterUserResponse } from '@/domain/auth/index
 
 export async function registerUser(data: RegisterUserData): Promise<RegisterUserResponse> {
   try {
-    // Call the Next.js API route instead of calling backend directly
-    const response = await fetch('/api/register', {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:4321'
+    const response = await fetch(`${baseUrl}/api/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
