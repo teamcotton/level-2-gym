@@ -56,15 +56,17 @@ async function getUsers(): Promise<GetUsersResult> {
       }
     }
     // Map userId to id for MUI DataGrid compatibility
-    return (
-      responseData.data?.map((user) => ({
-        id: user.userId,
-        name: user.name,
-        email: user.email,
-        role: user.role as 'user' | 'admin' | 'moderator',
-        createdAt: user.createdAt,
-      })) || []
-    )
+    return {
+      users:
+        responseData.data?.map((user) => ({
+          id: user.userId,
+          name: user.name,
+          email: user.email,
+          role: user.role as 'user' | 'admin' | 'moderator',
+          createdAt: user.createdAt,
+        })) || [],
+      error: null,
+    }
     // No finally block needed: agent is request-local, not global
   } catch (error) {
     console.warn('Error fetching users:', error)

@@ -11,7 +11,7 @@ describe('UserController', () => {
   let controller: UserController
   let mockRegisterUserUseCase: RegisterUserUseCase
   let mockGetAllUsersUseCase: GetAllUsersUseCase
-  let mockRequest: FastifyRequest
+  let mockRequest: any
   let mockReply: FastifyReply
 
   beforeEach(() => {
@@ -585,7 +585,7 @@ describe('UserController', () => {
     beforeEach(() => {
       mockRequest = {
         query: {},
-      } as any
+      } as FastifyRequest<{ Querystring: { page?: string; pageSize?: string } }>
     })
 
     describe('successful retrieval', () => {
@@ -608,7 +608,10 @@ describe('UserController', () => {
 
         vi.mocked(mockGetAllUsersUseCase.execute).mockResolvedValue(mockResult)
 
-        await controller.getAllUsers(mockRequest, mockReply)
+        await controller.getAllUsers(
+          mockRequest as FastifyRequest<{ Querystring: { page?: string; pageSize?: string } }>,
+          mockReply
+        )
 
         expect(mockGetAllUsersUseCase.execute).toHaveBeenCalledWith(undefined)
         expect(mockReply.code).toHaveBeenCalledWith(200)
@@ -645,7 +648,10 @@ describe('UserController', () => {
 
         vi.mocked(mockGetAllUsersUseCase.execute).mockResolvedValue(mockResult)
 
-        await controller.getAllUsers(mockRequest, mockReply)
+        await controller.getAllUsers(
+          mockRequest as FastifyRequest<{ Querystring: { page?: string; pageSize?: string } }>,
+          mockReply
+        )
 
         expect(mockGetAllUsersUseCase.execute).toHaveBeenCalledWith({ page: 2, pageSize: 20 })
         expect(mockReply.code).toHaveBeenCalledWith(200)
@@ -674,7 +680,10 @@ describe('UserController', () => {
 
         vi.mocked(mockGetAllUsersUseCase.execute).mockResolvedValue(mockResult)
 
-        await controller.getAllUsers(mockRequest, mockReply)
+        await controller.getAllUsers(
+          mockRequest as FastifyRequest<{ Querystring: { page?: string; pageSize?: string } }>,
+          mockReply
+        )
 
         expect(mockGetAllUsersUseCase.execute).toHaveBeenCalledWith({ page: 3, pageSize: 10 })
       })
@@ -692,7 +701,10 @@ describe('UserController', () => {
 
         vi.mocked(mockGetAllUsersUseCase.execute).mockResolvedValue(mockResult)
 
-        await controller.getAllUsers(mockRequest, mockReply)
+        await controller.getAllUsers(
+          mockRequest as FastifyRequest<{ Querystring: { page?: string; pageSize?: string } }>,
+          mockReply
+        )
 
         expect(mockGetAllUsersUseCase.execute).toHaveBeenCalledWith({ page: 1, pageSize: 50 })
       })
@@ -702,7 +714,10 @@ describe('UserController', () => {
       it('should return 400 for invalid page parameter (not a number)', async () => {
         mockRequest.query = { page: 'invalid' }
 
-        await controller.getAllUsers(mockRequest, mockReply)
+        await controller.getAllUsers(
+          mockRequest as FastifyRequest<{ Querystring: { page?: string; pageSize?: string } }>,
+          mockReply
+        )
 
         expect(mockGetAllUsersUseCase.execute).not.toHaveBeenCalled()
         expect(mockReply.code).toHaveBeenCalledWith(400)
@@ -715,7 +730,10 @@ describe('UserController', () => {
       it('should return 400 for page less than 1', async () => {
         mockRequest.query = { page: '0' }
 
-        await controller.getAllUsers(mockRequest, mockReply)
+        await controller.getAllUsers(
+          mockRequest as FastifyRequest<{ Querystring: { page?: string; pageSize?: string } }>,
+          mockReply
+        )
 
         expect(mockGetAllUsersUseCase.execute).not.toHaveBeenCalled()
         expect(mockReply.code).toHaveBeenCalledWith(400)
@@ -728,16 +746,22 @@ describe('UserController', () => {
       it('should return 400 for negative page', async () => {
         mockRequest.query = { page: '-1' }
 
-        await controller.getAllUsers(mockRequest, mockReply)
+        await controller.getAllUsers(
+          mockRequest as FastifyRequest<{ Querystring: { page?: string; pageSize?: string } }>,
+          mockReply
+        )
 
         expect(mockGetAllUsersUseCase.execute).not.toHaveBeenCalled()
         expect(mockReply.code).toHaveBeenCalledWith(400)
       })
 
       it('should return 400 for invalid pageSize parameter (not a number)', async () => {
-        mockRequest.query = { pageSize: 'abc' }
+        mockRequest.query = { pageSize: 'xyz' }
 
-        await controller.getAllUsers(mockRequest, mockReply)
+        await controller.getAllUsers(
+          mockRequest as FastifyRequest<{ Querystring: { page?: string; pageSize?: string } }>,
+          mockReply
+        )
 
         expect(mockGetAllUsersUseCase.execute).not.toHaveBeenCalled()
         expect(mockReply.code).toHaveBeenCalledWith(400)
@@ -750,7 +774,10 @@ describe('UserController', () => {
       it('should return 400 for pageSize less than 1', async () => {
         mockRequest.query = { pageSize: '0' }
 
-        await controller.getAllUsers(mockRequest, mockReply)
+        await controller.getAllUsers(
+          mockRequest as FastifyRequest<{ Querystring: { page?: string; pageSize?: string } }>,
+          mockReply
+        )
 
         expect(mockGetAllUsersUseCase.execute).not.toHaveBeenCalled()
         expect(mockReply.code).toHaveBeenCalledWith(400)
@@ -763,7 +790,10 @@ describe('UserController', () => {
       it('should return 400 for pageSize greater than 100', async () => {
         mockRequest.query = { pageSize: '101' }
 
-        await controller.getAllUsers(mockRequest, mockReply)
+        await controller.getAllUsers(
+          mockRequest as FastifyRequest<{ Querystring: { page?: string; pageSize?: string } }>,
+          mockReply
+        )
 
         expect(mockGetAllUsersUseCase.execute).not.toHaveBeenCalled()
         expect(mockReply.code).toHaveBeenCalledWith(400)
@@ -782,7 +812,10 @@ describe('UserController', () => {
           new Error('Database connection failed')
         )
 
-        await controller.getAllUsers(mockRequest, mockReply)
+        await controller.getAllUsers(
+          mockRequest as FastifyRequest<{ Querystring: { page?: string; pageSize?: string } }>,
+          mockReply
+        )
 
         expect(mockReply.code).toHaveBeenCalledWith(500)
         expect(mockReply.send).toHaveBeenCalledWith({

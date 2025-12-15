@@ -44,7 +44,8 @@ export class UserController {
         return
       }
 
-      const pagination = page || pageSize ? { page: page ?? 1, pageSize: pageSize ?? 10 } : undefined
+      const pagination =
+        page || pageSize ? { page: page ?? 1, pageSize: pageSize ?? 10 } : undefined
 
       const result = await this.getAllUsersUseCase.execute(pagination)
 
