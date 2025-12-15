@@ -12,8 +12,8 @@ export class UserController {
 
   registerRoutes(app: FastifyInstance): void {
     app.post('/users/register', this.register.bind(this))
-    app.get('/users/:id', this.getUser.bind(this))
     app.get('/users', this.getAllUsers.bind(this))
+    app.get('/users/:id', this.getUser.bind(this))
   }
 
   async getAllUsers(request: FastifyRequest, reply: FastifyReply): Promise<void> {

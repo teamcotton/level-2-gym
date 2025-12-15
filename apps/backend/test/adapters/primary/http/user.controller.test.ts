@@ -471,7 +471,7 @@ describe('UserController', () => {
 
         controller.registerRoutes(mockApp)
 
-        const getAllUsersHandler = vi.mocked(mockApp.get).mock.calls[1]?.[1] as unknown as (
+        const getAllUsersHandler = vi.mocked(mockApp.get).mock.calls[0]?.[1] as unknown as (
           req: FastifyRequest,
           reply: FastifyReply
         ) => Promise<void>
@@ -498,6 +498,10 @@ describe('UserController', () => {
         await getAllUsersHandler(mockRequest, mockReply)
 
         expect(mockGetAllUsersUseCase.execute).toHaveBeenCalled()
+        expect(mockGetAllUsersUseCase.execute).toHaveBeenCalledWith({
+          limit: undefined,
+          offset: undefined,
+        })
         expect(mockReply.code).toHaveBeenCalledWith(200)
       })
 
@@ -509,7 +513,7 @@ describe('UserController', () => {
 
         controller.registerRoutes(mockApp)
 
-        const getAllUsersHandler = vi.mocked(mockApp.get).mock.calls[1]?.[1] as unknown as (
+        const getAllUsersHandler = vi.mocked(mockApp.get).mock.calls[0]?.[1] as unknown as (
           req: FastifyRequest,
           reply: FastifyReply
         ) => Promise<void>
@@ -534,6 +538,10 @@ describe('UserController', () => {
         await getAllUsersHandler(mockRequest, mockReply)
 
         expect(mockGetAllUsersUseCase.execute).toHaveBeenCalledTimes(1)
+        expect(mockGetAllUsersUseCase.execute).toHaveBeenCalledWith({
+          limit: undefined,
+          offset: undefined,
+        })
       })
     })
   })
