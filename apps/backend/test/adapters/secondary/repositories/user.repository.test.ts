@@ -643,5 +643,62 @@ describe('PostgresUserRepository', () => {
       expect(result.data[0]?.getName()).toBe('User One')
       expect(result.data[0]?.getRole()).toBe('admin')
     })
+
+    it('should handle edge case with zero pageSize defensively', async () => {
+      const mockDbUsers = []
+      const mockLimit = vi.fn().mockResolvedValue(mockDbUsers)
+      const mockOffset = vi.fn().mockReturnValue({ limit: mockLimit })
+      const mockFrom = vi.fn().mockReturnValue({ limit: mockLimit, offset: mockOffset })
+      const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
+
+      const mockCountFrom = vi.fn().mockResolvedValue([{ count: 10 }])
+      vi.mocked(db.select)
+        .mockReturnValueOnce({ from: mockCountFrom } as any)
+        .mockReturnValueOnce(mockSelect() as any)
+
+      const result = await repository.findAll({ page: 1, pageSize: 0 })
+
+      // Should use minimum pageSize of 1
+      expect(mockLimit).toHaveBeenCalledWith(1)
+      expect(result.pageSize).toBe(1)
+    })
+
+    it('should handle edge case with negative page defensively', async () => {
+      const mockDbUsers = []
+      const mockLimit = vi.fn().mockResolvedValue(mockDbUsers)
+      const mockOffset = vi.fn().mockReturnValue({ limit: mockLimit })
+      const mockFrom = vi.fn().mockReturnValue({ limit: mockLimit, offset: mockOffset })
+      const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
+
+      const mockCountFrom = vi.fn().mockResolvedValue([{ count: 10 }])
+      vi.mocked(db.select)
+        .mockReturnValueOnce({ from: mockCountFrom } as any)
+        .mockReturnValueOnce(mockSelect() as any)
+
+      const result = await repository.findAll({ page: -5, pageSize: 10 })
+
+      // Should use minimum page of 1
+      expect(result.page).toBe(1)
+      expect(mockOffset).toHaveBeenCalledWith(0) // (1-1)*10 = 0
+    })
+
+    it('should handle edge case with pageSize exceeding maximum', async () => {
+      const mockDbUsers = []
+      const mockLimit = vi.fn().mockResolvedValue(mockDbUsers)
+      const mockOffset = vi.fn().mockReturnValue({ limit: mockLimit })
+      const mockFrom = vi.fn().mockReturnValue({ limit: mockLimit, offset: mockOffset })
+      const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
+
+      const mockCountFrom = vi.fn().mockResolvedValue([{ count: 200 }])
+      vi.mocked(db.select)
+        .mockReturnValueOnce({ from: mockCountFrom } as any)
+        .mockReturnValueOnce(mockSelect() as any)
+
+      const result = await repository.findAll({ page: 1, pageSize: 500 })
+
+      // Should cap at maximum pageSize of 100
+      expect(mockLimit).toHaveBeenCalledWith(100)
+      expect(result.pageSize).toBe(100)
+    })
   })
 })

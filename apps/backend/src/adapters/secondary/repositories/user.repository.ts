@@ -38,9 +38,9 @@ export class PostgresUserRepository implements UserRepositoryPort {
 
   async findAll(pagination?: PaginationParams): Promise<PaginatedResult<User>> {
     try {
-      // Default pagination values
-      const page = pagination?.page ?? 1
-      const pageSize = pagination?.pageSize ?? 10
+      // Default pagination values with validation
+      const page = Math.max(1, pagination?.page ?? 1)
+      const pageSize = Math.max(1, Math.min(100, pagination?.pageSize ?? 10))
       const offset = (page - 1) * pageSize
 
       // Fetch total count
@@ -56,7 +56,7 @@ export class PostgresUserRepository implements UserRepositoryPort {
         total,
         page,
         pageSize,
-        totalPages: Math.ceil(total / pageSize),
+        totalPages: pageSize > 0 ? Math.ceil(total / pageSize) : 0,
       }
     } catch (error) {
       throw new DatabaseException('Failed to find all users', { error })
