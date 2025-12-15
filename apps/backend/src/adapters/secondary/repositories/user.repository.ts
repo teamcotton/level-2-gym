@@ -56,7 +56,7 @@ export class PostgresUserRepository implements UserRepositoryPort {
         total,
         page,
         pageSize,
-        totalPages: pageSize > 0 ? Math.ceil(total / pageSize) : 0,
+        totalPages: Math.ceil(total / pageSize),
       }
     } catch (error) {
       throw new DatabaseException('Failed to find all users', { error })
