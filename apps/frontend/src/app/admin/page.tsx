@@ -4,7 +4,7 @@ import { Alert, Box, Container, TextField, Typography } from '@mui/material'
 import { DataGrid, type GridColDef, type GridPaginationModel } from '@mui/x-data-grid'
 import { useEffect, useState } from 'react'
 
-import type { User } from '@/domain/user/user.js'
+import type { PaginatedUsersResponse, User } from '@/domain/user/user.js'
 
 export default function AdminPage() {
   const [users, setUsers] = useState<readonly User[]>([])
@@ -42,21 +42,7 @@ export default function AdminPage() {
           return
         }
 
-        const data = (await response.json()) as {
-          success: boolean
-          data: Array<{
-            userId: string
-            email: string
-            name: string
-            role: string
-            createdAt: string
-          }>
-          pagination: {
-            total: number
-            limit: number
-            offset: number
-          }
-        }
+        const data = (await response.json()) as PaginatedUsersResponse
 
         // Map userId to id for MUI DataGrid compatibility
         const mappedUsers =

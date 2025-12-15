@@ -1,4 +1,4 @@
-import type { User } from '@/domain/user/user.js'
+import type { PaginatedUsersResponse } from '@/domain/user/user.js'
 
 export async function GET(request: Request) {
   try {
@@ -56,7 +56,7 @@ export async function GET(request: Request) {
       })
     }
 
-    const result = (await response.json()) as User
+    const result = (await response.json()) as PaginatedUsersResponse
 
     if (!response.ok) {
       return Response.json(
