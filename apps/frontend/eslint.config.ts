@@ -1,17 +1,13 @@
 import nextPlugin from '@next/eslint-plugin-next'
 import vitestPlugin from '@vitest/eslint-plugin'
 import type { Linter } from 'eslint'
-import codegen from 'eslint-plugin-codegen'
 import drizzlePlugin from 'eslint-plugin-drizzle'
-import importPlugin from 'eslint-plugin-import'
 import jsdoc from 'eslint-plugin-jsdoc'
 import jsxA11yPlugin from 'eslint-plugin-jsx-a11y'
 import playwrightPlugin from 'eslint-plugin-playwright'
 import reactPlugin from 'eslint-plugin-react'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import security from 'eslint-plugin-security'
-import simpleImportSort from 'eslint-plugin-simple-import-sort'
-import sortDestructureKeys from 'eslint-plugin-sort-destructure-keys'
 import tseslint from 'typescript-eslint'
 
 import rootConfig from '../../eslint.config.js'
@@ -23,13 +19,9 @@ const config: Linter.Config[] = [
     plugins: {
       '@next/next': nextPlugin,
       vitest: vitestPlugin,
-      codegen,
       drizzle: drizzlePlugin,
-      import: importPlugin,
       jsdoc,
       security,
-      'simple-import-sort': simpleImportSort,
-      'sort-destructure-keys': sortDestructureKeys,
     },
   },
   ...tseslint.configs.recommended,
@@ -48,11 +40,7 @@ const config: Linter.Config[] = [
   {
     files: ['**/*.{js,jsx,mjs,cjs,ts,tsx}'],
     plugins: {
-      codegen,
-      import: importPlugin,
       'react-hooks': reactHooksPlugin,
-      'simple-import-sort': simpleImportSort,
-      'sort-destructure-keys': sortDestructureKeys,
     },
     languageOptions: {
       parser: tseslint.parser,
