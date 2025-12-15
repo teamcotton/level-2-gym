@@ -46,9 +46,9 @@ describe('registerUser', () => {
       )
     })
 
-    it('should use NEXT_PUBLIC_API_URL environment variable when available', async () => {
+    it('should use BACKEND_AI_CALLBACK_URL environment variable when available', async () => {
       const customApiUrl = 'https://api.example.com'
-      process.env.NEXT_PUBLIC_API_URL = customApiUrl
+      process.env.BACKEND_AI_CALLBACK_URL = customApiUrl
 
       const mockResponse = {
         success: true,
@@ -77,7 +77,7 @@ describe('registerUser', () => {
         expect.any(Object)
       )
 
-      delete process.env.NEXT_PUBLIC_API_URL
+      delete process.env.BACKEND_AI_CALLBACK_URL
     })
   })
 
