@@ -1,16 +1,17 @@
 'use client'
 
-import { Box, Container, TextField, Typography } from '@mui/material'
+import { Alert, Box, Container, TextField, Typography } from '@mui/material'
 import { DataGrid, type GridColDef } from '@mui/x-data-grid'
 import { useState } from 'react'
 
 import type { User } from '@/domain/user/user.js'
 
 interface AdminClientProps {
+  error: string | null
   users: readonly User[]
 }
 
-export default function AdminClient({ users }: AdminClientProps) {
+export default function AdminClient({ error, users }: AdminClientProps) {
   const [searchQuery, setSearchQuery] = useState('')
   // TODO: Replace with actual user role from authentication
   const currentUserRole = 'admin' as 'admin' | 'moderator' | 'user'
@@ -52,6 +53,12 @@ export default function AdminClient({ users }: AdminClientProps) {
             : 'View user accounts (read-only access)'}
         </Typography>
       </Box>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
 
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'flex-end' }}>
         <TextField
