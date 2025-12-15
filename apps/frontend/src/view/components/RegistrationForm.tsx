@@ -174,7 +174,7 @@ export function RegistrationForm({
                         onClick={handleTogglePasswordVisibility}
                         edge="end"
                       >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                        {showPassword ? <Visibility /> : <VisibilityOff />}
                       </IconButton>
                     </InputAdornment>
                   ),
@@ -203,7 +203,7 @@ export function RegistrationForm({
                         onClick={handleToggleConfirmPasswordVisibility}
                         edge="end"
                       >
-                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                        {showConfirmPassword ? <Visibility /> : <VisibilityOff />}
                       </IconButton>
                     </InputAdornment>
                   ),

@@ -752,9 +752,9 @@ describe('RegistrationForm', () => {
       render(<RegistrationForm {...defaultProps} />)
 
       const toggleButton = screen.getByLabelText(/toggle password visibility/i)
-      const visibilityIcon = toggleButton.querySelector('svg[data-testid="VisibilityIcon"]')
+      const visibilityOffIcon = toggleButton.querySelector('svg[data-testid="VisibilityOffIcon"]')
 
-      expect(visibilityIcon).toBeInTheDocument()
+      expect(visibilityOffIcon).toBeInTheDocument()
     })
 
     it('should display VisibilityOff icon when password is visible', () => {
@@ -765,17 +765,17 @@ describe('RegistrationForm', () => {
       // Click to show password
       fireEvent.click(toggleButton)
 
-      const visibilityOffIcon = toggleButton.querySelector('svg[data-testid="VisibilityOffIcon"]')
-      expect(visibilityOffIcon).toBeInTheDocument()
+      const visibilityIcon = toggleButton.querySelector('svg[data-testid="VisibilityIcon"]')
+      expect(visibilityIcon).toBeInTheDocument()
     })
 
     it('should display Visibility icon when confirm password is hidden', () => {
       render(<RegistrationForm {...defaultProps} />)
 
       const toggleButton = screen.getByLabelText(/toggle confirm password visibility/i)
-      const visibilityIcon = toggleButton.querySelector('svg[data-testid="VisibilityIcon"]')
+      const visibilityOffIcon = toggleButton.querySelector('svg[data-testid="VisibilityOffIcon"]')
 
-      expect(visibilityIcon).toBeInTheDocument()
+      expect(visibilityOffIcon).toBeInTheDocument()
     })
 
     it('should display VisibilityOff icon when confirm password is visible', () => {
@@ -786,8 +786,8 @@ describe('RegistrationForm', () => {
       // Click to show password
       fireEvent.click(toggleButton)
 
-      const visibilityOffIcon = toggleButton.querySelector('svg[data-testid="VisibilityOffIcon"]')
-      expect(visibilityOffIcon).toBeInTheDocument()
+      const visibilityIcon = toggleButton.querySelector('svg[data-testid="VisibilityIcon"]')
+      expect(visibilityIcon).toBeInTheDocument()
     })
 
     it('should preserve password value when toggling visibility', () => {
