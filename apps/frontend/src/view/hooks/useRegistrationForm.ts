@@ -34,8 +34,6 @@ export function useRegistrationForm() {
     confirmPassword: '',
   })
 
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
   const registerMutation = useMutation({
     mutationFn: registerUserApi,
     onSuccess: (data) => {
@@ -113,22 +111,14 @@ export function useRegistrationForm() {
     return Object.values(newErrors).every((error) => error === '')
   }
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault()
     if (validateForm()) {
-      setIsSubmitting(true)
-
-      try {
-        await registerMutation.mutateAsync({
-          email: formData.email,
-          name: formData.name,
-          password: formData.password,
-        })
-      } catch {
-        // Error handling is done in onError callback
-      } finally {
-        setIsSubmitting(false)
-      }
+      registerMutation.mutate({
+        email: formData.email,
+        name: formData.name,
+        password: formData.password,
+      })
     }
   }
 
@@ -145,7 +135,7 @@ export function useRegistrationForm() {
   return {
     formData,
     errors,
-    isSubmitting,
+    isSubmitting: registerMutation.isPending,
     handleChange,
     handleSubmit,
     handleGoogleSignUp,
