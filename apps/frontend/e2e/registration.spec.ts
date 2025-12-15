@@ -44,13 +44,13 @@ test.describe('Registration Page', () => {
     const confirmPasswordInput = page.locator('input[autocomplete="new-password"]').nth(1)
 
     // Fill in form fields
-    await emailInput.fill('test@example.com')
+    await emailInput.fill('test1@example.com')
     await nameInput.fill('John Doe')
     await passwordInput.fill('securepassword123')
     await confirmPasswordInput.fill('securepassword123')
 
     // Verify values were entered
-    await expect(emailInput).toHaveValue('test@example.com')
+    await expect(emailInput).toHaveValue('test1@example.com')
     await expect(nameInput).toHaveValue('John Doe')
     await expect(passwordInput).toHaveValue('securepassword123')
     await expect(confirmPasswordInput).toHaveValue('securepassword123')
@@ -91,7 +91,7 @@ test.describe('Registration Page', () => {
 
   test('should submit the form when all fields are filled', async ({ page }) => {
     // Fill in all required fields
-    await page.getByLabel(/email address/i).fill('test@example.com')
+    await page.getByLabel(/email address/i).fill('test2@example.com')
     await page.getByLabel(/^name/i).fill('John Doe')
     await page
       .getByLabel(/^password/i, { exact: false })
@@ -255,7 +255,7 @@ test.describe('Registration Page', () => {
     await nameInput.fill('AB')
 
     // Fill other required fields
-    await page.getByLabel(/email address/i).fill('test@example.com')
+    await page.getByLabel(/email address/i).fill('test3@example.com')
     await page
       .getByLabel(/^password/i, { exact: false })
       .first()
@@ -278,7 +278,7 @@ test.describe('Registration Page', () => {
     await nameInput.fill(maxLengthName)
 
     // Fill other required fields
-    await page.getByLabel(/email address/i).fill('test@example.com')
+    await page.getByLabel(/email address/i).fill('test4@example.com')
     await page
       .getByLabel(/^password/i, { exact: false })
       .first()
