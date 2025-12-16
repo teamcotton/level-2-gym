@@ -982,16 +982,26 @@ describe('useAdminPage', () => {
     it('should not update state if request is aborted', async () => {
       mockFindAllUsers
         .mockImplementationOnce(async (params) => {
-          // Simulate slow request that gets aborted
-          await new Promise((resolve) => setTimeout(resolve, 100))
+          // Check if signal is already aborted (real fetch throws immediately)
           if (params.signal?.aborted) {
-            return {
-              success: false,
-              users: [],
-              total: 0,
-              error: 'Request aborted',
-            }
+            const error = new Error('The operation was aborted')
+            error.name = 'AbortError'
+            throw error
           }
+
+          // Simulate slow request that can be aborted
+          await new Promise<void>((resolve, reject) => {
+            const timeout = setTimeout(resolve, 100)
+            
+            // Listen for abort event during request (real fetch behavior)
+            params.signal?.addEventListener('abort', () => {
+              clearTimeout(timeout)
+              const error = new Error('The operation was aborted')
+              error.name = 'AbortError'
+              reject(error)
+            })
+          })
+
           return {
             success: true,
             users: [mockUsers[0]!],
