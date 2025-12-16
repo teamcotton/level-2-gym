@@ -1,13 +1,12 @@
 import * as fs from 'node:fs/promises'
 import * as fsSync from 'node:fs'
 import path from 'node:path'
-import {z} from 'zod'
+import { z } from 'zod'
 
 //const textPath = join(import.meta.dirname, '..', 'data', 'heart-of-darkness.txt')
 const FileExtensionSchema = z.string().regex(/\.(txt|csv|json|toon|onnx|safetensors|pt|py|gguf)$/i)
 
 type FilePathSchema = z.infer<typeof FileExtensionSchema>
-
 
 /**
  * Class for managing text file retrieval with state management
