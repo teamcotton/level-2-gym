@@ -310,7 +310,7 @@ describe('GET /api/users', () => {
       expect(response.status).toBe(404)
       expect(result).toEqual({
         success: false,
-        error: 'User API request failed with status 404:',
+        error: 'User API request failed with status 404',
       })
     })
 

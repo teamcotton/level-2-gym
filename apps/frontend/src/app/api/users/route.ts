@@ -32,7 +32,7 @@ export async function GET(request: Request) {
 
     if (isLocalDevelopment && apiUrl.startsWith('https')) {
       // Use dynamic import to avoid issues in production builds
-      // TODO: only used node-fetch for local development with self-signed certs
+      // TODO: This code uses node-fetch exclusively for local development with self-signed certificates
       const https = await import('https')
       const nodeFetch = (await import('node-fetch')).default
 
@@ -63,7 +63,7 @@ export async function GET(request: Request) {
       return Response.json(
         {
           success: false,
-          error: 'User API request failed with status ' + response.status + ':',
+          error: 'User API request failed with status ' + response.status,
         },
         { status: response.status }
       )

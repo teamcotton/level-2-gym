@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { POST } from '../../../../app/api/register/route.js'
+import { POST } from '@/app/api/register/route.js'
 
 describe('POST /api/register', () => {
   const mockEnv = {
