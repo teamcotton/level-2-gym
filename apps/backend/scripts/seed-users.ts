@@ -23,6 +23,7 @@
  * (72 firstNames × 72 lastNames × 10 domains). If you need more users,
  * the script will throw an error to prevent duplicate email generation.
  */
+// TODO: convert to using the test configuration DB instead of the live DB
 import { db } from '../src/infrastructure/database/index.js'
 import { user } from '../src/infrastructure/database/schema.js'
 import { Password } from '../src/domain/value-objects/password.js'
