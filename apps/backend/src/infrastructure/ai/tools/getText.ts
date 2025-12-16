@@ -1,12 +1,11 @@
 import * as fs from 'node:fs/promises'
 import path from 'node:path'
-import {z} from 'zod'
+import { z } from 'zod'
 
 //const textPath = join(import.meta.dirname, '..', 'data', 'heart-of-darkness.txt')
 const FileExtensionSchema = z.string().regex(/\.(txt|csv|json|toon|onnx|safetensors|pt|py|gguf)$/i)
 
 type FilePathSchema = z.infer<typeof FileExtensionSchema>
-
 
 /**
  * Class for managing text file retrieval with state management
@@ -54,7 +53,8 @@ export class GetText {
       return content
     } catch (error) {
       // Handle file not found error
-      if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+      const nodeError = error as NodeJS.ErrnoException
+      if (nodeError.code === 'ENOENT') {
         throw new Error(`Error reading file "${this.filePath}": File not found: ${this.file}`)
       }
       // Handle other errors
