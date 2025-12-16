@@ -13,7 +13,12 @@ describe('FileUtil', () => {
   const NESTED_DIR = 'nested/deep/directory'
   const NESTED_FILE = 'nested/deep/file.txt'
 
+  let fileUtil: FileUtil
+
   beforeEach(() => {
+    // Create a new FileUtil instance for each test
+    fileUtil = new FileUtil()
+
     // Clean up test directory before each test
     if (fs.existsSync(TEST_BASE_DIR)) {
       fs.rmSync(TEST_BASE_DIR, { recursive: true, force: true })
@@ -27,9 +32,62 @@ describe('FileUtil', () => {
     }
   })
 
+  describe('Constructor', () => {
+    it('should create instance with default parameters', () => {
+      const instance = new FileUtil()
+      expect(instance).toBeInstanceOf(FileUtil)
+    })
+
+    it('should create instance with custom database name', () => {
+      const customDbName = 'custom-db-test'
+      const customDir = path.join(process.cwd(), 'data', customDbName)
+      const customUtil = new FileUtil('data', customDbName)
+
+      try {
+        const result = customUtil.writeFile('test.txt', 'content')
+        expect(result.success).toBe(true)
+        expect(fs.existsSync(customDir)).toBe(true)
+      } finally {
+        // Clean up custom directory
+        if (fs.existsSync(customDir)) {
+          fs.rmSync(customDir, { recursive: true, force: true })
+        }
+      }
+    })
+
+    it('should create instance with custom data folder and database name', () => {
+      const customFolder = 'test-data'
+      const customDbName = 'custom-db'
+      const customDir = path.join(process.cwd(), customFolder, customDbName)
+      const customUtil = new FileUtil(customFolder, customDbName)
+
+      try {
+        const result = customUtil.writeFile('test.txt', 'content')
+        expect(result.success).toBe(true)
+        expect(fs.existsSync(customDir)).toBe(true)
+      } finally {
+        // Clean up custom directory and parent folder
+        try {
+          const customFolderPath = path.join(process.cwd(), customFolder)
+          if (fs.existsSync(customFolderPath)) {
+            fs.rmSync(customFolderPath, {
+              recursive: true,
+              force: true,
+              maxRetries: 3,
+              retryDelay: 100,
+            })
+          }
+        } catch (error) {
+          // Ignore cleanup errors in tests
+          console.warn('Failed to cleanup test-data folder:', error)
+        }
+      }
+    })
+  })
+
   describe('writeFile', () => {
     it('should write content to a file successfully', () => {
-      const result = FileUtil.writeFile(TEST_FILE, TEST_CONTENT)
+      const result = fileUtil.writeFile(TEST_FILE, TEST_CONTENT)
 
       expect(result.success).toBe(true)
       expect(result.message).toContain('File written successfully')
@@ -41,7 +99,7 @@ describe('FileUtil', () => {
     })
 
     it('should create nested directories when writing to nested path', () => {
-      const result = FileUtil.writeFile(NESTED_FILE, TEST_CONTENT)
+      const result = fileUtil.writeFile(NESTED_FILE, TEST_CONTENT)
 
       expect(result.success).toBe(true)
       expect(result.path).toBe(NESTED_FILE)
@@ -52,8 +110,8 @@ describe('FileUtil', () => {
     })
 
     it('should overwrite existing file', () => {
-      FileUtil.writeFile(TEST_FILE, 'First content')
-      const result = FileUtil.writeFile(TEST_FILE, 'Second content')
+      fileUtil.writeFile(TEST_FILE, 'First content')
+      const result = fileUtil.writeFile(TEST_FILE, 'Second content')
 
       expect(result.success).toBe(true)
 
@@ -62,7 +120,7 @@ describe('FileUtil', () => {
     })
 
     it('should handle empty content', () => {
-      const result = FileUtil.writeFile(TEST_FILE, '')
+      const result = fileUtil.writeFile(TEST_FILE, '')
 
       expect(result.success).toBe(true)
 
@@ -72,7 +130,7 @@ describe('FileUtil', () => {
 
     it('should handle special characters in content', () => {
       const specialContent = 'Special chars: 特殊文字 émojis 🎉 @#$%'
-      const result = FileUtil.writeFile(TEST_FILE, specialContent)
+      const result = fileUtil.writeFile(TEST_FILE, specialContent)
 
       expect(result.success).toBe(true)
 
@@ -81,20 +139,20 @@ describe('FileUtil', () => {
     })
 
     it('should throw ValidationException for paths outside base directory', () => {
-      expect(() => FileUtil.writeFile('../outside.txt', TEST_CONTENT)).toThrow(ValidationException)
-      expect(() => FileUtil.writeFile('../outside.txt', TEST_CONTENT)).toThrow('Access denied')
+      expect(() => fileUtil.writeFile('../outside.txt', TEST_CONTENT)).toThrow(ValidationException)
+      expect(() => fileUtil.writeFile('../outside.txt', TEST_CONTENT)).toThrow('Access denied')
     })
 
     it('should throw ValidationException for absolute paths outside base directory', () => {
-      expect(() => FileUtil.writeFile('/etc/passwd', TEST_CONTENT)).toThrow(ValidationException)
-      expect(() => FileUtil.writeFile('/etc/passwd', TEST_CONTENT)).toThrow('Access denied')
+      expect(() => fileUtil.writeFile('/etc/passwd', TEST_CONTENT)).toThrow(ValidationException)
+      expect(() => fileUtil.writeFile('/etc/passwd', TEST_CONTENT)).toThrow('Access denied')
     })
   })
 
   describe('readFile', () => {
     it('should read content from an existing file', () => {
-      FileUtil.writeFile(TEST_FILE, TEST_CONTENT)
-      const result = FileUtil.readFile(TEST_FILE)
+      fileUtil.writeFile(TEST_FILE, TEST_CONTENT)
+      const result = fileUtil.readFile(TEST_FILE)
 
       expect(result.success).toBe(true)
       expect(result.content).toBe(TEST_CONTENT)
@@ -103,15 +161,15 @@ describe('FileUtil', () => {
     })
 
     it('should read content from nested file', () => {
-      FileUtil.writeFile(NESTED_FILE, TEST_CONTENT)
-      const result = FileUtil.readFile(NESTED_FILE)
+      fileUtil.writeFile(NESTED_FILE, TEST_CONTENT)
+      const result = fileUtil.readFile(NESTED_FILE)
 
       expect(result.success).toBe(true)
       expect(result.content).toBe(TEST_CONTENT)
     })
 
     it('should return error for non-existent file', () => {
-      const result = FileUtil.readFile('non-existent.txt')
+      const result = fileUtil.readFile('non-existent.txt')
 
       expect(result.success).toBe(false)
       expect(result.content).toBeUndefined()
@@ -119,23 +177,23 @@ describe('FileUtil', () => {
     })
 
     it('should handle empty files', () => {
-      FileUtil.writeFile(TEST_FILE, '')
-      const result = FileUtil.readFile(TEST_FILE)
+      fileUtil.writeFile(TEST_FILE, '')
+      const result = fileUtil.readFile(TEST_FILE)
 
       expect(result.success).toBe(true)
       expect(result.content).toBe('')
     })
 
     it('should throw ValidationException for paths outside base directory', () => {
-      expect(() => FileUtil.readFile('../outside.txt')).toThrow(ValidationException)
-      expect(() => FileUtil.readFile('../outside.txt')).toThrow('Access denied')
+      expect(() => fileUtil.readFile('../outside.txt')).toThrow(ValidationException)
+      expect(() => fileUtil.readFile('../outside.txt')).toThrow('Access denied')
     })
   })
 
   describe('deletePath', () => {
     it('should delete an existing file', () => {
-      FileUtil.writeFile(TEST_FILE, TEST_CONTENT)
-      const result = FileUtil.deletePath(TEST_FILE)
+      fileUtil.writeFile(TEST_FILE, TEST_CONTENT)
+      const result = fileUtil.deletePath(TEST_FILE)
 
       expect(result.success).toBe(true)
       expect(result.message).toContain('File deleted successfully')
@@ -146,8 +204,8 @@ describe('FileUtil', () => {
     })
 
     it('should delete an existing directory', () => {
-      FileUtil.createDirectory(TEST_DIR)
-      const result = FileUtil.deletePath(TEST_DIR)
+      fileUtil.createDirectory(TEST_DIR)
+      const result = fileUtil.deletePath(TEST_DIR)
 
       expect(result.success).toBe(true)
       expect(result.message).toContain('Directory deleted successfully')
@@ -158,11 +216,11 @@ describe('FileUtil', () => {
     })
 
     it('should delete directory with contents recursively', () => {
-      FileUtil.createDirectory(TEST_DIR)
-      FileUtil.writeFile(`${TEST_DIR}/file1.txt`, 'Content 1')
-      FileUtil.writeFile(`${TEST_DIR}/file2.txt`, 'Content 2')
+      fileUtil.createDirectory(TEST_DIR)
+      fileUtil.writeFile(`${TEST_DIR}/file1.txt`, 'Content 1')
+      fileUtil.writeFile(`${TEST_DIR}/file2.txt`, 'Content 2')
 
-      const result = FileUtil.deletePath(TEST_DIR)
+      const result = fileUtil.deletePath(TEST_DIR)
 
       expect(result.success).toBe(true)
 
@@ -171,22 +229,22 @@ describe('FileUtil', () => {
     })
 
     it('should return error for non-existent path', () => {
-      const result = FileUtil.deletePath('non-existent.txt')
+      const result = fileUtil.deletePath('non-existent.txt')
 
       expect(result.success).toBe(false)
       expect(result.message).toContain('Path not found')
     })
 
     it('should throw ValidationException for paths outside base directory', () => {
-      expect(() => FileUtil.deletePath('../outside.txt')).toThrow(ValidationException)
-      expect(() => FileUtil.deletePath('../outside.txt')).toThrow('Access denied')
+      expect(() => fileUtil.deletePath('../outside.txt')).toThrow(ValidationException)
+      expect(() => fileUtil.deletePath('../outside.txt')).toThrow('Access denied')
     })
   })
 
   describe('listDirectory', () => {
     it('should list empty directory', () => {
-      FileUtil.createDirectory(TEST_DIR)
-      const result = FileUtil.listDirectory(TEST_DIR)
+      fileUtil.createDirectory(TEST_DIR)
+      const result = fileUtil.listDirectory(TEST_DIR)
 
       expect(result.success).toBe(true)
       expect(result.items).toEqual([])
@@ -194,12 +252,12 @@ describe('FileUtil', () => {
     })
 
     it('should list directory with files and subdirectories', () => {
-      FileUtil.createDirectory(TEST_DIR)
-      FileUtil.writeFile(`${TEST_DIR}/file1.txt`, 'Content 1')
-      FileUtil.writeFile(`${TEST_DIR}/file2.txt`, 'Content 2')
-      FileUtil.createDirectory(`${TEST_DIR}/subdir`)
+      fileUtil.createDirectory(TEST_DIR)
+      fileUtil.writeFile(`${TEST_DIR}/file1.txt`, 'Content 1')
+      fileUtil.writeFile(`${TEST_DIR}/file2.txt`, 'Content 2')
+      fileUtil.createDirectory(`${TEST_DIR}/subdir`)
 
-      const result = FileUtil.listDirectory(TEST_DIR)
+      const result = fileUtil.listDirectory(TEST_DIR)
 
       expect(result.success).toBe(true)
       expect(result.items).toHaveLength(3)
@@ -221,8 +279,8 @@ describe('FileUtil', () => {
     })
 
     it('should list root directory by default', () => {
-      FileUtil.writeFile('root-file.txt', 'Content')
-      const result = FileUtil.listDirectory()
+      fileUtil.writeFile('root-file.txt', 'Content')
+      const result = fileUtil.listDirectory()
 
       expect(result.success).toBe(true)
       expect(result.items).toBeDefined()
@@ -231,29 +289,29 @@ describe('FileUtil', () => {
     })
 
     it('should return error for non-existent directory', () => {
-      const result = FileUtil.listDirectory('non-existent')
+      const result = fileUtil.listDirectory('non-existent')
 
       expect(result.success).toBe(false)
       expect(result.message).toContain('Directory not found')
     })
 
     it('should return error when path is a file, not directory', () => {
-      FileUtil.writeFile(TEST_FILE, TEST_CONTENT)
-      const result = FileUtil.listDirectory(TEST_FILE)
+      fileUtil.writeFile(TEST_FILE, TEST_CONTENT)
+      const result = fileUtil.listDirectory(TEST_FILE)
 
       expect(result.success).toBe(false)
       expect(result.message).toContain('Path is not a directory')
     })
 
     it('should throw ValidationException for paths outside base directory', () => {
-      expect(() => FileUtil.listDirectory('../outside')).toThrow(ValidationException)
-      expect(() => FileUtil.listDirectory('../outside')).toThrow('Access denied')
+      expect(() => fileUtil.listDirectory('../outside')).toThrow(ValidationException)
+      expect(() => fileUtil.listDirectory('../outside')).toThrow('Access denied')
     })
   })
 
   describe('createDirectory', () => {
     it('should create a new directory', () => {
-      const result = FileUtil.createDirectory(TEST_DIR)
+      const result = fileUtil.createDirectory(TEST_DIR)
 
       expect(result.success).toBe(true)
       expect(result.message).toContain('Directory created successfully')
@@ -265,7 +323,7 @@ describe('FileUtil', () => {
     })
 
     it('should create nested directories', () => {
-      const result = FileUtil.createDirectory(NESTED_DIR)
+      const result = fileUtil.createDirectory(NESTED_DIR)
 
       expect(result.success).toBe(true)
       expect(result.path).toBe(NESTED_DIR)
@@ -275,23 +333,23 @@ describe('FileUtil', () => {
     })
 
     it('should return error if directory already exists', () => {
-      FileUtil.createDirectory(TEST_DIR)
-      const result = FileUtil.createDirectory(TEST_DIR)
+      fileUtil.createDirectory(TEST_DIR)
+      const result = fileUtil.createDirectory(TEST_DIR)
 
       expect(result.success).toBe(false)
       expect(result.message).toContain('Directory already exists')
     })
 
     it('should throw ValidationException for paths outside base directory', () => {
-      expect(() => FileUtil.createDirectory('../outside')).toThrow(ValidationException)
-      expect(() => FileUtil.createDirectory('../outside')).toThrow('Access denied')
+      expect(() => fileUtil.createDirectory('../outside')).toThrow(ValidationException)
+      expect(() => fileUtil.createDirectory('../outside')).toThrow('Access denied')
     })
   })
 
   describe('exists', () => {
     it('should return true for existing file', () => {
-      FileUtil.writeFile(TEST_FILE, TEST_CONTENT)
-      const result = FileUtil.exists(TEST_FILE)
+      fileUtil.writeFile(TEST_FILE, TEST_CONTENT)
+      const result = fileUtil.exists(TEST_FILE)
 
       expect(result.success).toBe(true)
       expect(result.exists).toBe(true)
@@ -299,15 +357,15 @@ describe('FileUtil', () => {
     })
 
     it('should return true for existing directory', () => {
-      FileUtil.createDirectory(TEST_DIR)
-      const result = FileUtil.exists(TEST_DIR)
+      fileUtil.createDirectory(TEST_DIR)
+      const result = fileUtil.exists(TEST_DIR)
 
       expect(result.success).toBe(true)
       expect(result.exists).toBe(true)
     })
 
     it('should return false for non-existent path', () => {
-      const result = FileUtil.exists('non-existent.txt')
+      const result = fileUtil.exists('non-existent.txt')
 
       expect(result.success).toBe(true)
       expect(result.exists).toBe(false)
@@ -315,26 +373,26 @@ describe('FileUtil', () => {
     })
 
     it('should throw ValidationException for paths outside base directory', () => {
-      expect(() => FileUtil.exists('../outside.txt')).toThrow(ValidationException)
-      expect(() => FileUtil.exists('../outside.txt')).toThrow('Access denied')
+      expect(() => fileUtil.exists('../outside.txt')).toThrow(ValidationException)
+      expect(() => fileUtil.exists('../outside.txt')).toThrow('Access denied')
     })
   })
 
   describe('searchFiles', () => {
     beforeEach(() => {
       // Create test file structure
-      FileUtil.writeFile('file1.txt', 'Content 1')
-      FileUtil.writeFile('file2.txt', 'Content 2')
-      FileUtil.writeFile('document.pdf', 'PDF content')
-      FileUtil.createDirectory('subdir')
-      FileUtil.writeFile('subdir/nested.txt', 'Nested content')
-      FileUtil.writeFile('subdir/data.json', 'JSON data')
-      FileUtil.createDirectory('subdir/deep')
-      FileUtil.writeFile('subdir/deep/deepfile.txt', 'Deep content')
+      fileUtil.writeFile('file1.txt', 'Content 1')
+      fileUtil.writeFile('file2.txt', 'Content 2')
+      fileUtil.writeFile('document.pdf', 'PDF content')
+      fileUtil.createDirectory('subdir')
+      fileUtil.writeFile('subdir/nested.txt', 'Nested content')
+      fileUtil.writeFile('subdir/data.json', 'JSON data')
+      fileUtil.createDirectory('subdir/deep')
+      fileUtil.writeFile('subdir/deep/deepfile.txt', 'Deep content')
     })
 
     it('should find files matching exact name', () => {
-      const result = FileUtil.searchFiles('file1.txt')
+      const result = fileUtil.searchFiles('file1.txt')
 
       expect(result.success).toBe(true)
       expect(result.files).toHaveLength(1)
@@ -342,7 +400,7 @@ describe('FileUtil', () => {
     })
 
     it('should find files matching wildcard pattern', () => {
-      const result = FileUtil.searchFiles('*.txt')
+      const result = fileUtil.searchFiles('*.txt')
 
       expect(result.success).toBe(true)
       expect(result.files!.length).toBeGreaterThanOrEqual(3)
@@ -350,7 +408,7 @@ describe('FileUtil', () => {
     })
 
     it('should search recursively in subdirectories', () => {
-      const result = FileUtil.searchFiles('*.txt', '.')
+      const result = fileUtil.searchFiles('*.txt', '.')
 
       expect(result.success).toBe(true)
       expect(result.files).toContain('file1.txt')
@@ -359,7 +417,7 @@ describe('FileUtil', () => {
     })
 
     it('should search in specific subdirectory', () => {
-      const result = FileUtil.searchFiles('*.txt', 'subdir')
+      const result = fileUtil.searchFiles('*.txt', 'subdir')
 
       expect(result.success).toBe(true)
       expect(result.files).toHaveLength(2)
@@ -367,7 +425,7 @@ describe('FileUtil', () => {
     })
 
     it('should find files by partial name match', () => {
-      const result = FileUtil.searchFiles('*data*')
+      const result = fileUtil.searchFiles('*data*')
 
       expect(result.success).toBe(true)
       expect(result.files!.length).toBeGreaterThanOrEqual(1)
@@ -375,7 +433,7 @@ describe('FileUtil', () => {
     })
 
     it('should return empty array when no files match', () => {
-      const result = FileUtil.searchFiles('*.nonexistent')
+      const result = fileUtil.searchFiles('*.nonexistent')
 
       expect(result.success).toBe(true)
       expect(result.files).toEqual([])
@@ -383,22 +441,22 @@ describe('FileUtil', () => {
     })
 
     it('should return error for non-existent search directory', () => {
-      const result = FileUtil.searchFiles('*.txt', 'non-existent-dir')
+      const result = fileUtil.searchFiles('*.txt', 'non-existent-dir')
 
       expect(result.success).toBe(false)
       expect(result.message).toContain('Search directory not found')
     })
 
     it('should return error when search path is a file', () => {
-      const result = FileUtil.searchFiles('*.txt', 'file1.txt')
+      const result = fileUtil.searchFiles('*.txt', 'file1.txt')
 
       expect(result.success).toBe(false)
       expect(result.message).toContain('Search path is not a directory')
     })
 
     it('should throw ValidationException for search paths outside base directory', () => {
-      expect(() => FileUtil.searchFiles('*.txt', '../outside')).toThrow(ValidationException)
-      expect(() => FileUtil.searchFiles('*.txt', '../outside')).toThrow('Access denied')
+      expect(() => fileUtil.searchFiles('*.txt', '../outside')).toThrow(ValidationException)
+      expect(() => fileUtil.searchFiles('*.txt', '../outside')).toThrow('Access denied')
     })
   })
 
@@ -429,30 +487,30 @@ describe('FileUtil', () => {
 
   describe('Path Security', () => {
     it('should prevent directory traversal with ../', () => {
-      expect(() => FileUtil.writeFile('../../etc/passwd', 'malicious')).toThrow(ValidationException)
-      expect(() => FileUtil.writeFile('../../etc/passwd', 'malicious')).toThrow('Access denied')
+      expect(() => fileUtil.writeFile('../../etc/passwd', 'malicious')).toThrow(ValidationException)
+      expect(() => fileUtil.writeFile('../../etc/passwd', 'malicious')).toThrow('Access denied')
     })
 
     it('should prevent directory traversal patterns', () => {
       // This test works on all platforms
-      expect(() => FileUtil.writeFile('../outside.txt', 'malicious')).toThrow(ValidationException)
-      expect(() => FileUtil.writeFile('../outside.txt', 'malicious')).toThrow('Access denied')
+      expect(() => fileUtil.writeFile('../outside.txt', 'malicious')).toThrow(ValidationException)
+      expect(() => fileUtil.writeFile('../outside.txt', 'malicious')).toThrow('Access denied')
 
-      expect(() => FileUtil.writeFile('test/../../../etc/passwd', 'malicious')).toThrow(
+      expect(() => fileUtil.writeFile('test/../../../etc/passwd', 'malicious')).toThrow(
         ValidationException
       )
-      expect(() => FileUtil.writeFile('test/../../../etc/passwd', 'malicious')).toThrow(
+      expect(() => fileUtil.writeFile('test/../../../etc/passwd', 'malicious')).toThrow(
         'Access denied'
       )
     })
 
     it('should prevent absolute path access', () => {
-      expect(() => FileUtil.writeFile('/etc/passwd', 'malicious')).toThrow(ValidationException)
-      expect(() => FileUtil.writeFile('/etc/passwd', 'malicious')).toThrow('Access denied')
+      expect(() => fileUtil.writeFile('/etc/passwd', 'malicious')).toThrow(ValidationException)
+      expect(() => fileUtil.writeFile('/etc/passwd', 'malicious')).toThrow('Access denied')
     })
 
     it('should allow relative paths within base directory', () => {
-      const result = FileUtil.writeFile('subdir/../allowed.txt', 'content')
+      const result = fileUtil.writeFile('subdir/../allowed.txt', 'content')
 
       expect(result.success).toBe(true)
 
@@ -468,7 +526,7 @@ describe('FileUtil', () => {
         fs.rmSync(TEST_BASE_DIR, { recursive: true, force: true })
       }
 
-      const result = FileUtil.writeFile(TEST_FILE, TEST_CONTENT)
+      const result = fileUtil.writeFile(TEST_FILE, TEST_CONTENT)
 
       expect(result.success).toBe(true)
       expect(fs.existsSync(TEST_BASE_DIR)).toBe(true)
@@ -476,10 +534,10 @@ describe('FileUtil', () => {
 
     it('should handle existing base directory gracefully', () => {
       // Ensure base directory exists
-      FileUtil.writeFile('init-test.txt', 'content')
+      fileUtil.writeFile('init-test.txt', 'content')
 
       // Call again - should not fail
-      const result = FileUtil.writeFile('another-file.txt', 'more content')
+      const result = fileUtil.writeFile('another-file.txt', 'more content')
 
       expect(result.success).toBe(true)
     })

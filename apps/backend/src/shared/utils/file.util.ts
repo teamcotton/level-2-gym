@@ -7,24 +7,34 @@ import { ValidationException } from '../exceptions/validation.exception.js'
  * Provides methods for reading, writing, deleting, and searching files within a controlled directory
  */
 export class FileUtil {
-  private static readonly BASE_DIR = path.join(process.cwd(), 'data', 'file-system-db.local')
+  private readonly baseDir: string
 
+  /**
+   * Create a new FileUtil instance
+   * @param dbName - The flat file database directory name (default: 'file-system-db.local')
+   * @param dataFolder - The base data folder (default: 'data')
+   */
+  constructor(dataFolder: string = 'data', dbName: string = 'file-system-db.local') {
+    this.baseDir = path.join(process.cwd(), dataFolder, dbName)
+  }
+  //path.join(process.cwd(), dataFolder, dbName)
+  //join(import.meta.dirname, '..', 'data', 'heart-of-darkness.txt')
   /**
    * Ensure the base directory exists
    */
-  private static ensureBaseDir(): void {
-    if (!fs.existsSync(FileUtil.BASE_DIR)) {
-      fs.mkdirSync(FileUtil.BASE_DIR, { recursive: true })
+  private ensureBaseDir(): void {
+    if (!fs.existsSync(this.baseDir)) {
+      fs.mkdirSync(this.baseDir, { recursive: true })
     }
   }
 
   /**
    * Validate that a path is within the allowed directory
    */
-  private static validatePath(filePath: string): string {
+  private validatePath(filePath: string): string {
     const normalizedPath = path.normalize(filePath)
-    const fullPath = path.resolve(FileUtil.BASE_DIR, normalizedPath)
-    const baseDirResolved = path.resolve(FileUtil.BASE_DIR)
+    const fullPath = path.resolve(this.baseDir, normalizedPath)
+    const baseDirResolved = path.resolve(this.baseDir)
 
     const relativePath = path.relative(baseDirResolved, fullPath)
     if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
@@ -39,15 +49,15 @@ export class FileUtil {
   /**
    * Get relative path from base directory
    */
-  private static getRelativePath(fullPath: string): string {
-    const baseDirResolved = path.resolve(FileUtil.BASE_DIR)
+  private getRelativePath(fullPath: string): string {
+    const baseDirResolved = path.resolve(this.baseDir)
     return path.relative(baseDirResolved, fullPath)
   }
 
   /**
    * Handle errors consistently across all methods
    */
-  private static handleError(error: unknown, operation: string): never {
+  private handleError(error: unknown, operation: string): never {
     if (error instanceof ValidationException) {
       throw error
     }
@@ -59,13 +69,13 @@ export class FileUtil {
   /**
    * Write content to a file
    */
-  public static writeFile(
+  public writeFile(
     filePath: string,
     content: string
   ): { success: boolean; message: string; path: string } {
     try {
-      FileUtil.ensureBaseDir()
-      const fullPath = FileUtil.validatePath(filePath)
+      this.ensureBaseDir()
+      const fullPath = this.validatePath(filePath)
 
       // Ensure the directory exists
       const dir = path.dirname(fullPath)
@@ -77,32 +87,32 @@ export class FileUtil {
 
       return {
         success: true,
-        message: `File written successfully: ${FileUtil.getRelativePath(fullPath)}`,
-        path: FileUtil.getRelativePath(fullPath),
+        message: `File written successfully: ${this.getRelativePath(fullPath)}`,
+        path: this.getRelativePath(fullPath),
       }
     } catch (error) {
-      FileUtil.handleError(error, 'writing file')
+      this.handleError(error, 'writing file')
     }
   }
 
   /**
    * Read content from a file
    */
-  public static readFile(filePath: string): {
+  public readFile(filePath: string): {
     success: boolean
     content?: string
     message: string
     path: string
   } {
     try {
-      FileUtil.ensureBaseDir()
-      const fullPath = FileUtil.validatePath(filePath)
+      this.ensureBaseDir()
+      const fullPath = this.validatePath(filePath)
 
       if (!fs.existsSync(fullPath)) {
         return {
           success: false,
-          message: `File not found: ${FileUtil.getRelativePath(fullPath)}`,
-          path: FileUtil.getRelativePath(fullPath),
+          message: `File not found: ${this.getRelativePath(fullPath)}`,
+          path: this.getRelativePath(fullPath),
         }
       }
 
@@ -111,31 +121,31 @@ export class FileUtil {
       return {
         success: true,
         content,
-        message: `File read successfully: ${FileUtil.getRelativePath(fullPath)}`,
-        path: FileUtil.getRelativePath(fullPath),
+        message: `File read successfully: ${this.getRelativePath(fullPath)}`,
+        path: this.getRelativePath(fullPath),
       }
     } catch (error) {
-      FileUtil.handleError(error, 'reading file')
+      this.handleError(error, 'reading file')
     }
   }
 
   /**
    * Delete a file or directory
    */
-  public static deletePath(pathToDelete: string): {
+  public deletePath(pathToDelete: string): {
     success: boolean
     message: string
     path: string
   } {
     try {
-      FileUtil.ensureBaseDir()
-      const fullPath = FileUtil.validatePath(pathToDelete)
+      this.ensureBaseDir()
+      const fullPath = this.validatePath(pathToDelete)
 
       if (!fs.existsSync(fullPath)) {
         return {
           success: false,
-          message: `Path not found: ${FileUtil.getRelativePath(fullPath)}`,
-          path: FileUtil.getRelativePath(fullPath),
+          message: `Path not found: ${this.getRelativePath(fullPath)}`,
+          path: this.getRelativePath(fullPath),
         }
       }
 
@@ -145,32 +155,32 @@ export class FileUtil {
         fs.rmSync(fullPath, { recursive: true, force: true })
         return {
           success: true,
-          message: `Directory deleted successfully: ${FileUtil.getRelativePath(fullPath)}`,
-          path: FileUtil.getRelativePath(fullPath),
+          message: `Directory deleted successfully: ${this.getRelativePath(fullPath)}`,
+          path: this.getRelativePath(fullPath),
         }
       } else if (stats.isFile()) {
         fs.unlinkSync(fullPath)
         return {
           success: true,
-          message: `File deleted successfully: ${FileUtil.getRelativePath(fullPath)}`,
-          path: FileUtil.getRelativePath(fullPath),
+          message: `File deleted successfully: ${this.getRelativePath(fullPath)}`,
+          path: this.getRelativePath(fullPath),
         }
       } else {
         return {
           success: false,
-          message: `Path is neither a file nor directory: ${FileUtil.getRelativePath(fullPath)}`,
-          path: FileUtil.getRelativePath(fullPath),
+          message: `Path is neither a file nor directory: ${this.getRelativePath(fullPath)}`,
+          path: this.getRelativePath(fullPath),
         }
       }
     } catch (error) {
-      FileUtil.handleError(error, 'deleting path')
+      this.handleError(error, 'deleting path')
     }
   }
 
   /**
    * List contents of a directory
    */
-  public static listDirectory(dirPath: string = '.'): {
+  public listDirectory(dirPath: string = '.'): {
     success: boolean
     items?: Array<{
       name: string
@@ -181,14 +191,14 @@ export class FileUtil {
     path: string
   } {
     try {
-      FileUtil.ensureBaseDir()
-      const fullPath = FileUtil.validatePath(dirPath)
+      this.ensureBaseDir()
+      const fullPath = this.validatePath(dirPath)
 
       if (!fs.existsSync(fullPath)) {
         return {
           success: false,
-          message: `Directory not found: ${FileUtil.getRelativePath(fullPath)}`,
-          path: FileUtil.getRelativePath(fullPath),
+          message: `Directory not found: ${this.getRelativePath(fullPath)}`,
+          path: this.getRelativePath(fullPath),
         }
       }
 
@@ -196,8 +206,8 @@ export class FileUtil {
       if (!stats.isDirectory()) {
         return {
           success: false,
-          message: `Path is not a directory: ${FileUtil.getRelativePath(fullPath)}`,
-          path: FileUtil.getRelativePath(fullPath),
+          message: `Path is not a directory: ${this.getRelativePath(fullPath)}`,
+          path: this.getRelativePath(fullPath),
         }
       }
 
@@ -214,31 +224,31 @@ export class FileUtil {
       return {
         success: true,
         items,
-        message: `Directory listed successfully: ${FileUtil.getRelativePath(fullPath)}`,
-        path: FileUtil.getRelativePath(fullPath),
+        message: `Directory listed successfully: ${this.getRelativePath(fullPath)}`,
+        path: this.getRelativePath(fullPath),
       }
     } catch (error) {
-      FileUtil.handleError(error, 'listing directory')
+      this.handleError(error, 'listing directory')
     }
   }
 
   /**
    * Create a directory
    */
-  public static createDirectory(dirPath: string): {
+  public createDirectory(dirPath: string): {
     success: boolean
     message: string
     path: string
   } {
     try {
-      FileUtil.ensureBaseDir()
-      const fullPath = FileUtil.validatePath(dirPath)
+      this.ensureBaseDir()
+      const fullPath = this.validatePath(dirPath)
 
       if (fs.existsSync(fullPath)) {
         return {
           success: false,
-          message: `Directory already exists: ${FileUtil.getRelativePath(fullPath)}`,
-          path: FileUtil.getRelativePath(fullPath),
+          message: `Directory already exists: ${this.getRelativePath(fullPath)}`,
+          path: this.getRelativePath(fullPath),
         }
       }
 
@@ -246,44 +256,44 @@ export class FileUtil {
 
       return {
         success: true,
-        message: `Directory created successfully: ${FileUtil.getRelativePath(fullPath)}`,
-        path: FileUtil.getRelativePath(fullPath),
+        message: `Directory created successfully: ${this.getRelativePath(fullPath)}`,
+        path: this.getRelativePath(fullPath),
       }
     } catch (error) {
-      FileUtil.handleError(error, 'creating directory')
+      this.handleError(error, 'creating directory')
     }
   }
 
   /**
    * Check if a file or directory exists
    */
-  public static exists(pathToCheck: string): {
+  public exists(pathToCheck: string): {
     success: boolean
     exists: boolean
     message: string
     path: string
   } {
     try {
-      FileUtil.ensureBaseDir()
-      const fullPath = FileUtil.validatePath(pathToCheck)
+      this.ensureBaseDir()
+      const fullPath = this.validatePath(pathToCheck)
 
       const exists = fs.existsSync(fullPath)
 
       return {
         success: true,
         exists,
-        message: `Path ${exists ? 'exists' : 'does not exist'}: ${FileUtil.getRelativePath(fullPath)}`,
-        path: FileUtil.getRelativePath(fullPath),
+        message: `Path ${exists ? 'exists' : 'does not exist'}: ${this.getRelativePath(fullPath)}`,
+        path: this.getRelativePath(fullPath),
       }
     } catch (error) {
-      FileUtil.handleError(error, 'checking path existence')
+      this.handleError(error, 'checking path existence')
     }
   }
 
   /**
    * Search for files by pattern (simple glob-like search)
    */
-  public static searchFiles(
+  public searchFiles(
     pattern: string,
     searchDir: string = '.'
   ): {
@@ -294,15 +304,15 @@ export class FileUtil {
     searchDir: string
   } {
     try {
-      FileUtil.ensureBaseDir()
-      const fullSearchDir = FileUtil.validatePath(searchDir)
+      this.ensureBaseDir()
+      const fullSearchDir = this.validatePath(searchDir)
 
       if (!fs.existsSync(fullSearchDir)) {
         return {
           success: false,
-          message: `Search directory not found: ${FileUtil.getRelativePath(fullSearchDir)}`,
+          message: `Search directory not found: ${this.getRelativePath(fullSearchDir)}`,
           pattern,
-          searchDir: FileUtil.getRelativePath(fullSearchDir),
+          searchDir: this.getRelativePath(fullSearchDir),
         }
       }
 
@@ -310,20 +320,20 @@ export class FileUtil {
       if (!stats.isDirectory()) {
         return {
           success: false,
-          message: `Search path is not a directory: ${FileUtil.getRelativePath(fullSearchDir)}`,
+          message: `Search path is not a directory: ${this.getRelativePath(fullSearchDir)}`,
           pattern,
-          searchDir: FileUtil.getRelativePath(fullSearchDir),
+          searchDir: this.getRelativePath(fullSearchDir),
         }
       }
 
       const foundFiles: string[] = []
 
-      function searchRecursively(currentDir: string): void {
+      const searchRecursively = (currentDir: string): void => {
         const items = fs.readdirSync(currentDir)
 
         for (const item of items) {
           const itemPath = path.join(currentDir, item)
-          const relativeItemPath = FileUtil.getRelativePath(itemPath)
+          const relativeItemPath = this.getRelativePath(itemPath)
           const stats = fs.statSync(itemPath)
 
           if (stats.isDirectory()) {
@@ -348,21 +358,24 @@ export class FileUtil {
         files: foundFiles,
         message: `Found ${foundFiles.length} files matching pattern "${pattern}"`,
         pattern,
-        searchDir: FileUtil.getRelativePath(fullSearchDir),
+        searchDir: this.getRelativePath(fullSearchDir),
       }
     } catch (error) {
-      FileUtil.handleError(error, 'searching files')
+      this.handleError(error, 'searching files')
     }
   }
 }
 
+// Create a default instance for backward compatibility
+const defaultFileUtil = new FileUtil()
+
 // Export all methods as a single object for easy tool registration
 export const fileSystemTools = {
-  writeFile: FileUtil.writeFile.bind(FileUtil),
-  readFile: FileUtil.readFile.bind(FileUtil),
-  deletePath: FileUtil.deletePath.bind(FileUtil),
-  listDirectory: FileUtil.listDirectory.bind(FileUtil),
-  createDirectory: FileUtil.createDirectory.bind(FileUtil),
-  exists: FileUtil.exists.bind(FileUtil),
-  searchFiles: FileUtil.searchFiles.bind(FileUtil),
+  writeFile: defaultFileUtil.writeFile.bind(defaultFileUtil),
+  readFile: defaultFileUtil.readFile.bind(defaultFileUtil),
+  deletePath: defaultFileUtil.deletePath.bind(defaultFileUtil),
+  listDirectory: defaultFileUtil.listDirectory.bind(defaultFileUtil),
+  createDirectory: defaultFileUtil.createDirectory.bind(defaultFileUtil),
+  exists: defaultFileUtil.exists.bind(defaultFileUtil),
+  searchFiles: defaultFileUtil.searchFiles.bind(defaultFileUtil),
 }
