@@ -82,7 +82,7 @@ export const POST = async (req: Request): Promise<Response> => {
   }
 
   if (!chat) {
-    await createChat(id, messages as UIMessage[])
+    chat = await createChat(id, messages as UIMessage[])
   } else {
     await appendToChatMessages(id, [mostRecentMessage as UIMessage])
   }
