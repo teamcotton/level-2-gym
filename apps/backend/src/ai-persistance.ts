@@ -3,10 +3,16 @@ import { convertToModelMessages, stepCountIs, streamText, tool, type UIMessage }
 import { z } from 'zod'
 import type { FastifyRequest } from 'fastify'
 
+import { GetText } from '../src/infrastructure/ai/tools/getText.js'
+
 import { appendToChatMessages, createChat, getChat } from './shared/persistance-layer.js'
 
 import { isValidUUID, uuidVersionValidation } from 'uuidv7-utilities'
 import { FastifyUtil } from './shared/utils/fastify.utils.js'
+import path from 'node:path'
+
+// Create a singleton instance of GetText to preserve cache across requests
+const getTextInstance = new GetText('data', 'heart-of-darkness.txt')
 
 function processUserUUID(userInput: string | Buffer) {
   if (!isValidUUID(userInput)) {
@@ -104,18 +110,24 @@ export const POST = async (req: Request): Promise<Response> => {
           question: z.string().describe('The question to answer about Heart of Darkness'),
         }),
         execute: async ({ question }) => {
-          const { readFile } = await import('fs/promises')
-          const { join } = await import('path')
-
           try {
-            // Read the Heart of Darkness text file
-            const textPath = join(import.meta.dirname, '..', 'data', 'heart-of-darkness.txt')
-            const heartOfDarknessText = await readFile(textPath, 'utf-8')
+            // Read the Heart of Darkness text file using the singleton instance
+            const filePath = getTextInstance.filePath
+
+            let heartOfDarknessText
+
+            if (getTextInstance.hasCachedContent(filePath)) {
+              heartOfDarknessText = getTextInstance.getCachedContent(filePath)
+              console.log('CACHED')
+            } else {
+              heartOfDarknessText = await getTextInstance.getText()
+              console.log('FROM FILE')
+            }
 
             // Return the full text as context for the AI to use in answering
             return {
               question,
-              textLength: heartOfDarknessText.length,
+              textLength: heartOfDarknessText ? heartOfDarknessText.length : 0,
               context: heartOfDarknessText,
               instructions:
                 'Use the provided full text of Heart of Darkness to answer the question comprehensively and accurately. Reference specific passages where relevant.',
@@ -138,28 +150,26 @@ export const POST = async (req: Request): Promise<Response> => {
     },
     onFinish({ text, finishReason, usage, response, totalUsage }) {
       // Called once when the full output is complete
-      console.log('\n--- DONE ---')
-      console.log('Full text:', text)
+      // console.log('\n--- DONE ---')
+      // console.log('Full text:', text)
       // The reason the model finished generating the text.
       // "stop" | "length" | "content-filter" | "tool-calls" | "error" | "other" | "unknown"
-      console.log('Finish reason:', finishReason)
+      // console.log('Finish reason:', finishReason)
       //usage
-      console.log('Usage info:', usage, totalUsage)
+      // console.log('Usage info:', usage, totalUsage)
       // use proper logging for production
-      console.log('toUIMessageStreamResponse.onFinish')
-
+      // console.log('toUIMessageStreamResponse.onFinish')
       // Model messages (AssistantModelMessage or ToolModelMessage)
       // Minimal information, no UI data
       // Not suitable for UI applications
-      console.log('  messages')
-      console.dir(messages, { depth: null })
-
+      // console.log('  messages')
+      // console.dir(messages, { depth: null })
       // 'response.messages' is an array of ToolModelMessage and AssistantModelMessage,
       // which are the model messages that were generated during the stream.
       // This is useful if you don't need UIMessages - for simpler applications.
-      console.log('toUIMessageStreamResponse.onFinish')
-      console.log('  response')
-      console.dir(response, { depth: null })
+      // console.log('toUIMessageStreamResponse.onFinish')
+      // console.log('  response')
+      //    console.dir(response, { depth: null })
     },
     onError({ error }) {
       // use proper logging for production
@@ -173,16 +183,16 @@ export const POST = async (req: Request): Promise<Response> => {
       // 'messages' is the full message history, including the original messages
       // Includes original user message and assistant's response with all parts
       // Ideal for persisting entire conversations
-      console.log('toUIMessageStreamResponse.onFinish')
-      console.log('  messages')
-      console.dir(messages, { depth: null })
+      // console.log('toUIMessageStreamResponse.onFinish')
+      // console.log('  messages')
+      // console.dir(messages, { depth: null })
 
       // Single message
       // Just the newly generated assistant message
       // Good for persisting only the latest response
-      console.log('toUIMessageStreamResponse.onFinish')
-      console.log('  responseMessage')
-      console.dir(responseMessage, { depth: null })
+      // console.log('toUIMessageStreamResponse.onFinish')
+      // console.log('  responseMessage')
+      // console.dir(responseMessage, { depth: null })
       await appendToChatMessages(id, [responseMessage])
     },
   })

@@ -1,425 +1,466 @@
-import * as fs from 'node:fs'
-import * as path from 'node:path'
-
+import * as fs from 'fs'
+import * as path from 'path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { GetText, getText } from '../../../../src/infrastructure/ai/tools/getText.js'
 
-describe('getText (legacy function)', () => {
-  const TEST_DATA_FOLDER = 'test-data'
-  const TEST_DB_NAME = 'test-db'
-  const TEST_BASE_DIR = path.join(process.cwd(), TEST_DATA_FOLDER, TEST_DB_NAME)
-  const HEART_OF_DARKNESS_FILE = 'heart-of-darkness.txt'
-  const HEART_OF_DARKNESS_CONTENT = `The Nellie, a cruising yawl, swung to her anchor without a flutter of
-the sails, and was at rest. The flood had made, the wind was nearly
-calm, and being bound down the river, the only thing for it was to
-come to and wait for the turn of the tide.`
-
-  beforeEach(() => {
-    // Clean up test directory before each test
-    if (fs.existsSync(TEST_BASE_DIR)) {
-      fs.rmSync(TEST_BASE_DIR, { recursive: true, force: true })
-    }
-  })
-
-  afterEach(() => {
-    // Clean up test directory after each test
-    if (fs.existsSync(TEST_BASE_DIR)) {
-      fs.rmSync(TEST_BASE_DIR, { recursive: true, force: true })
-    }
-  })
-
-  describe('Happy Path', () => {
-    it('should successfully read heart-of-darkness.txt when file exists', async () => {
-      // Arrange: Create the test file
-      fs.mkdirSync(TEST_BASE_DIR, { recursive: true })
-      const filePath = path.join(TEST_BASE_DIR, HEART_OF_DARKNESS_FILE)
-      fs.writeFileSync(filePath, HEART_OF_DARKNESS_CONTENT, 'utf8')
-
-      // Act: Call getText
-      const result = await getText(HEART_OF_DARKNESS_FILE, TEST_DATA_FOLDER, TEST_DB_NAME)
-
-      // Assert: Verify the content is returned
-      expect(result).toBeDefined()
-      expect(result).toBe(HEART_OF_DARKNESS_CONTENT)
-    })
-
-    it('should successfully read any text file when it exists', async () => {
-      // Arrange: Create a different test file
-      const testFileName = 'test-novel.txt'
-      const testContent = 'This is a test novel content.'
-      fs.mkdirSync(TEST_BASE_DIR, { recursive: true })
-      const filePath = path.join(TEST_BASE_DIR, testFileName)
-      fs.writeFileSync(filePath, testContent, 'utf8')
-
-      // Act: Call getText
-      const result = await getText(testFileName, TEST_DATA_FOLDER, TEST_DB_NAME)
-
-      // Assert: Verify the content is returned
-      expect(result).toBeDefined()
-      expect(result).toBe(testContent)
-    })
-
-    it('should return undefined for empty files (edge case in current implementation)', async () => {
-      // Arrange: Create an empty file
-      const emptyFileName = 'empty.txt'
-      fs.mkdirSync(TEST_BASE_DIR, { recursive: true })
-      const filePath = path.join(TEST_BASE_DIR, emptyFileName)
-      fs.writeFileSync(filePath, '', 'utf8')
-
-      // Act: Call getText
-      const result = await getText(emptyFileName, TEST_DATA_FOLDER, TEST_DB_NAME)
-
-      // Assert: Empty content returns undefined due to truthy check on content
-      // Note: This is a limitation in the current implementation
-      expect(result).toBeUndefined()
-    })
-
-    it('should handle files with special characters', async () => {
-      // Arrange: Create file with special characters
-      const specialContent = 'Special chars: 特殊文字 émojis 🎉 @#$%\n\tNew line and tab'
-      fs.mkdirSync(TEST_BASE_DIR, { recursive: true })
-      const filePath = path.join(TEST_BASE_DIR, HEART_OF_DARKNESS_FILE)
-      fs.writeFileSync(filePath, specialContent, 'utf8')
-
-      // Act: Call getText
-      const result = await getText(HEART_OF_DARKNESS_FILE, TEST_DATA_FOLDER, TEST_DB_NAME)
-
-      // Assert: Special characters should be preserved
-      expect(result).toBeDefined()
-      expect(result).toBe(specialContent)
-    })
-  })
-
-  describe('Unhappy Path', () => {
-    it('should throw an error when file does not exist', async () => {
-      // Arrange: No file created, directory may or may not exist
-      const nonExistentFile = 'non-existent-file.txt'
-
-      // Act & Assert: Expect an error to be thrown
-      await expect(getText(nonExistentFile, TEST_DATA_FOLDER, TEST_DB_NAME)).rejects.toThrow(
-        'Error reading file'
-      )
-    })
-
-    it('should throw an error with descriptive message when file does not exist', async () => {
-      // Arrange: No file created
-      const nonExistentFile = 'missing-novel.txt'
-
-      // Act & Assert: Expect specific error message
-      await expect(getText(nonExistentFile, TEST_DATA_FOLDER, TEST_DB_NAME)).rejects.toThrow(
-        /File not found/
-      )
-    })
-
-    it('should throw an error when trying to access file outside base directory', async () => {
-      // Arrange: Try to access file with path traversal
-      const maliciousPath = '../../../etc/passwd'
-
-      // Act & Assert: Expect an error to be thrown
-      await expect(getText(maliciousPath, TEST_DATA_FOLDER, TEST_DB_NAME)).rejects.toThrow()
-    })
-
-    it('should throw an error when directory does not exist and file does not exist', async () => {
-      // Arrange: Ensure base directory doesn't exist
-      if (fs.existsSync(TEST_BASE_DIR)) {
-        fs.rmSync(TEST_BASE_DIR, { recursive: true, force: true })
-      }
-
-      // Act & Assert: Expect an error to be thrown
-      await expect(getText(HEART_OF_DARKNESS_FILE, TEST_DATA_FOLDER, TEST_DB_NAME)).rejects.toThrow(
-        'Error reading file'
-      )
-    })
-  })
-
-  describe('Integration with Different Database Names', () => {
-    it('should work with different database names', async () => {
-      // Arrange: Use a different database name
-      const customDbName = 'custom-db'
-      const customBaseDir = path.join(process.cwd(), TEST_DATA_FOLDER, customDbName)
-      const content = 'Content in custom database'
-
-      try {
-        fs.mkdirSync(customBaseDir, { recursive: true })
-        const filePath = path.join(customBaseDir, HEART_OF_DARKNESS_FILE)
-        fs.writeFileSync(filePath, content, 'utf8')
-
-        // Act: Call getText with custom db name
-        const result = await getText(HEART_OF_DARKNESS_FILE, TEST_DATA_FOLDER, customDbName)
-
-        // Assert: Verify the content is returned
-        expect(result).toBeDefined()
-        expect(result).toBe(content)
-      } finally {
-        // Clean up
-        if (fs.existsSync(customBaseDir)) {
-          fs.rmSync(customBaseDir, { recursive: true, force: true })
-        }
-      }
-    })
-
-    it('should work with different data folders', async () => {
-      // Arrange: Use a different data folder
-      const customDataFolder = 'custom-data'
-      const customBaseDir = path.join(process.cwd(), customDataFolder, TEST_DB_NAME)
-      const content = 'Content in custom folder'
-
-      try {
-        fs.mkdirSync(customBaseDir, { recursive: true })
-        const filePath = path.join(customBaseDir, HEART_OF_DARKNESS_FILE)
-        fs.writeFileSync(filePath, content, 'utf8')
-
-        // Act: Call getText with custom data folder
-        const result = await getText(HEART_OF_DARKNESS_FILE, customDataFolder, TEST_DB_NAME)
-
-        // Assert: Verify the content is returned
-        expect(result).toBeDefined()
-        expect(result).toBe(content)
-      } finally {
-        // Clean up
-        if (fs.existsSync(path.join(process.cwd(), customDataFolder))) {
-          fs.rmSync(path.join(process.cwd(), customDataFolder), { recursive: true, force: true })
-        }
-      }
-    })
-  })
-})
-
-describe('GetText (class)', () => {
-  const TEST_DATA_FOLDER = 'test-data'
-  const TEST_DB_NAME = 'test-db'
-  const TEST_BASE_DIR = path.join(process.cwd(), TEST_DATA_FOLDER, TEST_DB_NAME)
-  const HEART_OF_DARKNESS_FILE = 'heart-of-darkness.txt'
-  const HEART_OF_DARKNESS_CONTENT = `The Nellie, a cruising yawl, swung to her anchor without a flutter of
-the sails, and was at rest. The flood had made, the wind was nearly
-calm, and being bound down the river, the only thing for it was to
-come to and wait for the turn of the tide.`
+describe('GetText', () => {
+  const TEST_DATA_FOLDER = 'data'
+  const TEST_FILE_NAME = 'test-file.txt'
+  const TEST_CONTENT = 'This is test content for GetText'
+  // FileUtil creates baseDir as: process.cwd()/dataFolder/dbName
+  // GetText passes fileName as dbName, so: process.cwd()/data/test-file.txt
+  // Then tries to read 'test-file.txt' from that baseDir: process.cwd()/data/test-file.txt
+  const TEST_BASE_DIR = path.join(process.cwd(), TEST_DATA_FOLDER, TEST_FILE_NAME)
 
   let getTextInstance: GetText
 
   beforeEach(() => {
-    // Create a new GetText instance for each test
-    getTextInstance = new GetText(TEST_DATA_FOLDER, TEST_DB_NAME)
-
-    // Clean up test directory before each test
-    if (fs.existsSync(TEST_BASE_DIR)) {
-      fs.rmSync(TEST_BASE_DIR, { recursive: true, force: true })
+    // Create test file in the correct location
+    const dir = path.dirname(TEST_BASE_DIR)
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true })
     }
+    fs.writeFileSync(TEST_BASE_DIR, TEST_CONTENT, 'utf8')
+
+    // Create new instance for each test
+    getTextInstance = new GetText(TEST_DATA_FOLDER, TEST_FILE_NAME)
   })
 
   afterEach(() => {
-    // Clean up test directory after each test
+    // Clean up test file
     if (fs.existsSync(TEST_BASE_DIR)) {
-      fs.rmSync(TEST_BASE_DIR, { recursive: true, force: true })
+      fs.unlinkSync(TEST_BASE_DIR)
     }
   })
 
   describe('Constructor', () => {
-    it('should create instance with default parameters', () => {
-      const instance = new GetText()
+    it('should create instance with required parameters', () => {
+      const instance = new GetText('data', 'test.txt')
       expect(instance).toBeInstanceOf(GetText)
     })
 
-    it('should create instance with custom parameters', () => {
-      const instance = new GetText('custom-data', 'custom-db')
-      expect(instance).toBeInstanceOf(GetText)
+    it('should set filePath correctly', () => {
+      const instance = new GetText('data', 'test.txt')
+      const expectedPath = path.join(process.cwd(), 'data', 'test.txt')
+      expect(instance.filePath).toBe(expectedPath)
+    })
+
+    it('should initialize empty cache', () => {
+      const instance = new GetText('data', 'test.txt')
+      expect(instance.getCachedPaths()).toHaveLength(0)
+    })
+
+    it('should handle nested file paths', () => {
+      const instance = new GetText('data', 'nested/deep/file.txt')
+      const expectedPath = path.join(process.cwd(), 'data', 'nested/deep/file.txt')
+      expect(instance.filePath).toBe(expectedPath)
     })
   })
 
-  describe('getText method', () => {
-    it('should successfully read and cache file content', async () => {
-      // Arrange: Create the test file
-      fs.mkdirSync(TEST_BASE_DIR, { recursive: true })
-      const filePath = path.join(TEST_BASE_DIR, HEART_OF_DARKNESS_FILE)
-      fs.writeFileSync(filePath, HEART_OF_DARKNESS_CONTENT, 'utf8')
+  describe('getText', () => {
+    it('should read file content successfully', async () => {
+      const content = await getTextInstance.getText()
 
-      // Act: Call getText
-      const result = await getTextInstance.getText(HEART_OF_DARKNESS_FILE)
+      expect(content).toBe(TEST_CONTENT)
+    })
 
-      // Assert: Verify the content is returned and cached
-      expect(result).toBeDefined()
-      expect(result).toBe(HEART_OF_DARKNESS_CONTENT)
-      expect(getTextInstance.hasCachedContent(HEART_OF_DARKNESS_FILE)).toBe(true)
+    it('should cache content after reading', async () => {
+      await getTextInstance.getText()
+
+      expect(getTextInstance.hasCachedContent(getTextInstance.filePath)).toBe(true)
+      expect(getTextInstance.getCachedContent(getTextInstance.filePath)).toBe(TEST_CONTENT)
+    })
+
+    it('should return same content on multiple calls', async () => {
+      const firstRead = await getTextInstance.getText()
+      const secondRead = await getTextInstance.getText()
+
+      expect(firstRead).toBe(secondRead)
+      expect(firstRead).toBe(TEST_CONTENT)
     })
 
     it('should throw error for non-existent file', async () => {
-      // Act & Assert
-      await expect(getTextInstance.getText('non-existent.txt')).rejects.toThrow(
+      const instance = new GetText(TEST_DATA_FOLDER, 'non-existent.txt')
+      const expectedPath = path.join(process.cwd(), TEST_DATA_FOLDER, 'non-existent.txt')
+
+      await expect(instance.getText()).rejects.toThrow(`Error reading file "${expectedPath}"`)
+      await expect(instance.getText()).rejects.toThrow('File not found')
+    })
+
+    it('should handle empty file content', async () => {
+      fs.writeFileSync(TEST_BASE_DIR, '', 'utf8')
+
+      const content = await getTextInstance.getText()
+
+      expect(content).toBeUndefined()
+    })
+
+    it('should update cache with latest content', async () => {
+      await getTextInstance.getText()
+      expect(getTextInstance.getCachedContent(getTextInstance.filePath)).toBe(TEST_CONTENT)
+
+      // Modify file
+      const newContent = 'Updated content'
+      fs.writeFileSync(TEST_BASE_DIR, newContent, 'utf8')
+
+      // Read again
+      await getTextInstance.getText()
+      expect(getTextInstance.getCachedContent(getTextInstance.filePath)).toBe(newContent)
+    })
+
+    it('should handle special characters in content', async () => {
+      const specialContent = 'Special chars: 特殊文字 émojis 🎉 @#$%'
+      fs.writeFileSync(TEST_BASE_DIR, specialContent, 'utf8')
+
+      const content = await getTextInstance.getText()
+
+      expect(content).toBe(specialContent)
+    })
+
+    it('should handle large file content', async () => {
+      const largeContent = 'x'.repeat(10000)
+      fs.writeFileSync(TEST_BASE_DIR, largeContent, 'utf8')
+
+      const content = await getTextInstance.getText()
+
+      expect(content).toBe(largeContent)
+      expect(content?.length).toBe(10000)
+    })
+
+    it('should handle multiline content', async () => {
+      const multilineContent = 'Line 1\nLine 2\nLine 3\n'
+      fs.writeFileSync(TEST_BASE_DIR, multilineContent, 'utf8')
+
+      const content = await getTextInstance.getText()
+
+      expect(content).toBe(multilineContent)
+    })
+  })
+
+  describe('getCachedContent', () => {
+    it('should return undefined for uncached file', () => {
+      const content = getTextInstance.getCachedContent(getTextInstance.filePath)
+
+      expect(content).toBeUndefined()
+    })
+
+    it('should return cached content after getText', async () => {
+      await getTextInstance.getText()
+      const cached = getTextInstance.getCachedContent(getTextInstance.filePath)
+
+      expect(cached).toBe(TEST_CONTENT)
+    })
+
+    it('should return undefined for different file path', async () => {
+      await getTextInstance.getText()
+      const cached = getTextInstance.getCachedContent('different/path.txt')
+
+      expect(cached).toBeUndefined()
+    })
+
+    it('should return correct content for multiple cached files', async () => {
+      // Cache first file
+      await getTextInstance.getText()
+
+      // Create and cache second file
+      const secondFileName = 'second-test.txt'
+      const secondBaseDir = path.join(process.cwd(), TEST_DATA_FOLDER, secondFileName)
+      fs.writeFileSync(secondBaseDir, 'Second content', 'utf8')
+
+      const secondInstance = new GetText(TEST_DATA_FOLDER, secondFileName)
+      await secondInstance.getText()
+
+      // Verify both caches
+      expect(getTextInstance.getCachedContent(getTextInstance.filePath)).toBe(TEST_CONTENT)
+      expect(secondInstance.getCachedContent(secondInstance.filePath)).toBe('Second content')
+
+      // Clean up
+      if (fs.existsSync(secondBaseDir)) {
+        fs.unlinkSync(secondBaseDir)
+      }
+    })
+  })
+
+  describe('hasCachedContent', () => {
+    it('should return false for uncached file', () => {
+      expect(getTextInstance.hasCachedContent(getTextInstance.filePath)).toBe(false)
+    })
+
+    it('should return true after caching content', async () => {
+      await getTextInstance.getText()
+
+      expect(getTextInstance.hasCachedContent(getTextInstance.filePath)).toBe(true)
+    })
+
+    it('should return false after clearing specific cache', async () => {
+      await getTextInstance.getText()
+      getTextInstance.clearCache(getTextInstance.filePath)
+
+      expect(getTextInstance.hasCachedContent(getTextInstance.filePath)).toBe(false)
+    })
+
+    it('should return false after clearing all cache', async () => {
+      await getTextInstance.getText()
+      getTextInstance.clearCache()
+
+      expect(getTextInstance.hasCachedContent(getTextInstance.filePath)).toBe(false)
+    })
+
+    it('should return false for different file path', async () => {
+      await getTextInstance.getText()
+
+      expect(getTextInstance.hasCachedContent('different/path.txt')).toBe(false)
+    })
+  })
+
+  describe('clearCache', () => {
+    it('should clear specific file from cache', async () => {
+      await getTextInstance.getText()
+      expect(getTextInstance.hasCachedContent(getTextInstance.filePath)).toBe(true)
+
+      getTextInstance.clearCache(getTextInstance.filePath)
+
+      expect(getTextInstance.hasCachedContent(getTextInstance.filePath)).toBe(false)
+      expect(getTextInstance.getCachedContent(getTextInstance.filePath)).toBeUndefined()
+    })
+
+    it('should clear all files from cache when no path provided', async () => {
+      await getTextInstance.getText()
+      expect(getTextInstance.getCachedPaths()).toHaveLength(1)
+
+      getTextInstance.clearCache()
+
+      expect(getTextInstance.getCachedPaths()).toHaveLength(0)
+      expect(getTextInstance.hasCachedContent(getTextInstance.filePath)).toBe(false)
+    })
+
+    it('should not affect other cached files when clearing specific file', async () => {
+      // Cache first file
+      await getTextInstance.getText()
+
+      // Create and cache second file
+      const secondFileName = 'second-clear-test.txt'
+      const secondBaseDir = path.join(process.cwd(), TEST_DATA_FOLDER, secondFileName)
+      fs.writeFileSync(secondBaseDir, 'Second content', 'utf8')
+
+      const secondInstance = new GetText(TEST_DATA_FOLDER, secondFileName)
+      await secondInstance.getText()
+
+      // Clear only first file
+      getTextInstance.clearCache(getTextInstance.filePath)
+
+      expect(getTextInstance.hasCachedContent(getTextInstance.filePath)).toBe(false)
+      expect(secondInstance.hasCachedContent(secondInstance.filePath)).toBe(true)
+
+      // Clean up
+      if (fs.existsSync(secondBaseDir)) {
+        fs.unlinkSync(secondBaseDir)
+      }
+    })
+
+    it('should handle clearing non-existent cache gracefully', () => {
+      expect(() => getTextInstance.clearCache('non-existent.txt')).not.toThrow()
+    })
+
+    it('should handle clearing empty cache gracefully', () => {
+      expect(() => getTextInstance.clearCache()).not.toThrow()
+      expect(getTextInstance.getCachedPaths()).toHaveLength(0)
+    })
+  })
+
+  describe('getCachedPaths', () => {
+    it('should return empty array initially', () => {
+      expect(getTextInstance.getCachedPaths()).toEqual([])
+    })
+
+    it('should return array with single path after caching', async () => {
+      await getTextInstance.getText()
+      const paths = getTextInstance.getCachedPaths()
+
+      expect(paths).toHaveLength(1)
+      expect(paths[0]).toBe(getTextInstance.filePath)
+    })
+
+    it('should return empty array after clearing cache', async () => {
+      await getTextInstance.getText()
+      getTextInstance.clearCache()
+
+      expect(getTextInstance.getCachedPaths()).toEqual([])
+    })
+
+    it('should return array of paths for multiple cached files', async () => {
+      await getTextInstance.getText()
+
+      // Create second instance with different file
+      const secondFileName = 'paths-test.txt'
+      const secondBaseDir = path.join(process.cwd(), TEST_DATA_FOLDER, secondFileName)
+      fs.writeFileSync(secondBaseDir, 'Content', 'utf8')
+
+      const secondInstance = new GetText(TEST_DATA_FOLDER, secondFileName)
+      await secondInstance.getText()
+
+      const firstPaths = getTextInstance.getCachedPaths()
+      const secondPaths = secondInstance.getCachedPaths()
+
+      expect(firstPaths).toHaveLength(1)
+      expect(secondPaths).toHaveLength(1)
+      expect(firstPaths[0]).toBe(getTextInstance.filePath)
+      expect(secondPaths[0]).toBe(secondInstance.filePath)
+
+      // Clean up
+      if (fs.existsSync(secondBaseDir)) {
+        fs.unlinkSync(secondBaseDir)
+      }
+    })
+  })
+
+  describe('filePath property', () => {
+    it('should be publicly accessible', () => {
+      expect(getTextInstance.filePath).toBeDefined()
+      expect(typeof getTextInstance.filePath).toBe('string')
+    })
+
+    it('should construct correct absolute path', () => {
+      const expectedPath = path.join(process.cwd(), TEST_DATA_FOLDER, TEST_FILE_NAME)
+      expect(getTextInstance.filePath).toBe(expectedPath)
+    })
+
+    it('should handle different data folders', () => {
+      const instance = new GetText('custom-data', 'file.txt')
+      const expectedPath = path.join(process.cwd(), 'custom-data', 'file.txt')
+      expect(instance.filePath).toBe(expectedPath)
+    })
+  })
+
+  describe('Legacy getText function', () => {
+    it('should read file content using legacy function', async () => {
+      const content = await getText('test-file.txt', TEST_DATA_FOLDER)
+
+      expect(content).toBe(TEST_CONTENT)
+    })
+
+    it('should create new instance each time', async () => {
+      const firstCall = await getText('test-file.txt', TEST_DATA_FOLDER)
+      const secondCall = await getText('test-file.txt', TEST_DATA_FOLDER)
+
+      expect(firstCall).toBe(secondCall)
+      expect(firstCall).toBe(TEST_CONTENT)
+    })
+
+    it('should throw error for non-existent file', async () => {
+      await expect(getText('non-existent.txt', TEST_DATA_FOLDER)).rejects.toThrow(
         'Error reading file'
       )
     })
 
-    it('should cache multiple files independently', async () => {
-      // Arrange: Create multiple test files
-      fs.mkdirSync(TEST_BASE_DIR, { recursive: true })
-      const file1 = 'file1.txt'
-      const file2 = 'file2.txt'
-      const content1 = 'Content of file 1'
-      const content2 = 'Content of file 2'
-      fs.writeFileSync(path.join(TEST_BASE_DIR, file1), content1, 'utf8')
-      fs.writeFileSync(path.join(TEST_BASE_DIR, file2), content2, 'utf8')
+    it('should handle empty file', async () => {
+      fs.writeFileSync(TEST_BASE_DIR, '', 'utf8')
 
-      // Act: Read both files
-      const result1 = await getTextInstance.getText(file1)
-      const result2 = await getTextInstance.getText(file2)
+      const content = await getText('test-file.txt', TEST_DATA_FOLDER)
 
-      // Assert: Both are cached independently
-      expect(result1).toBe(content1)
-      expect(result2).toBe(content2)
-      expect(getTextInstance.hasCachedContent(file1)).toBe(true)
-      expect(getTextInstance.hasCachedContent(file2)).toBe(true)
+      expect(content).toBeUndefined()
+    })
+
+    it('should work with different data folders', async () => {
+      const customFolder = 'custom-legacy'
+      const customFile = 'legacy.txt'
+      const customBaseDir = path.join(process.cwd(), customFolder, customFile)
+
+      // Create directory and file
+      const dir = path.dirname(customBaseDir)
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true })
+      }
+      fs.writeFileSync(customBaseDir, 'Legacy content', 'utf8')
+
+      const content = await getText('legacy.txt', customFolder)
+
+      expect(content).toBe('Legacy content')
+
+      // Clean up
+      const customDir = path.join(process.cwd(), customFolder)
+      if (fs.existsSync(customDir)) {
+        fs.rmSync(customDir, { recursive: true, force: true })
+      }
     })
   })
 
-  describe('getCachedContent method', () => {
-    it('should return cached content after reading file', async () => {
-      // Arrange: Create and read file
-      fs.mkdirSync(TEST_BASE_DIR, { recursive: true })
-      const filePath = path.join(TEST_BASE_DIR, HEART_OF_DARKNESS_FILE)
-      fs.writeFileSync(filePath, HEART_OF_DARKNESS_CONTENT, 'utf8')
-      await getTextInstance.getText(HEART_OF_DARKNESS_FILE)
+  describe('State Management', () => {
+    it('should maintain separate cache per instance', async () => {
+      const instance1 = new GetText(TEST_DATA_FOLDER, TEST_FILE_NAME)
+      const secondFileName = 'state-test.txt'
+      const secondBaseDir = path.join(process.cwd(), TEST_DATA_FOLDER, secondFileName)
 
-      // Act: Get cached content
-      const cached = getTextInstance.getCachedContent(HEART_OF_DARKNESS_FILE)
+      fs.writeFileSync(secondBaseDir, 'Second content', 'utf8')
+      const instance2 = new GetText(TEST_DATA_FOLDER, secondFileName)
 
-      // Assert: Cached content matches
-      expect(cached).toBe(HEART_OF_DARKNESS_CONTENT)
+      await instance1.getText()
+      await instance2.getText()
+
+      expect(instance1.getCachedPaths()).toHaveLength(1)
+      expect(instance2.getCachedPaths()).toHaveLength(1)
+      expect(instance1.getCachedPaths()[0]).not.toBe(instance2.getCachedPaths()[0])
+
+      // Clean up
+      if (fs.existsSync(secondBaseDir)) {
+        fs.unlinkSync(secondBaseDir)
+      }
     })
 
-    it('should return undefined for non-cached file', () => {
-      // Act: Get cached content for file that was never read
-      const cached = getTextInstance.getCachedContent('never-read.txt')
+    it('should preserve cache across multiple getText calls', async () => {
+      await getTextInstance.getText()
+      await getTextInstance.getText()
+      await getTextInstance.getText()
 
-      // Assert: Returns undefined
-      expect(cached).toBeUndefined()
-    })
-  })
-
-  describe('hasCachedContent method', () => {
-    it('should return true for cached file', async () => {
-      // Arrange: Create and read file
-      fs.mkdirSync(TEST_BASE_DIR, { recursive: true })
-      const filePath = path.join(TEST_BASE_DIR, HEART_OF_DARKNESS_FILE)
-      fs.writeFileSync(filePath, HEART_OF_DARKNESS_CONTENT, 'utf8')
-      await getTextInstance.getText(HEART_OF_DARKNESS_FILE)
-
-      // Act & Assert
-      expect(getTextInstance.hasCachedContent(HEART_OF_DARKNESS_FILE)).toBe(true)
+      expect(getTextInstance.getCachedPaths()).toHaveLength(1)
+      expect(getTextInstance.getCachedContent(getTextInstance.filePath)).toBe(TEST_CONTENT)
     })
 
-    it('should return false for non-cached file', () => {
-      // Act & Assert
-      expect(getTextInstance.hasCachedContent('never-read.txt')).toBe(false)
-    })
-  })
+    it('should allow cache inspection without modification', async () => {
+      await getTextInstance.getText()
 
-  describe('clearCache method', () => {
-    it('should clear specific file from cache', async () => {
-      // Arrange: Create and read multiple files
-      fs.mkdirSync(TEST_BASE_DIR, { recursive: true })
-      const file1 = 'file1.txt'
-      const file2 = 'file2.txt'
-      fs.writeFileSync(path.join(TEST_BASE_DIR, file1), 'Content 1', 'utf8')
-      fs.writeFileSync(path.join(TEST_BASE_DIR, file2), 'Content 2', 'utf8')
-      await getTextInstance.getText(file1)
-      await getTextInstance.getText(file2)
+      const pathsBefore = getTextInstance.getCachedPaths()
+      const contentBefore = getTextInstance.getCachedContent(getTextInstance.filePath)
+      const hasCacheBefore = getTextInstance.hasCachedContent(getTextInstance.filePath)
 
-      // Act: Clear only file1
-      getTextInstance.clearCache(file1)
+      // Call getters again
+      getTextInstance.getCachedPaths()
+      getTextInstance.getCachedContent(getTextInstance.filePath)
+      getTextInstance.hasCachedContent(getTextInstance.filePath)
 
-      // Assert: file1 is cleared, file2 remains
-      expect(getTextInstance.hasCachedContent(file1)).toBe(false)
-      expect(getTextInstance.hasCachedContent(file2)).toBe(true)
-    })
-
-    it('should clear all files from cache when no path provided', async () => {
-      // Arrange: Create and read multiple files
-      fs.mkdirSync(TEST_BASE_DIR, { recursive: true })
-      const file1 = 'file1.txt'
-      const file2 = 'file2.txt'
-      fs.writeFileSync(path.join(TEST_BASE_DIR, file1), 'Content 1', 'utf8')
-      fs.writeFileSync(path.join(TEST_BASE_DIR, file2), 'Content 2', 'utf8')
-      await getTextInstance.getText(file1)
-      await getTextInstance.getText(file2)
-
-      // Act: Clear all cache
-      getTextInstance.clearCache()
-
-      // Assert: All files are cleared
-      expect(getTextInstance.hasCachedContent(file1)).toBe(false)
-      expect(getTextInstance.hasCachedContent(file2)).toBe(false)
+      expect(getTextInstance.getCachedPaths()).toEqual(pathsBefore)
+      expect(getTextInstance.getCachedContent(getTextInstance.filePath)).toBe(contentBefore)
+      expect(getTextInstance.hasCachedContent(getTextInstance.filePath)).toBe(hasCacheBefore)
     })
   })
 
-  describe('getCachedPaths method', () => {
-    it('should return empty array when no files cached', () => {
-      // Act & Assert
-      expect(getTextInstance.getCachedPaths()).toEqual([])
+  describe('Error Scenarios', () => {
+    it('should provide descriptive error message with file path', async () => {
+      const instance = new GetText(TEST_DATA_FOLDER, 'missing-file.txt')
+
+      await expect(instance.getText()).rejects.toThrow(Error)
+      await expect(instance.getText()).rejects.toThrow('Error reading file')
+      await expect(instance.getText()).rejects.toThrow('missing-file.txt')
     })
 
-    it('should return all cached file paths', async () => {
-      // Arrange: Create and read multiple files
-      fs.mkdirSync(TEST_BASE_DIR, { recursive: true })
-      const file1 = 'file1.txt'
-      const file2 = 'file2.txt'
-      const file3 = 'file3.txt'
-      fs.writeFileSync(path.join(TEST_BASE_DIR, file1), 'Content 1', 'utf8')
-      fs.writeFileSync(path.join(TEST_BASE_DIR, file2), 'Content 2', 'utf8')
-      fs.writeFileSync(path.join(TEST_BASE_DIR, file3), 'Content 3', 'utf8')
-      await getTextInstance.getText(file1)
-      await getTextInstance.getText(file2)
-      await getTextInstance.getText(file3)
+    it('should include detailed error information', async () => {
+      const instance = new GetText(TEST_DATA_FOLDER, 'error-test.txt')
 
-      // Act
-      const cachedPaths = getTextInstance.getCachedPaths()
-
-      // Assert: All paths are returned
-      expect(cachedPaths).toHaveLength(3)
-      expect(cachedPaths).toContain(file1)
-      expect(cachedPaths).toContain(file2)
-      expect(cachedPaths).toContain(file3)
-    })
-  })
-
-  describe('State Management Integration', () => {
-    it('should maintain state across multiple operations', async () => {
-      // Arrange: Create test files
-      fs.mkdirSync(TEST_BASE_DIR, { recursive: true })
-      const file1 = 'novel1.txt'
-      const file2 = 'novel2.txt'
-      const content1 = 'Novel 1 content'
-      const content2 = 'Novel 2 content'
-      fs.writeFileSync(path.join(TEST_BASE_DIR, file1), content1, 'utf8')
-      fs.writeFileSync(path.join(TEST_BASE_DIR, file2), content2, 'utf8')
-
-      // Act: Perform multiple operations
-      await getTextInstance.getText(file1)
-      await getTextInstance.getText(file2)
-      getTextInstance.clearCache(file1)
-      const paths = getTextInstance.getCachedPaths()
-      const cached2 = getTextInstance.getCachedContent(file2)
-
-      // Assert: State is maintained correctly
-      expect(paths).toEqual([file2])
-      expect(cached2).toBe(content2)
-      expect(getTextInstance.hasCachedContent(file1)).toBe(false)
+      await expect(instance.getText()).rejects.toThrow('File not found')
     })
 
-    it('should allow re-reading after cache clear', async () => {
-      // Arrange: Create and read file
-      fs.mkdirSync(TEST_BASE_DIR, { recursive: true })
-      const filePath = path.join(TEST_BASE_DIR, HEART_OF_DARKNESS_FILE)
-      fs.writeFileSync(filePath, HEART_OF_DARKNESS_CONTENT, 'utf8')
-      await getTextInstance.getText(HEART_OF_DARKNESS_FILE)
+    it('should not cache content when read fails', async () => {
+      const instance = new GetText(TEST_DATA_FOLDER, 'fail-cache.txt')
 
-      // Act: Clear and re-read
-      getTextInstance.clearCache(HEART_OF_DARKNESS_FILE)
-      const result = await getTextInstance.getText(HEART_OF_DARKNESS_FILE)
+      try {
+        await instance.getText()
+      } catch {
+        // Error expected
+      }
 
-      // Assert: File is re-read and re-cached
-      expect(result).toBe(HEART_OF_DARKNESS_CONTENT)
-      expect(getTextInstance.hasCachedContent(HEART_OF_DARKNESS_FILE)).toBe(true)
+      expect(instance.hasCachedContent(instance.filePath)).toBe(false)
+      expect(instance.getCachedPaths()).toHaveLength(0)
     })
   })
 })

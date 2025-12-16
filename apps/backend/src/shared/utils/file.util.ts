@@ -11,11 +11,11 @@ export class FileUtil {
 
   /**
    * Create a new FileUtil instance
-   * @param dbName - The flat file database directory name (default: 'file-system-db.local')
-   * @param dataFolder - The base data folder (default: 'data')
+   * @param dataFolder - The base data folder
+   * @param fileName - The flat file database directory name
    */
-  constructor(dataFolder: string = 'data', dbName: string = 'file-system-db.local') {
-    this.baseDir = path.join(process.cwd(), dataFolder, dbName)
+  constructor(dataFolder: string, fileName: string) {
+    this.baseDir = path.join(process.cwd(), dataFolder, fileName)
   }
   //path.join(process.cwd(), dataFolder, dbName)
   //join(import.meta.dirname, '..', 'data', 'heart-of-darkness.txt')
@@ -367,18 +367,4 @@ export class FileUtil {
       this.handleError(error, 'searching files')
     }
   }
-}
-
-// Create a default instance for backward compatibility
-const defaultFileUtil = new FileUtil()
-
-// Export all methods as a single object for easy tool registration
-export const fileSystemTools = {
-  writeFile: defaultFileUtil.writeFile.bind(defaultFileUtil),
-  readFile: defaultFileUtil.readFile.bind(defaultFileUtil),
-  deletePath: defaultFileUtil.deletePath.bind(defaultFileUtil),
-  listDirectory: defaultFileUtil.listDirectory.bind(defaultFileUtil),
-  createDirectory: defaultFileUtil.createDirectory.bind(defaultFileUtil),
-  exists: defaultFileUtil.exists.bind(defaultFileUtil),
-  searchFiles: defaultFileUtil.searchFiles.bind(defaultFileUtil),
 }

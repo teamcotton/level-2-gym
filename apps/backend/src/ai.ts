@@ -9,7 +9,7 @@ import {
   type UIMessage,
 } from 'ai'
 import { z } from 'zod'
-import { fileSystemTools } from './shared/utils/file.util.js'
+import { FileUtil } from './shared/utils/file.util.js'
 
 import { isValidUUID, uuidVersionValidation } from 'uuidv7-utilities'
 
@@ -19,6 +19,8 @@ function processUserUUID(userInput: string | Buffer) {
   }
   return uuidVersionValidation(userInput)
 }
+
+const fileSystemTools = new FileUtil('data', 'file-system-db.local')
 
 export const GET = async (
   req: Request

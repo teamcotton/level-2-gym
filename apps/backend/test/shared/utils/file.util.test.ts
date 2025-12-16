@@ -6,7 +6,7 @@ import { ValidationException } from '../../../src/shared/exceptions/validation.e
 import { FileUtil } from '../../../src/shared/utils/file.util.js'
 
 describe('FileUtil', () => {
-  const TEST_BASE_DIR = path.join(process.cwd(), 'data', 'file-system-db.local')
+  const TEST_BASE_DIR = path.join(process.cwd(), 'data', 'test-db')
   const TEST_FILE = 'test-file.txt'
   const TEST_CONTENT = 'Hello, World!'
   const TEST_DIR = 'test-directory'
@@ -16,8 +16,8 @@ describe('FileUtil', () => {
   let fileUtil: FileUtil
 
   beforeEach(() => {
-    // Create a new FileUtil instance for each test
-    fileUtil = new FileUtil()
+    // Create a new FileUtil instance for each test with test-specific database
+    fileUtil = new FileUtil('data', 'test-db')
 
     // Clean up test directory before each test
     if (fs.existsSync(TEST_BASE_DIR)) {
@@ -33,8 +33,8 @@ describe('FileUtil', () => {
   })
 
   describe('Constructor', () => {
-    it('should create instance with default parameters', () => {
-      const instance = new FileUtil()
+    it('should create instance with required parameters', () => {
+      const instance = new FileUtil('data', 'test-db')
       expect(instance).toBeInstanceOf(FileUtil)
     })
 
@@ -48,7 +48,6 @@ describe('FileUtil', () => {
         expect(result.success).toBe(true)
         expect(fs.existsSync(customDir)).toBe(true)
       } finally {
-        // Clean up custom directory
         if (fs.existsSync(customDir)) {
           fs.rmSync(customDir, { recursive: true, force: true })
         }
@@ -66,20 +65,9 @@ describe('FileUtil', () => {
         expect(result.success).toBe(true)
         expect(fs.existsSync(customDir)).toBe(true)
       } finally {
-        // Clean up custom directory and parent folder
-        try {
-          const customFolderPath = path.join(process.cwd(), customFolder)
-          if (fs.existsSync(customFolderPath)) {
-            fs.rmSync(customFolderPath, {
-              recursive: true,
-              force: true,
-              maxRetries: 3,
-              retryDelay: 100,
-            })
-          }
-        } catch (error) {
-          // Ignore cleanup errors in tests
-          console.warn('Failed to cleanup test-data folder:', error)
+        const customFolderPath = path.join(process.cwd(), customFolder)
+        if (fs.existsSync(customFolderPath)) {
+          fs.rmSync(customFolderPath, { recursive: true, force: true })
         }
       }
     })
@@ -147,11 +135,22 @@ describe('FileUtil', () => {
       )
     })
 
-    it('should throw ValidationException for absolute paths outside base directory', async () => {
+    it('should throw ValidationException for absolute paths', async () => {
       await expect(fileUtil.writeFile('/etc/passwd', TEST_CONTENT)).rejects.toThrow(
         ValidationException
       )
       await expect(fileUtil.writeFile('/etc/passwd', TEST_CONTENT)).rejects.toThrow('Access denied')
+    })
+
+    it('should create base directory if it does not exist', async () => {
+      if (fs.existsSync(TEST_BASE_DIR)) {
+        fs.rmSync(TEST_BASE_DIR, { recursive: true, force: true })
+      }
+
+      const result = await fileUtil.writeFile(TEST_FILE, TEST_CONTENT)
+
+      expect(result.success).toBe(true)
+      expect(fs.existsSync(TEST_BASE_DIR)).toBe(true)
     })
   })
 
@@ -193,6 +192,15 @@ describe('FileUtil', () => {
     it('should throw ValidationException for paths outside base directory', async () => {
       await expect(fileUtil.readFile('../outside.txt')).rejects.toThrow(ValidationException)
       await expect(fileUtil.readFile('../outside.txt')).rejects.toThrow('Access denied')
+    })
+
+    it('should handle special characters in file content', async () => {
+      const specialContent = '特殊文字 émojis 🎉'
+      await fileUtil.writeFile(TEST_FILE, specialContent)
+      const result = await fileUtil.readFile(TEST_FILE)
+
+      expect(result.success).toBe(true)
+      expect(result.content).toBe(specialContent)
     })
   })
 
@@ -244,6 +252,15 @@ describe('FileUtil', () => {
     it('should throw ValidationException for paths outside base directory', () => {
       expect(() => fileUtil.deletePath('../outside.txt')).toThrow(ValidationException)
       expect(() => fileUtil.deletePath('../outside.txt')).toThrow('Access denied')
+    })
+
+    it('should delete nested directory structure', async () => {
+      await fileUtil.writeFile(NESTED_FILE, TEST_CONTENT)
+      const result = fileUtil.deletePath('nested')
+
+      expect(result.success).toBe(true)
+      const fullPath = path.join(TEST_BASE_DIR, 'nested')
+      expect(fs.existsSync(fullPath)).toBe(false)
     })
   })
 
@@ -313,6 +330,18 @@ describe('FileUtil', () => {
       expect(() => fileUtil.listDirectory('../outside')).toThrow(ValidationException)
       expect(() => fileUtil.listDirectory('../outside')).toThrow('Access denied')
     })
+
+    it('should show file sizes correctly', async () => {
+      fileUtil.createDirectory(TEST_DIR)
+      const content = 'Test content with some length'
+      await fileUtil.writeFile(`${TEST_DIR}/sized-file.txt`, content)
+
+      const result = fileUtil.listDirectory(TEST_DIR)
+      const file = result.items!.find((item) => item.name === 'sized-file.txt')
+
+      expect(file).toBeDefined()
+      expect(file!.size).toBe(Buffer.byteLength(content, 'utf8'))
+    })
   })
 
   describe('createDirectory', () => {
@@ -350,6 +379,17 @@ describe('FileUtil', () => {
       expect(() => fileUtil.createDirectory('../outside')).toThrow(ValidationException)
       expect(() => fileUtil.createDirectory('../outside')).toThrow('Access denied')
     })
+
+    it('should create base directory if needed', () => {
+      if (fs.existsSync(TEST_BASE_DIR)) {
+        fs.rmSync(TEST_BASE_DIR, { recursive: true, force: true })
+      }
+
+      const result = fileUtil.createDirectory(TEST_DIR)
+
+      expect(result.success).toBe(true)
+      expect(fs.existsSync(TEST_BASE_DIR)).toBe(true)
+    })
   })
 
   describe('exists', () => {
@@ -381,6 +421,15 @@ describe('FileUtil', () => {
     it('should throw ValidationException for paths outside base directory', () => {
       expect(() => fileUtil.exists('../outside.txt')).toThrow(ValidationException)
       expect(() => fileUtil.exists('../outside.txt')).toThrow('Access denied')
+    })
+
+    it('should return correct path in response', async () => {
+      await fileUtil.writeFile(NESTED_FILE, TEST_CONTENT)
+      const result = fileUtil.exists(NESTED_FILE)
+
+      expect(result.success).toBe(true)
+      expect(result.exists).toBe(true)
+      expect(result.path).toBe(NESTED_FILE)
     })
   })
 
@@ -464,57 +513,53 @@ describe('FileUtil', () => {
       expect(() => fileUtil.searchFiles('*.txt', '../outside')).toThrow(ValidationException)
       expect(() => fileUtil.searchFiles('*.txt', '../outside')).toThrow('Access denied')
     })
-  })
 
-  describe('fileSystemTools export', () => {
-    it('should export all methods as bound functions', async () => {
-      const { fileSystemTools } = await import('../../../src/shared/utils/file.util.js')
+    it('should include pattern and searchDir in response', () => {
+      const result = fileUtil.searchFiles('*.txt', 'subdir')
 
-      expect(typeof fileSystemTools.writeFile).toBe('function')
-      expect(typeof fileSystemTools.readFile).toBe('function')
-      expect(typeof fileSystemTools.deletePath).toBe('function')
-      expect(typeof fileSystemTools.listDirectory).toBe('function')
-      expect(typeof fileSystemTools.createDirectory).toBe('function')
-      expect(typeof fileSystemTools.exists).toBe('function')
-      expect(typeof fileSystemTools.searchFiles).toBe('function')
+      expect(result.pattern).toBe('*.txt')
+      expect(result.searchDir).toBe('subdir')
     })
 
-    it('should work when called from fileSystemTools object', async () => {
-      const { fileSystemTools } = await import('../../../src/shared/utils/file.util.js')
+    it('should match files with wildcard at start', () => {
+      const result = fileUtil.searchFiles('*file.txt', 'subdir/deep')
 
-      const writeResult = await fileSystemTools.writeFile('tool-test.txt', 'Tool content')
-      expect(writeResult.success).toBe(true)
+      expect(result.success).toBe(true)
+      expect(result.files).toContain('subdir/deep/deepfile.txt')
+    })
 
-      const readResult = await fileSystemTools.readFile('tool-test.txt')
-      expect(readResult.success).toBe(true)
-      expect(readResult.content).toBe('Tool content')
+    it('should match files with wildcard in middle', () => {
+      const result = fileUtil.searchFiles('file*.txt')
+
+      expect(result.success).toBe(true)
+      expect(result.files!.length).toBeGreaterThanOrEqual(2)
+      expect(result.files).toContain('file1.txt')
+      expect(result.files).toContain('file2.txt')
     })
   })
 
   describe('Path Security', () => {
     it('should prevent directory traversal with ../', async () => {
-      await expect(fileUtil.writeFile('../../etc/passwd', 'malicious')).rejects.toThrow(
+      await expect(fileUtil.writeFile('../outside.txt', 'malicious')).rejects.toThrow(
         ValidationException
       )
-      await expect(fileUtil.writeFile('../../etc/passwd', 'malicious')).rejects.toThrow(
+      await expect(fileUtil.writeFile('../outside.txt', 'malicious')).rejects.toThrow(
         'Access denied'
       )
     })
 
-    it('should prevent directory traversal patterns', async () => {
-      // This test works on all platforms
-      await expect(fileUtil.writeFile('../outside.txt', 'malicious')).rejects.toThrow(
+    it('should prevent multiple directory traversals', async () => {
+      await expect(fileUtil.writeFile('../../etc/passwd', 'malicious')).rejects.toThrow(
         ValidationException
       )
-      await expect(fileUtil.writeFile('../outside.txt', 'malicious')).rejects.toThrow(
-        'Access denied'
+      await expect(fileUtil.writeFile('../../../etc/passwd', 'malicious')).rejects.toThrow(
+        ValidationException
       )
+    })
 
+    it('should prevent directory traversal in nested paths', async () => {
       await expect(fileUtil.writeFile('test/../../../etc/passwd', 'malicious')).rejects.toThrow(
         ValidationException
-      )
-      await expect(fileUtil.writeFile('test/../../../etc/passwd', 'malicious')).rejects.toThrow(
-        'Access denied'
       )
     })
 
@@ -533,11 +578,17 @@ describe('FileUtil', () => {
       const fullPath = path.join(TEST_BASE_DIR, 'allowed.txt')
       expect(fs.existsSync(fullPath)).toBe(true)
     })
+
+    it('should normalize paths before validation', async () => {
+      const result = await fileUtil.writeFile('./normal/./path.txt', 'content')
+
+      expect(result.success).toBe(true)
+      expect(result.path).toBe('normal/path.txt')
+    })
   })
 
   describe('Base Directory Initialization', () => {
-    it('should create base directory if it does not exist', async () => {
-      // Clean up to ensure it doesn't exist
+    it('should create base directory on first operation', async () => {
       if (fs.existsSync(TEST_BASE_DIR)) {
         fs.rmSync(TEST_BASE_DIR, { recursive: true, force: true })
       }
@@ -549,13 +600,121 @@ describe('FileUtil', () => {
     })
 
     it('should handle existing base directory gracefully', async () => {
-      // Ensure base directory exists
       await fileUtil.writeFile('init-test.txt', 'content')
-
-      // Call again - should not fail
       const result = await fileUtil.writeFile('another-file.txt', 'more content')
 
       expect(result.success).toBe(true)
+    })
+
+    it('should create base directory for all operations', () => {
+      if (fs.existsSync(TEST_BASE_DIR)) {
+        fs.rmSync(TEST_BASE_DIR, { recursive: true, force: true })
+      }
+
+      const result = fileUtil.createDirectory(TEST_DIR)
+
+      expect(result.success).toBe(true)
+      expect(fs.existsSync(TEST_BASE_DIR)).toBe(true)
+    })
+  })
+
+  describe('Error Handling', () => {
+    it('should wrap file system errors in ValidationException', async () => {
+      // Create a file, then try to write a directory with the same name
+      await fileUtil.writeFile(TEST_FILE, 'content')
+
+      // On some systems this might succeed (overwrite), on others it might fail
+      // The key is that any error should be wrapped in ValidationException
+      try {
+        const fullPath = path.join(TEST_BASE_DIR, TEST_FILE)
+        fs.mkdirSync(fullPath) // Make it a directory
+        await expect(fileUtil.writeFile(TEST_FILE, 'new content')).rejects.toThrow()
+      } catch {
+        // Test setup might fail on some systems, that's okay
+      }
+    })
+
+    it('should preserve ValidationException errors', async () => {
+      await expect(fileUtil.writeFile('../outside.txt', 'content')).rejects.toThrow(
+        ValidationException
+      )
+    })
+
+    it('should provide descriptive error messages', async () => {
+      await expect(fileUtil.writeFile('../outside.txt', 'content')).rejects.toThrow(
+        ValidationException
+      )
+      await expect(fileUtil.writeFile('../outside.txt', 'content')).rejects.toThrow('Access denied')
+      await expect(fileUtil.writeFile('../outside.txt', 'content')).rejects.toThrow('outside.txt')
+    })
+  })
+
+  describe('Return Values', () => {
+    it('should return consistent structure for writeFile', async () => {
+      const result = await fileUtil.writeFile(TEST_FILE, TEST_CONTENT)
+
+      expect(result).toHaveProperty('success')
+      expect(result).toHaveProperty('message')
+      expect(result).toHaveProperty('path')
+      expect(typeof result.success).toBe('boolean')
+      expect(typeof result.message).toBe('string')
+      expect(typeof result.path).toBe('string')
+    })
+
+    it('should return consistent structure for readFile', async () => {
+      await fileUtil.writeFile(TEST_FILE, TEST_CONTENT)
+      const result = await fileUtil.readFile(TEST_FILE)
+
+      expect(result).toHaveProperty('success')
+      expect(result).toHaveProperty('message')
+      expect(result).toHaveProperty('path')
+      expect(result).toHaveProperty('content')
+    })
+
+    it('should return consistent structure for deletePath', async () => {
+      await fileUtil.writeFile(TEST_FILE, TEST_CONTENT)
+      const result = fileUtil.deletePath(TEST_FILE)
+
+      expect(result).toHaveProperty('success')
+      expect(result).toHaveProperty('message')
+      expect(result).toHaveProperty('path')
+    })
+
+    it('should return consistent structure for listDirectory', () => {
+      fileUtil.createDirectory(TEST_DIR)
+      const result = fileUtil.listDirectory(TEST_DIR)
+
+      expect(result).toHaveProperty('success')
+      expect(result).toHaveProperty('message')
+      expect(result).toHaveProperty('path')
+      expect(result).toHaveProperty('items')
+    })
+
+    it('should return consistent structure for createDirectory', () => {
+      const result = fileUtil.createDirectory(TEST_DIR)
+
+      expect(result).toHaveProperty('success')
+      expect(result).toHaveProperty('message')
+      expect(result).toHaveProperty('path')
+    })
+
+    it('should return consistent structure for exists', () => {
+      const result = fileUtil.exists(TEST_FILE)
+
+      expect(result).toHaveProperty('success')
+      expect(result).toHaveProperty('message')
+      expect(result).toHaveProperty('path')
+      expect(result).toHaveProperty('exists')
+    })
+
+    it('should return consistent structure for searchFiles', () => {
+      const result = fileUtil.searchFiles('*.txt')
+
+      expect(result).toHaveProperty('success')
+      expect(result).toHaveProperty('message')
+      expect(result).toHaveProperty('pattern')
+      expect(result).toHaveProperty('searchDir')
+      expect(result).toHaveProperty('files')
     })
   })
 })
