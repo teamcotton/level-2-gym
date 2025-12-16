@@ -186,7 +186,10 @@ describe('Container', () => {
     it('should inject use case into UserController', () => {
       const container = Container.getInstance()
 
-      expect(UserController).toHaveBeenCalledWith(container.registerUserUseCase)
+      expect(UserController).toHaveBeenCalledWith(
+        container.registerUserUseCase,
+        container.getAllUsersUseCase
+      )
     })
 
     it('should inject Fastify app into controller for route registration', () => {

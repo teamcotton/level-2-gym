@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { eq, count } from 'drizzle-orm'
 import { db } from '../../../infrastructure/database/index.js'
 import { user } from '../../../infrastructure/database/schema.js'
 import type { DBUserSelect } from '../../../infrastructure/database/schema.js'
@@ -6,7 +6,11 @@ import { User } from '../../../domain/entities/user.js'
 import { Email } from '../../../domain/value-objects/email.js'
 import { Password } from '../../../domain/value-objects/password.js'
 import { Role } from '../../../domain/value-objects/role.js'
-import type { UserRepositoryPort } from '../../../application/ports/user.repository.port.js'
+import type {
+  UserRepositoryPort,
+  PaginationParams,
+  PaginatedResult,
+} from '../../../application/ports/user.repository.port.js'
 import { DatabaseException } from '../../../shared/exceptions/database.exception.js'
 import { ConflictException } from '../../../shared/exceptions/conflict.exception.js'
 import { DatabaseUtil } from '../../../shared/utils/database.util.js'
@@ -29,6 +33,29 @@ export class PostgresUserRepository implements UserRepositoryPort {
         })
       }
       throw new DatabaseException('Failed to save user', { error })
+    }
+  }
+
+  async findAll(params?: PaginationParams): Promise<PaginatedResult<User>> {
+    try {
+      const limit = params?.limit ?? 50
+      const offset = params?.offset ?? 0
+
+      // Get total count
+      const totalResult = await db.select({ count: count() }).from(user)
+      const total = totalResult[0]?.count ?? 0
+
+      // Get paginated results
+      const result = await db.select().from(user).limit(limit).offset(offset)
+
+      return {
+        data: result.map((record) => this.toDomain(record)),
+        total: Number(total),
+        limit,
+        offset,
+      }
+    } catch (error) {
+      throw new DatabaseException('Failed to find all users', { error })
     }
   }
 

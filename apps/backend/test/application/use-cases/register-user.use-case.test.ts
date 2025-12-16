@@ -24,6 +24,7 @@ describe('RegisterUserUseCase', () => {
       save: vi.fn(),
       findById: vi.fn(),
       findByEmail: vi.fn(),
+      findAll: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
       existsByEmail: vi.fn(),

@@ -1,5 +1,3 @@
-import { obscured } from 'obscured'
-
 import type { RegisterUserData, RegisterUserResponse } from '@/domain/auth/index.js'
 
 export async function POST(request: Request) {
@@ -18,9 +16,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // Obscure sensitive data in memory to prevent exposure in logs/debugging
-    const obscuredData = obscured.obscureKeys(body, ['password'])
-
     const response = await fetch(`${apiUrl}/users/register`, {
       method: 'POST',
       headers: {
@@ -30,7 +25,7 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         email: body.email,
         name: body.name,
-        password: obscured.value(obscuredData.password),
+        password: body.password,
       }),
     })
 

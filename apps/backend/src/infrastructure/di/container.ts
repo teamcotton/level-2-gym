@@ -3,6 +3,7 @@ import { createFastifyApp } from '../http/fastify.config.js'
 
 // Application
 import { RegisterUserUseCase } from '../../application/use-cases/register-user.use-case.js'
+import { GetAllUsersUseCase } from '../../application/use-cases/get-all-users.use-case.js'
 
 // Adapters
 import { PostgresUserRepository } from '../../adapters/secondary/repositories/user.repository.js'
@@ -33,6 +34,7 @@ export class Container {
 
   // Use Cases
   public readonly registerUserUseCase: RegisterUserUseCase
+  public readonly getAllUsersUseCase: GetAllUsersUseCase
 
   // Controllers
   public readonly userController: UserController
@@ -67,9 +69,13 @@ export class Container {
           this.logger.info('🔒 HTTPS enabled for development')
         } catch (error) {
           const instructions = `To generate certificates with proper Subject Alternative Names:
-cd apps/backend/certs && openssl req -x509 -newkey rsa:4096 \\
-  -keyout key.pem -out cert.pem -sha256 -days 365 -nodes \\
-  -config openssl.cnf -extensions v3_req`
+cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
+  localhost \\
+  127.0.0.1 \\
+  ::1 \\
+  *.localhost \\
+  local.dev \\
+  0.0.0.0`
 
           this.logger.warn('⚠️  HTTPS certificates not found, falling back to HTTP', {
             certsPath,
@@ -101,9 +107,10 @@ cd apps/backend/certs && openssl req -x509 -newkey rsa:4096 \\
       this.emailService,
       this.logger
     )
+    this.getAllUsersUseCase = new GetAllUsersUseCase(this.userRepository, this.logger)
 
     // Initialize controllers (primary adapters)
-    this.userController = new UserController(this.registerUserUseCase)
+    this.userController = new UserController(this.registerUserUseCase, this.getAllUsersUseCase)
 
     // Register routes
     this.registerRoutes()

@@ -94,6 +94,115 @@ describe('PostgresUserRepository', () => {
     })
   })
 
+  describe('findAll', () => {
+    it('should return paginated users with default limit and offset', async () => {
+      const dbRecords = [
+        {
+          userId: 'user-1',
+          email: 'user1@example.com',
+          password: validBcryptHash,
+          name: 'User One',
+          role: 'user',
+          createdAt: new Date('2024-01-01'),
+        },
+        {
+          userId: 'user-2',
+          email: 'user2@example.com',
+          password: validBcryptHash,
+          name: 'User Two',
+          role: 'admin',
+          createdAt: new Date('2024-01-02'),
+        },
+      ]
+
+      const mockOffset = vi.fn().mockResolvedValue(dbRecords)
+      const mockLimit = vi.fn().mockReturnValue({ offset: mockOffset })
+      const mockFrom = vi.fn().mockReturnValue({ limit: mockLimit })
+      const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
+
+      const mockCountFrom = vi.fn().mockResolvedValue([{ count: 2 }])
+      const mockCountSelect = vi.fn().mockReturnValue({ from: mockCountFrom })
+
+      vi.mocked(db.select)
+        .mockReturnValueOnce(mockCountSelect() as any)
+        .mockReturnValueOnce(mockSelect() as any)
+
+      const result = await repository.findAll()
+
+      expect(result.data).toHaveLength(2)
+      expect(result.total).toBe(2)
+      expect(result.limit).toBe(50)
+      expect(result.offset).toBe(0)
+      expect(result.data[0]).toBeInstanceOf(User)
+      expect(result.data[0]?.getEmail()).toBe('user1@example.com')
+      expect(result.data[1]?.getEmail()).toBe('user2@example.com')
+    })
+
+    it('should return paginated users with custom limit and offset', async () => {
+      const dbRecords = [
+        {
+          userId: 'user-3',
+          email: 'user3@example.com',
+          password: validBcryptHash,
+          name: 'User Three',
+          role: 'user',
+          createdAt: new Date('2024-01-03'),
+        },
+      ]
+
+      const mockOffset = vi.fn().mockResolvedValue(dbRecords)
+      const mockLimit = vi.fn().mockReturnValue({ offset: mockOffset })
+      const mockFrom = vi.fn().mockReturnValue({ limit: mockLimit })
+      const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
+
+      const mockCountFrom = vi.fn().mockResolvedValue([{ count: 100 }])
+      const mockCountSelect = vi.fn().mockReturnValue({ from: mockCountFrom })
+
+      vi.mocked(db.select)
+        .mockReturnValueOnce(mockCountSelect() as any)
+        .mockReturnValueOnce(mockSelect() as any)
+
+      const result = await repository.findAll({ limit: 10, offset: 20 })
+
+      expect(result.data).toHaveLength(1)
+      expect(result.total).toBe(100)
+      expect(result.limit).toBe(10)
+      expect(result.offset).toBe(20)
+      expect(mockLimit).toHaveBeenCalledWith(10)
+      expect(mockOffset).toHaveBeenCalledWith(20)
+    })
+
+    it('should return empty array when no users exist', async () => {
+      const mockOffset = vi.fn().mockResolvedValue([])
+      const mockLimit = vi.fn().mockReturnValue({ offset: mockOffset })
+      const mockFrom = vi.fn().mockReturnValue({ limit: mockLimit })
+      const mockSelect = vi.fn().mockReturnValue({ from: mockFrom })
+
+      const mockCountFrom = vi.fn().mockResolvedValue([{ count: 0 }])
+      const mockCountSelect = vi.fn().mockReturnValue({ from: mockCountFrom })
+
+      vi.mocked(db.select)
+        .mockReturnValueOnce(mockCountSelect() as any)
+        .mockReturnValueOnce(mockSelect() as any)
+
+      const result = await repository.findAll()
+
+      expect(result.data).toHaveLength(0)
+      expect(result.total).toBe(0)
+    })
+
+    it('should throw DatabaseException on database error', async () => {
+      const dbError = new Error('Database connection lost')
+
+      const mockCountFrom = vi.fn().mockRejectedValue(dbError)
+      const mockCountSelect = vi.fn().mockReturnValue({ from: mockCountFrom })
+      vi.mocked(db.select).mockReturnValue(mockCountSelect() as any)
+
+      await expect(repository.findAll()).rejects.toThrow(DatabaseException)
+      await expect(repository.findAll()).rejects.toThrow('Failed to find all users')
+    })
+  })
+
   describe('findById', () => {
     it('should return null when user is not found', async () => {
       const mockWhere = vi.fn().mockResolvedValue([])

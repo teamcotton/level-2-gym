@@ -5,7 +5,8 @@ build/
 .env
 
 # SSL certificates
-certs/
+certs/*
+!certs/README.md
 
 # PostgreSQL data (if running locally without Docker)
 postgres_data/

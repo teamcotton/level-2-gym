@@ -3,12 +3,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { UserController } from '../../../../src/adapters/primary/http/user.controller.js'
 import { RegisterUserDto } from '../../../../src/application/dtos/register-user.dto.js'
+import { GetAllUsersUseCase } from '../../../../src/application/use-cases/get-all-users.use-case.js'
 import { RegisterUserUseCase } from '../../../../src/application/use-cases/register-user.use-case.js'
 import { ValidationException } from '../../../../src/shared/exceptions/validation.exception.js'
 
 describe('UserController', () => {
   let controller: UserController
   let mockRegisterUserUseCase: RegisterUserUseCase
+  let mockGetAllUsersUseCase: GetAllUsersUseCase
   let mockRequest: FastifyRequest
   let mockReply: FastifyReply
 
@@ -21,8 +23,13 @@ describe('UserController', () => {
       execute: vi.fn(),
     } as any
 
+    // Create mock get all users use case
+    mockGetAllUsersUseCase = {
+      execute: vi.fn(),
+    } as any
+
     // Create controller instance with mocked use case
-    controller = new UserController(mockRegisterUserUseCase)
+    controller = new UserController(mockRegisterUserUseCase, mockGetAllUsersUseCase)
 
     // Create mock Fastify reply with chainable methods
     mockReply = {
@@ -34,12 +41,13 @@ describe('UserController', () => {
     mockRequest = {
       body: {},
       params: {},
+      query: {},
     } as any
   })
 
   describe('constructor', () => {
     it('should create instance with RegisterUserUseCase dependency', () => {
-      const instance = new UserController(mockRegisterUserUseCase)
+      const instance = new UserController(mockRegisterUserUseCase, mockGetAllUsersUseCase)
 
       expect(instance).toBeInstanceOf(UserController)
       expect(instance).toBeDefined()
@@ -67,8 +75,9 @@ describe('UserController', () => {
 
       controller.registerRoutes(mockApp)
 
-      expect(mockApp.get).toHaveBeenCalledTimes(1)
+      expect(mockApp.get).toHaveBeenCalledTimes(2)
       expect(mockApp.get).toHaveBeenCalledWith('/users/:id', expect.any(Function))
+      expect(mockApp.get).toHaveBeenCalledWith('/users', expect.any(Function))
     })
 
     it('should bind controller context to route handlers', () => {
@@ -101,6 +110,439 @@ describe('UserController', () => {
       expect(callOrder).toBeDefined()
       expect(getCallOrder).toBeDefined()
       expect(callOrder!).toBeLessThan(getCallOrder!)
+    })
+  })
+
+  describe('getAllUsers()', () => {
+    describe('successful retrieval', () => {
+      it('should retrieve all users successfully', async () => {
+        const mockUsers = [
+          {
+            userId: 'user-1',
+            email: 'user1@example.com',
+            name: 'User One',
+            role: 'user',
+            createdAt: new Date('2024-01-01'),
+          },
+          {
+            userId: 'user-2',
+            email: 'user2@example.com',
+            name: 'User Two',
+            role: 'admin',
+            createdAt: new Date('2024-01-02'),
+          },
+        ]
+
+        vi.mocked(mockGetAllUsersUseCase.execute).mockResolvedValue({
+          data: mockUsers,
+          total: mockUsers.length,
+          limit: 10,
+          offset: 0,
+        })
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        expect(mockGetAllUsersUseCase.execute).toHaveBeenCalledTimes(1)
+        expect(mockGetAllUsersUseCase.execute).toHaveBeenCalledWith({
+          limit: undefined,
+          offset: undefined,
+        })
+      })
+
+      it('should return 200 status code for successful retrieval', async () => {
+        const mockUsers = [
+          {
+            userId: 'user-1',
+            email: 'user1@example.com',
+            name: 'User One',
+            role: 'user',
+            createdAt: new Date('2024-01-01'),
+          },
+        ]
+
+        vi.mocked(mockGetAllUsersUseCase.execute).mockResolvedValue({
+          data: mockUsers,
+          total: mockUsers.length,
+          limit: 10,
+          offset: 0,
+        })
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+      })
+
+      it('should return success response with users array', async () => {
+        const mockUsers = [
+          {
+            userId: 'user-1',
+            email: 'user1@example.com',
+            name: 'User One',
+            role: 'user',
+            createdAt: new Date('2024-01-01'),
+          },
+          {
+            userId: 'user-2',
+            email: 'user2@example.com',
+            name: 'User Two',
+            role: 'admin',
+            createdAt: new Date('2024-01-02'),
+          },
+        ]
+
+        vi.mocked(mockGetAllUsersUseCase.execute).mockResolvedValue({
+          data: mockUsers,
+          total: mockUsers.length,
+          limit: 10,
+          offset: 0,
+        })
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: true,
+          data: mockUsers,
+          pagination: {
+            total: mockUsers.length,
+            limit: 10,
+            offset: 0,
+          },
+        })
+      })
+
+      it('should handle empty users array', async () => {
+        const mockUsers: any[] = []
+
+        vi.mocked(mockGetAllUsersUseCase.execute).mockResolvedValue({
+          data: mockUsers,
+          total: mockUsers.length,
+          limit: 10,
+          offset: 0,
+        })
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: true,
+          data: [],
+          pagination: {
+            total: 0,
+            limit: 10,
+            offset: 0,
+          },
+        })
+      })
+
+      it('should handle large number of users', async () => {
+        const mockUsers = Array.from({ length: 100 }, (_, i) => ({
+          userId: `user-${i}`,
+          email: `user${i}@example.com`,
+          name: `User ${i}`,
+          role: 'user',
+          createdAt: new Date('2024-01-01'),
+        }))
+
+        vi.mocked(mockGetAllUsersUseCase.execute).mockResolvedValue({
+          data: mockUsers,
+          total: mockUsers.length,
+          limit: 10,
+          offset: 0,
+        })
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: true,
+          data: mockUsers,
+          pagination: {
+            total: mockUsers.length,
+            limit: 10,
+            offset: 0,
+          },
+        })
+      })
+
+      it('should preserve user data structure from use case', async () => {
+        const mockUsers = [
+          {
+            userId: 'user-1',
+            email: 'test@example.com',
+            name: 'Test User',
+            role: 'moderator',
+            createdAt: new Date('2024-06-15T10:30:00Z'),
+          },
+        ]
+
+        vi.mocked(mockGetAllUsersUseCase.execute).mockResolvedValue({
+          data: mockUsers,
+          total: mockUsers.length,
+          limit: 10,
+          offset: 0,
+        })
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        const sentData = vi.mocked(mockReply.send).mock.calls[0]?.[0] as {
+          success: boolean
+          data: typeof mockUsers
+          pagination: { total: number; limit: number; offset: number }
+        }
+        expect(sentData).toEqual({
+          success: true,
+          data: mockUsers,
+          pagination: {
+            total: mockUsers.length,
+            limit: 10,
+            offset: 0,
+          },
+        })
+        expect(sentData.data[0]).toHaveProperty('userId', 'user-1')
+        expect(sentData.data[0]).toHaveProperty('email', 'test@example.com')
+        expect(sentData.data[0]).toHaveProperty('name', 'Test User')
+        expect(sentData.data[0]).toHaveProperty('role', 'moderator')
+        expect(sentData.data[0]).toHaveProperty('createdAt')
+      })
+    })
+
+    describe('error handling', () => {
+      it('should handle use case execution error', async () => {
+        const error = new Error('Database connection failed')
+        vi.mocked(mockGetAllUsersUseCase.execute).mockRejectedValue(error)
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Database connection failed',
+        })
+      })
+
+      it('should handle BaseException with custom status code', async () => {
+        const error = new ValidationException('Invalid query parameters')
+        vi.mocked(mockGetAllUsersUseCase.execute).mockRejectedValue(error)
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'Invalid query parameters',
+        })
+      })
+
+      it('should handle unknown error types', async () => {
+        const error = 'Unknown error'
+        vi.mocked(mockGetAllUsersUseCase.execute).mockRejectedValue(error)
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+      })
+
+      it('should handle null error gracefully', async () => {
+        vi.mocked(mockGetAllUsersUseCase.execute).mockRejectedValue(null)
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        expect(mockReply.code).toHaveBeenCalledWith(500)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: false,
+          error: 'An unexpected error occurred',
+        })
+      })
+
+      it('should not expose internal error details in production', async () => {
+        const error = new Error('Internal database schema mismatch')
+        vi.mocked(mockGetAllUsersUseCase.execute).mockRejectedValue(error)
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        const sentData = vi.mocked(mockReply.send).mock.calls[0]?.[0] as {
+          success: boolean
+          data?: unknown
+          error?: string
+        }
+        expect(sentData).toHaveProperty('success', false)
+        expect(sentData).toHaveProperty('error')
+        expect(sentData.error).toBe('Internal database schema mismatch')
+      })
+    })
+
+    describe('response structure', () => {
+      it('should always return object with success property', async () => {
+        const mockUsers = [
+          {
+            userId: 'user-1',
+            email: 'test@example.com',
+            name: 'Test User',
+            role: 'user',
+            createdAt: new Date(),
+          },
+        ]
+
+        vi.mocked(mockGetAllUsersUseCase.execute).mockResolvedValue({
+          data: mockUsers,
+          total: mockUsers.length,
+          limit: 10,
+          offset: 0,
+        })
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        const sentData = vi.mocked(mockReply.send).mock.calls[0]?.[0] as {
+          success: boolean
+          data?: typeof mockUsers
+          pagination?: { total: number; limit: number; offset: number }
+          error?: string
+        }
+        expect(sentData).toEqual({
+          success: true,
+          data: mockUsers,
+          pagination: {
+            total: mockUsers.length,
+            limit: 10,
+            offset: 0,
+          },
+        })
+        expect(sentData).toHaveProperty('success')
+        expect(typeof sentData.success).toBe('boolean')
+      })
+
+      it('should include data property on success', async () => {
+        const mockUsers = [
+          {
+            userId: 'user-1',
+            email: 'test@example.com',
+            name: 'Test User',
+            role: 'user',
+            createdAt: new Date(),
+          },
+        ]
+
+        vi.mocked(mockGetAllUsersUseCase.execute).mockResolvedValue({
+          data: mockUsers,
+          total: mockUsers.length,
+          limit: 10,
+          offset: 0,
+        })
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        const sentData = vi.mocked(mockReply.send).mock.calls[0]?.[0] as {
+          success: boolean
+          data?: typeof mockUsers
+          pagination?: { total: number; limit: number; offset: number }
+          error?: string
+        }
+        expect(sentData).toEqual({
+          success: true,
+          data: mockUsers,
+          pagination: {
+            total: mockUsers.length,
+            limit: 10,
+            offset: 0,
+          },
+        })
+        expect(sentData).toHaveProperty('data')
+        expect(Array.isArray(sentData.data)).toBe(true)
+      })
+
+      it('should include error property on failure', async () => {
+        const error = new Error('Test error')
+        vi.mocked(mockGetAllUsersUseCase.execute).mockRejectedValue(error)
+
+        await controller.getAllUsers(mockRequest, mockReply)
+
+        const sentData = vi.mocked(mockReply.send).mock.calls[0]?.[0]
+        expect(sentData).toHaveProperty('error')
+        expect(sentData).not.toHaveProperty('data')
+      })
+    })
+
+    describe('integration with route registration', () => {
+      it('should call getAllUsers when GET /users route is invoked', async () => {
+        const mockApp = {
+          post: vi.fn(),
+          get: vi.fn(),
+        } as unknown as FastifyInstance
+
+        controller.registerRoutes(mockApp)
+
+        const getAllUsersHandler = vi.mocked(mockApp.get).mock.calls[0]?.[1] as unknown as (
+          req: FastifyRequest,
+          reply: FastifyReply
+        ) => Promise<void>
+
+        expect(getAllUsersHandler).toBeDefined()
+
+        const mockUsers = [
+          {
+            userId: 'user-1',
+            email: 'test@example.com',
+            name: 'Test User',
+            role: 'user',
+            createdAt: new Date(),
+          },
+        ]
+
+        vi.mocked(mockGetAllUsersUseCase.execute).mockResolvedValue({
+          data: mockUsers,
+          total: mockUsers.length,
+          limit: 10,
+          offset: 0,
+        })
+
+        await getAllUsersHandler(mockRequest, mockReply)
+
+        expect(mockGetAllUsersUseCase.execute).toHaveBeenCalled()
+        expect(mockGetAllUsersUseCase.execute).toHaveBeenCalledWith({
+          limit: undefined,
+          offset: undefined,
+        })
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+      })
+
+      it('should maintain controller context when called via route', async () => {
+        const mockApp = {
+          post: vi.fn(),
+          get: vi.fn(),
+        } as unknown as FastifyInstance
+
+        controller.registerRoutes(mockApp)
+
+        const getAllUsersHandler = vi.mocked(mockApp.get).mock.calls[0]?.[1] as unknown as (
+          req: FastifyRequest,
+          reply: FastifyReply
+        ) => Promise<void>
+
+        const mockUsers = [
+          {
+            userId: 'user-1',
+            email: 'test@example.com',
+            name: 'Test User',
+            role: 'user',
+            createdAt: new Date(),
+          },
+        ]
+
+        vi.mocked(mockGetAllUsersUseCase.execute).mockResolvedValue({
+          data: mockUsers,
+          total: mockUsers.length,
+          limit: 10,
+          offset: 0,
+        })
+
+        await getAllUsersHandler(mockRequest, mockReply)
+
+        expect(mockGetAllUsersUseCase.execute).toHaveBeenCalledTimes(1)
+        expect(mockGetAllUsersUseCase.execute).toHaveBeenCalledWith({
+          limit: undefined,
+          offset: undefined,
+        })
+      })
     })
   })
 

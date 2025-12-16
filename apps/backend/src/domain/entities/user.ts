@@ -200,4 +200,17 @@ export class User {
   getPasswordHash(): string {
     return this.password.getHash()
   }
+
+  /**
+   * Gets the user's creation date.
+   *
+   * @returns The date when the user was created
+   * @example
+   * ```typescript
+   * const createdAt = user.getCreatedAt()
+   * ```
+   */
+  getCreatedAt(): Date {
+    return this.createdAt
+  }
 }

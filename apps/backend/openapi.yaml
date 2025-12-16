@@ -133,6 +133,23 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /users:
+    get:
+      summary: Get all users
+      description: Retrieves all users in date order
+      operationId: getAllUsers
+      tags:
+        - users
+      responses:
+        '200':
+          description: Users found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+
 components:
   schemas:
     RegisterUserRequest:
@@ -189,6 +206,7 @@ components:
         - id
         - email
         - name
+        - role
         - createdAt
       properties:
         id:
@@ -202,6 +220,11 @@ components:
         name:
           type: string
           example: John Doe
+        role:
+          type: string
+          enum: [user, admin, moderator]
+          example: user
+          description: User's role in the system
         createdAt:
           type: string
           format: date-time
