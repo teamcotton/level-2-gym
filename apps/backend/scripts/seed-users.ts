@@ -17,6 +17,11 @@
  *
  * All accounts use the password specified by SEED_PASSWORD env var,
  * or 'Password123!' if SEED_PASSWORD is not set.
+ *
+ * Maximum Users:
+ * The script can generate approximately 51,840 unique email addresses
+ * (72 firstNames × 72 lastNames × 10 domains). If you need more users,
+ * the script will throw an error to prevent duplicate email generation.
  */
 import { db } from '../src/infrastructure/database/index.js'
 import { user } from '../src/infrastructure/database/schema.js'
@@ -233,13 +238,48 @@ const emailDomains = [
 ]
 
 /**
- * Generate a unique email address
+ * Generate a unique email address with collision detection
+ *
+ * Note: This function can generate up to approximately 51,840 unique emails
+ * (72 firstNames × 72 lastNames × 10 domains). Beyond this limit, the function
+ * will throw an error to prevent duplicate email generation.
+ *
+ * @param firstName - The first name to use in the email
+ * @param lastName - The last name to use in the email
+ * @param index - The user index (used for suffix and domain selection)
+ * @param existingEmails - Set of already generated emails for collision detection
+ * @returns A unique email address
+ * @throws Error if unable to generate a unique email after maximum attempts
  */
-function generateEmail(firstName: string, lastName: string, index: number): string {
-  const domain = emailDomains[index % emailDomains.length]
-  const baseEmail = `${firstName.toLowerCase()}.${lastName.toLowerCase()}`
-  const suffix = index > 9 ? index : ''
-  return `${baseEmail}${suffix}@${domain}`
+function generateEmail(
+  firstName: string,
+  lastName: string,
+  index: number,
+  existingEmails: Set<string>
+): string {
+  const maxAttempts = 100
+  let attempt = 0
+
+  while (attempt < maxAttempts) {
+    const domain = emailDomains[(index + attempt) % emailDomains.length]
+    const baseEmail = `${firstName.toLowerCase()}.${lastName.toLowerCase()}`
+    // Add suffix for all indices to improve uniqueness
+    const suffix = index + attempt > 0 ? index + attempt : ''
+    const email = `${baseEmail}${suffix}@${domain}`
+
+    if (!existingEmails.has(email)) {
+      existingEmails.add(email)
+      return email
+    }
+
+    attempt++
+  }
+
+  throw new Error(
+    `Unable to generate unique email for ${firstName} ${lastName} after ${maxAttempts} attempts. ` +
+      `Maximum recommended user count is approximately ${firstNames.length * lastNames.length * emailDomains.length} ` +
+      `(${firstNames.length} firstNames × ${lastNames.length} lastNames × ${emailDomains.length} domains).`
+  )
 }
 
 /**
@@ -270,13 +310,14 @@ async function seedUsers() {
     console.log('✅ Password hashed')
 
     const usersToInsert = []
+    const generatedEmails = new Set<string>()
 
     console.log('\n👥 Generating user data...')
     for (let i = 0; i < TOTAL_USERS; i++) {
       const firstName = firstNames[i % firstNames.length]
       const lastName = lastNames[Math.floor(i / firstNames.length) % lastNames.length]
       const name = generateName(firstName, lastName)
-      const email = generateEmail(firstName, lastName, i)
+      const email = generateEmail(firstName, lastName, i, generatedEmails)
       const role = getRole(i)
 
       usersToInsert.push({
