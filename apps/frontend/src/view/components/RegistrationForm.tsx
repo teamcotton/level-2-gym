@@ -63,14 +63,19 @@ export function RegistrationForm({
     setShowConfirmPassword((prev) => !prev)
   }
 
-  // Helper function to check if error should be displayed at field level
-  const isFieldLevelEmailError = (errorMessage: string | undefined): boolean => {
+  // Helper function to check if error should be displayed at alert level
+  const isAlertLevelEmailError = (errorMessage: string | undefined): boolean => {
     if (!errorMessage) return false
     return (
-      !errorMessage.includes('already registered') &&
-      !errorMessage.includes('Registration failed') &&
-      !errorMessage.includes('unexpected error')
+      errorMessage.includes('already registered') ||
+      errorMessage.includes('Registration failed') ||
+      errorMessage.includes('unexpected error')
     )
+  }
+
+  // Helper function to check if error should be displayed at field level
+  const isFieldLevelEmailError = (errorMessage: string | undefined): boolean => {
+    return !!errorMessage && !isAlertLevelEmailError(errorMessage)
   }
 
   return (
@@ -89,22 +94,11 @@ export function RegistrationForm({
             Create your account
           </Typography>
 
-          {/*
-          TODO: The error display logic uses fragile string matching against hard-coded error messages.
-           This creates tight coupling between the view layer and error messages,
-           making the code brittle and hard to maintain.
-           If error messages change, this logic will break.
-           Use error types or codes instead of string matching to determine
-           how errors should be displayed.
-          */}
-          {errors.email &&
-            (errors.email.includes('already registered') ||
-              errors.email.includes('Registration failed') ||
-              errors.email.includes('unexpected error')) && (
-              <Alert severity="error" sx={{ mb: 3 }}>
-                {errors.email}
-              </Alert>
-            )}
+          {isAlertLevelEmailError(errors.email) && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {errors.email}
+            </Alert>
+          )}
 
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
             Sign up with
