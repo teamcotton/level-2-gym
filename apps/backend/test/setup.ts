@@ -11,6 +11,10 @@
 // Set default environment variables for testing if not already set
 // These must be set at module level (not in beforeAll) to be available
 // when modules are imported, particularly when EnvConfig.ts runs dotenv.config()
+
+// NOTE: This JWT secret is for testing only. Never use this value in production.
+// Our JWT implementation requires a secret of at least 256 bits; this hardcoded
+// value is intentionally longer (~512 bits) to satisfy that requirement in tests.
 if (!process.env.JWT_SECRET) {
   process.env.JWT_SECRET = 'test-secret-key-for-jwt-signing-minimum-256-bits-required'
 }
