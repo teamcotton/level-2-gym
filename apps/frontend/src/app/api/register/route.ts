@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       const nodeFetch = (await import('node-fetch')).default
 
       const agent = new https.Agent({
-        rejectUnauthorized: process.env.NODE_ENV === 'production',
+        rejectUnauthorized: false,
       })
 
       const nodeFetchResponse = await nodeFetch(`${apiUrl}/users/register`, {

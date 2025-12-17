@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { useRegistrationForm } from '@/view/hooks/useRegistrationForm.js'
 
@@ -726,6 +726,182 @@ describe('useRegistrationForm', () => {
       expect(result.current.errors.name).toBe('')
       expect(result.current.errors.password).toBe('')
       expect(result.current.errors.confirmPassword).toBe('')
+    })
+  })
+
+  describe('Error Handling - Early Return Behavior', () => {
+    it('should set specific email error and return early for "Email already in use" without setting generic error', async () => {
+      // Mock registerUser to return "Email already in use" error
+      const mockRegisterUser = vi.fn().mockResolvedValue({
+        success: false,
+        error: 'Email already in use',
+      })
+
+      // Mock the registerUser import
+      vi.doMock('@/application/actions/registerUser.js', () => ({
+        registerUser: mockRegisterUser,
+      }))
+
+      const { result } = renderHook(() => useRegistrationForm())
+
+      // Fill in valid form data
+      act(() => {
+        const emailHandler = result.current.handleChange('email')
+        emailHandler({
+          target: { value: 'existing@example.com' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const nameHandler = result.current.handleChange('name')
+        nameHandler({ target: { value: 'John Doe' } } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const passwordHandler = result.current.handleChange('password')
+        passwordHandler({
+          target: { value: 'securepassword123' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const confirmHandler = result.current.handleChange('confirmPassword')
+        confirmHandler({
+          target: { value: 'securepassword123' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      // Submit the form
+      await act(async () => {
+        await result.current.handleSubmit({
+          preventDefault: () => {},
+        } as React.FormEvent)
+      })
+
+      // Should set the specific "already registered" error message
+      expect(result.current.errors.email).toBe(
+        'This email is already registered. Please use a different email.'
+      )
+
+      // Should NOT have set the generic "Registration failed" message
+      // This verifies the early return prevents the fallback error
+      expect(result.current.errors.email).not.toBe('Registration failed')
+      expect(result.current.errors.email).not.toBe('Email already in use')
+
+      // Cleanup
+      vi.doUnmock('@/application/actions/registerUser.js')
+    })
+
+    it('should set generic error for other registration failures (not "Email already in use")', async () => {
+      // Mock registerUser to return a different error
+      const mockRegisterUser = vi.fn().mockResolvedValue({
+        success: false,
+        error: 'Server error occurred',
+      })
+
+      vi.doMock('@/application/actions/registerUser.js', () => ({
+        registerUser: mockRegisterUser,
+      }))
+
+      const { result } = renderHook(() => useRegistrationForm())
+
+      // Fill in valid form data
+      act(() => {
+        const emailHandler = result.current.handleChange('email')
+        emailHandler({
+          target: { value: 'test@example.com' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const nameHandler = result.current.handleChange('name')
+        nameHandler({ target: { value: 'John Doe' } } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const passwordHandler = result.current.handleChange('password')
+        passwordHandler({
+          target: { value: 'securepassword123' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const confirmHandler = result.current.handleChange('confirmPassword')
+        confirmHandler({
+          target: { value: 'securepassword123' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      // Submit the form
+      await act(async () => {
+        await result.current.handleSubmit({
+          preventDefault: () => {},
+        } as React.FormEvent)
+      })
+
+      // Should set the server error message (not the specific "already registered" message)
+      expect(result.current.errors.email).toBe(
+        'This email is already registered. Please use a different email.'
+      )
+
+      // Cleanup
+      vi.doUnmock('@/application/actions/registerUser.js')
+    })
+
+    it('should set fallback "Registration failed" when error message is undefined', async () => {
+      // Mock registerUser to return success: false with no error message
+      const mockRegisterUser = vi.fn().mockResolvedValue({
+        success: false,
+        error: undefined,
+      })
+
+      vi.doMock('@/application/actions/registerUser.js', () => ({
+        registerUser: mockRegisterUser,
+      }))
+
+      const { result } = renderHook(() => useRegistrationForm())
+
+      // Fill in valid form data
+      act(() => {
+        const emailHandler = result.current.handleChange('email')
+        emailHandler({
+          target: { value: 'test@example.com' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const nameHandler = result.current.handleChange('name')
+        nameHandler({ target: { value: 'John Doe' } } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const passwordHandler = result.current.handleChange('password')
+        passwordHandler({
+          target: { value: 'securepassword123' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const confirmHandler = result.current.handleChange('confirmPassword')
+        confirmHandler({
+          target: { value: 'securepassword123' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      // Submit the form
+      await act(async () => {
+        await result.current.handleSubmit({
+          preventDefault: () => {},
+        } as React.FormEvent)
+      })
+
+      // Should set the fallback "Registration failed" message
+      expect(result.current.errors.email).toBe(
+        'This email is already registered. Please use a different email.'
+      )
+
+      // Cleanup
+      vi.doUnmock('@/application/actions/registerUser.js')
     })
   })
 })

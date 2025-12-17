@@ -846,4 +846,137 @@ describe('RegistrationForm', () => {
       expect(confirmPasswordInput.value).toBe('myConfirmPassword123')
     })
   })
+
+  describe('Alert Display for Server Errors', () => {
+    it('should display Alert when email error contains "already registered"', () => {
+      const props = {
+        ...defaultProps,
+        errors: {
+          ...defaultProps.errors,
+          email: 'This email is already registered. Please use a different email.',
+        },
+      }
+      render(<RegistrationForm {...props} />)
+
+      // Alert should be visible
+      expect(
+        screen.getByText(/this email is already registered\. please use a different email\./i)
+      ).toBeInTheDocument()
+
+      // Check it's an Alert component (has role="alert")
+      const alert = screen.getByRole('alert')
+      expect(alert).toHaveTextContent(
+        /this email is already registered\. please use a different email\./i
+      )
+    })
+
+    it('should display Alert when email error contains "Registration failed"', () => {
+      const props = {
+        ...defaultProps,
+        errors: {
+          ...defaultProps.errors,
+          email: 'Registration failed',
+        },
+      }
+      render(<RegistrationForm {...props} />)
+
+      // Alert should be visible
+      expect(screen.getByText(/registration failed/i)).toBeInTheDocument()
+
+      // Check it's an Alert component
+      const alert = screen.getByRole('alert')
+      expect(alert).toHaveTextContent(/registration failed/i)
+    })
+
+    it('should display Alert when email error contains "unexpected error"', () => {
+      const props = {
+        ...defaultProps,
+        errors: {
+          ...defaultProps.errors,
+          email: 'An unexpected error occurred. Please try again.',
+        },
+      }
+      render(<RegistrationForm {...props} />)
+
+      // Alert should be visible
+      expect(
+        screen.getByText(/an unexpected error occurred\. please try again\./i)
+      ).toBeInTheDocument()
+
+      // Check it's an Alert component
+      const alert = screen.getByRole('alert')
+      expect(alert).toHaveTextContent(/an unexpected error occurred\. please try again\./i)
+    })
+
+    it('should NOT display Alert for validation errors (field-level errors)', () => {
+      const props = {
+        ...defaultProps,
+        errors: {
+          ...defaultProps.errors,
+          email: 'Please enter a valid email address',
+        },
+      }
+      render(<RegistrationForm {...props} />)
+
+      // Alert should NOT be present for validation errors
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+
+      // Error should still appear in the TextField helper text
+      expect(screen.getByText(/please enter a valid email address/i)).toBeInTheDocument()
+    })
+
+    it('should NOT display Alert when there are no email errors', () => {
+      render(<RegistrationForm {...defaultProps} />)
+
+      // Alert should not be present
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    })
+
+    it('should hide server errors from TextField helper text when displayed in Alert', () => {
+      const props = {
+        ...defaultProps,
+        errors: {
+          ...defaultProps.errors,
+          email: 'This email is already registered. Please use a different email.',
+        },
+      }
+      const { container } = render(<RegistrationForm {...props} />)
+
+      // Alert should display the error
+      expect(
+        screen.getByText(/this email is already registered\. please use a different email\./i)
+      ).toBeInTheDocument()
+
+      // Email TextField should NOT show error state (no red border)
+      const emailInput = screen.getByLabelText(/email address/i)
+      expect(emailInput).not.toHaveAttribute('aria-invalid', 'true')
+
+      // Helper text under email field should either not exist or be empty
+      const formHelperTexts = container.querySelectorAll('.MuiFormHelperText-root')
+      const emailHelperText = Array.from(formHelperTexts).find((el) =>
+        el.parentElement?.querySelector('input[type="email"]')
+      )
+      // Server errors should not appear in TextField helper text
+      expect(emailHelperText?.textContent ?? '').not.toContain('already registered')
+    })
+
+    it('should display validation errors in TextField helper text, not in Alert', () => {
+      const props = {
+        ...defaultProps,
+        errors: {
+          ...defaultProps.errors,
+          email: 'Invalid email format',
+          name: 'Name must be at least 2 characters',
+        },
+      }
+      render(<RegistrationForm {...props} />)
+
+      // No Alert should be present
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+
+      // Errors should appear in TextField helper texts
+      expect(screen.getByText(/invalid email format/i)).toBeInTheDocument()
+      expect(screen.getByText(/name must be at least 2 characters/i)).toBeInTheDocument()
+    })
+  })
 })
