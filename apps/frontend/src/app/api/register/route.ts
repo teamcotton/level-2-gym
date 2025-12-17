@@ -17,18 +17,46 @@ export async function POST(request: Request) {
       )
     }
 
-    const response = await fetch(`${apiUrl}/users/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      // Extract the actual password value for API transmission
-      body: JSON.stringify({
-        email: body.email,
-        name: body.name,
-        password: body.password,
-      }),
-    })
+    const isLocalDevelopment = apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1')
+
+    let response: Response
+
+    if (isLocalDevelopment && apiUrl.startsWith('https')) {
+      // Use dynamic import to avoid issues in production builds
+      // TODO: This code uses node-fetch exclusively for local development with self-signed certificates
+      const https = await import('https')
+      const nodeFetch = (await import('node-fetch')).default
+
+      const agent = new https.Agent({
+        rejectUnauthorized: process.env.NODE_ENV === 'production',
+      })
+
+      response = (await nodeFetch(`${apiUrl}/users/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: body.email,
+          name: body.name,
+          password: body.password,
+        }),
+        agent,
+      })) as unknown as Response
+    } else {
+      response = await fetch(`${apiUrl}/users/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Extract the actual password value for API transmission
+        body: JSON.stringify({
+          email: body.email,
+          name: body.name,
+          password: body.password,
+        }),
+      })
+    }
 
     const result = (await response.json()) as RegisterUserResponse
 

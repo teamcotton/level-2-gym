@@ -7,6 +7,7 @@ import {
   VisibilityOff,
 } from '@mui/icons-material'
 import {
+  Alert,
   Box,
   Button,
   Container,
@@ -78,6 +79,15 @@ export function RegistrationForm({
             Create your account
           </Typography>
 
+          {errors.email &&
+            (errors.email.includes('already registered') ||
+              errors.email.includes('Registration failed') ||
+              errors.email.includes('unexpected error')) && (
+              <Alert severity="error" sx={{ mb: 3 }}>
+                {errors.email}
+              </Alert>
+            )}
+
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
             Sign up with
           </Typography>
@@ -132,8 +142,20 @@ export function RegistrationForm({
               type="email"
               value={formData.email}
               onChange={onFieldChange('email')}
-              error={!!errors.email}
-              helperText={errors.email}
+              error={
+                !!errors.email &&
+                !errors.email.includes('already registered') &&
+                !errors.email.includes('Registration failed') &&
+                !errors.email.includes('unexpected error')
+              }
+              helperText={
+                errors.email &&
+                !errors.email.includes('already registered') &&
+                !errors.email.includes('Registration failed') &&
+                !errors.email.includes('unexpected error')
+                  ? errors.email
+                  : ''
+              }
               margin="normal"
               required
               autoComplete="email"

@@ -110,6 +110,15 @@ export function useRegistrationForm() {
           console.warn('Registration successful:', result.data)
         } else {
           // Handle registration error
+
+          if (result.error === 'Email already in use') {
+            setErrors((prev) => ({
+              ...prev,
+              email: 'This email is already registered. Please use a different email.',
+            }))
+            return
+          }
+
           setErrors((prev) => ({
             ...prev,
             email: result.error || 'Registration failed',

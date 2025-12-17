@@ -100,7 +100,7 @@ describe('registerUser', () => {
 
       expect(result).toEqual({
         success: false,
-        error: 'Email already exists',
+        error: 'Registration failed',
       })
     })
 
@@ -277,7 +277,7 @@ describe('registerUser', () => {
       const result = await registerUser(userData)
 
       expect(result.success).toBe(false)
-      expect(result.error).toBe('Validation failed')
+      expect(result.error).toBe('Registration failed')
       expect(result.data).toBeUndefined()
     })
   })

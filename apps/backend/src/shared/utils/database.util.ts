@@ -58,6 +58,16 @@ export class DatabaseUtil {
 
     // PostgreSQL errors from node-postgres have a 'code' property
     // For unique constraint violations, code is '23505'
-    return 'code' in error && error.code === this.PG_UNIQUE_VIOLATION
+    // Drizzle ORM may wrap the error in a 'cause' property
+    if ('code' in error && error.code === this.PG_UNIQUE_VIOLATION) {
+      return true
+    }
+
+    // Check if the error is wrapped in a 'cause' property (Drizzle ORM pattern)
+    if ('cause' in error && error.cause && typeof error.cause === 'object') {
+      return 'code' in error.cause && error.cause.code === this.PG_UNIQUE_VIOLATION
+    }
+
+    return false
   }
 }

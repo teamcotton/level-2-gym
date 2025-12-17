@@ -13,10 +13,17 @@ export async function registerUser(data: RegisterUserData): Promise<RegisterUser
 
     const result = (await response.json()) as RegisterUserResponse
 
+    if (response.status === 409) {
+      return {
+        success: false,
+        error: 'Email already in use',
+      }
+    }
+
     if (!response.ok) {
       return {
         success: false,
-        error: result.error || 'Registration failed',
+        error: 'Registration failed',
       }
     }
 
