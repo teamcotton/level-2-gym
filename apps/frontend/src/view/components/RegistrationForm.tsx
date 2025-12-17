@@ -63,6 +63,24 @@ export function RegistrationForm({
     setShowConfirmPassword((prev) => !prev)
   }
 
+  // Error messages that should be displayed at alert level
+  const ALERT_LEVEL_ERROR_MESSAGES = [
+    'already registered',
+    'Registration failed',
+    'unexpected error',
+  ] as const
+
+  // Helper function to check if error should be displayed at alert level
+  const isAlertLevelEmailError = (errorMessage: string | undefined): boolean => {
+    if (!errorMessage) return false
+    return ALERT_LEVEL_ERROR_MESSAGES.some((msg) => errorMessage.includes(msg))
+  }
+
+  // Helper function to check if error should be displayed at field level
+  const isFieldLevelEmailError = (errorMessage: string | undefined): boolean => {
+    return !!errorMessage && !isAlertLevelEmailError(errorMessage)
+  }
+
   return (
     <Container maxWidth="sm">
       <Box
@@ -79,22 +97,11 @@ export function RegistrationForm({
             Create your account
           </Typography>
 
-          {/*
-          TODO: The error display logic uses fragile string matching against hard-coded error messages.
-           This creates tight coupling between the view layer and error messages,
-           making the code brittle and hard to maintain.
-           If error messages change, this logic will break.
-           Use error types or codes instead of string matching to determine
-           how errors should be displayed.
-          */}
-          {errors.email &&
-            (errors.email.includes('already registered') ||
-              errors.email.includes('Registration failed') ||
-              errors.email.includes('unexpected error')) && (
-              <Alert severity="error" sx={{ mb: 3 }}>
-                {errors.email}
-              </Alert>
-            )}
+          {isAlertLevelEmailError(errors.email) && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {errors.email}
+            </Alert>
+          )}
 
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
             Sign up with
@@ -150,20 +157,8 @@ export function RegistrationForm({
               type="email"
               value={formData.email}
               onChange={onFieldChange('email')}
-              error={
-                !!errors.email &&
-                !errors.email.includes('already registered') &&
-                !errors.email.includes('Registration failed') &&
-                !errors.email.includes('unexpected error')
-              }
-              helperText={
-                errors.email &&
-                !errors.email.includes('already registered') &&
-                !errors.email.includes('Registration failed') &&
-                !errors.email.includes('unexpected error')
-                  ? errors.email
-                  : ''
-              }
+              error={isFieldLevelEmailError(errors.email)}
+              helperText={isFieldLevelEmailError(errors.email) ? errors.email : ''}
               margin="normal"
               required
               autoComplete="email"
