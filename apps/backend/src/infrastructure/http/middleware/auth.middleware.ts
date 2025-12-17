@@ -38,7 +38,10 @@ function validateTokenFormat(token: string): void {
   }
 }
 
-export async function authMiddleware(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+export async function authMiddleware(
+  request: FastifyRequest,
+  reply: FastifyReply
+): Promise<void | FastifyReply> {
   try {
     const header = request.headers.authorization
     const token = header?.startsWith('Bearer ') ? header.slice('Bearer '.length) : null

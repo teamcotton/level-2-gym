@@ -139,16 +139,17 @@ describe('JwtUtil', () => {
         expiresIn: -1,
       })
 
-      let thrownError: UnauthorizedException | null = null
+      let caughtError: UnauthorizedException | undefined
       try {
         JwtUtil.verifyToken(expiredToken)
+        expect.fail('Should have thrown UnauthorizedException')
       } catch (error) {
-        thrownError = error as UnauthorizedException
+        caughtError = error as UnauthorizedException
       }
 
-      expect(thrownError).toBeInstanceOf(UnauthorizedException)
-      expect(thrownError?.code).toBe(ErrorCode.TOKEN_EXPIRED)
-      expect(thrownError?.message).toBe('Token has expired')
+      expect(caughtError).toBeInstanceOf(UnauthorizedException)
+      expect(caughtError?.code).toBe(ErrorCode.TOKEN_EXPIRED)
+      expect(caughtError?.message).toBe('Token has expired')
     })
 
     it('should throw UnauthorizedException for malformed token', () => {
