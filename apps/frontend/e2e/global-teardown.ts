@@ -7,25 +7,37 @@ async function globalTeardown() {
   try {
     // Stop backend server
     const { backendProcess } = await import('./global-setup.js')
-    if (backendProcess) {
+    if (backendProcess && !backendProcess.killed && backendProcess.exitCode === null) {
       console.warn('🛑 Stopping backend server...')
-      backendProcess.kill('SIGTERM')
+      try {
+        backendProcess.kill('SIGTERM')
 
-      // Wait for graceful shutdown
-      await new Promise<void>((resolve) => {
-        const timeout = setTimeout(() => {
-          console.warn('⚠️  Backend did not stop gracefully, forcing kill...')
-          backendProcess.kill('SIGKILL')
-          resolve()
-        }, 5000)
+        // Wait for graceful shutdown
+        await new Promise<void>((resolve) => {
+          const timeout = setTimeout(() => {
+            if (!backendProcess.killed && backendProcess.exitCode === null) {
+              console.warn('⚠️  Backend did not stop gracefully, forcing kill...')
+              try {
+                backendProcess.kill('SIGKILL')
+              } catch (error) {
+                console.warn(`⚠️  Could not force kill backend: ${error}`)
+              }
+            }
+            resolve()
+          }, 5000)
 
-        backendProcess.on('exit', () => {
-          clearTimeout(timeout)
-          resolve()
+          backendProcess.on('exit', () => {
+            clearTimeout(timeout)
+            resolve()
+          })
         })
-      })
 
-      console.warn('✅ Backend server stopped')
+        console.warn('✅ Backend server stopped')
+      } catch (error) {
+        console.warn(`⚠️  Error stopping backend server: ${error}`)
+      }
+    } else if (backendProcess) {
+      console.warn('ℹ️  Backend process already exited or was killed')
     }
 
     // Read the test configuration

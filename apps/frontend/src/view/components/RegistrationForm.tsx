@@ -79,6 +79,14 @@ export function RegistrationForm({
             Create your account
           </Typography>
 
+          {/*
+          TODO: The error display logic uses fragile string matching against hard-coded error messages.
+           This creates tight coupling between the view layer and error messages,
+           making the code brittle and hard to maintain.
+           If error messages change, this logic will break.
+           Use error types or codes instead of string matching to determine
+           how errors should be displayed.
+          */}
           {errors.email &&
             (errors.email.includes('already registered') ||
               errors.email.includes('Registration failed') ||
