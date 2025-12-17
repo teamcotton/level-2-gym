@@ -1,5 +1,6 @@
 import type { FastifyRequest, FastifyReply } from 'fastify'
 import { JwtUtil } from '../../security/jwt.util.js'
+import { UnauthorizedException } from '../../../shared/exceptions/unauthorized.exception.js'
 
 export async function authMiddleware(request: FastifyRequest, reply: FastifyReply): Promise<void> {
   try {
@@ -26,6 +27,17 @@ export async function authMiddleware(request: FastifyRequest, reply: FastifyRepl
     }
     request.user = JwtUtil.verifyToken(token)
   } catch (error) {
+    if (error instanceof UnauthorizedException) {
+      request.log.warn(
+        {
+          method: request.method,
+          route: (request as any).routerPath ?? request.url,
+          errorCode: error.code,
+        },
+        `Authentication failed: ${error.message}`
+      )
+      return reply.code(error.statusCode).send({ error: error.message })
+    }
     request.log.warn(
       {
         method: request.method,

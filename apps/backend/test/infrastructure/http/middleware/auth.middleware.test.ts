@@ -4,6 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { authMiddleware } from '../../../../src/infrastructure/http/middleware/auth.middleware.js'
 import { JwtUtil } from '../../../../src/infrastructure/security/jwt.util.js'
 import type { JwtUserClaims } from '../../../../src/shared/types/index.js'
+import { UnauthorizedException } from '../../../../src/shared/exceptions/unauthorized.exception.js'
+import { ErrorCode } from '../../../../src/shared/constants/error-codes.js'
 
 describe('authMiddleware', () => {
   let mockRequest: Partial<FastifyRequest>
@@ -332,9 +334,9 @@ describe('authMiddleware', () => {
   })
 
   describe('Error handling', () => {
-    it('should handle JwtUtil.verifyToken throwing error', async () => {
+    it('should handle JwtUtil.verifyToken throwing UnauthorizedException', async () => {
       vi.spyOn(JwtUtil, 'verifyToken').mockImplementation(() => {
-        throw new Error('Token verification failed')
+        throw new UnauthorizedException('Token verification failed', ErrorCode.UNAUTHORIZED)
       })
 
       const token = JwtUtil.generateToken(validClaims)
@@ -343,7 +345,7 @@ describe('authMiddleware', () => {
       await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply)
 
       expect(codeSpy).toHaveBeenCalledWith(401)
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'Invalid or expired token' })
+      expect(sendSpy).toHaveBeenCalledWith({ error: 'Token verification failed' })
       expect(mockRequest.user).toBeUndefined()
     })
 
@@ -361,7 +363,7 @@ describe('authMiddleware', () => {
       expect(sendSpy).toHaveBeenCalledWith({ error: 'Invalid or expired token' })
     })
 
-    it('should not expose error details to client', async () => {
+    it('should not expose error details to client for non-UnauthorizedException errors', async () => {
       vi.spyOn(JwtUtil, 'verifyToken').mockImplementation(() => {
         throw new Error('Detailed internal error message')
       })
@@ -376,6 +378,39 @@ describe('authMiddleware', () => {
         expect.objectContaining({
           error: expect.stringContaining('Detailed internal error'),
         })
+      )
+    })
+
+    it('should use error message from UnauthorizedException', async () => {
+      vi.spyOn(JwtUtil, 'verifyToken').mockImplementation(() => {
+        throw new UnauthorizedException('Custom error message', ErrorCode.UNAUTHORIZED)
+      })
+
+      const token = JwtUtil.generateToken(validClaims)
+      mockRequest.headers = { authorization: `Bearer ${token}` }
+
+      await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply)
+
+      expect(sendSpy).toHaveBeenCalledWith({ error: 'Custom error message' })
+    })
+
+    it('should use TOKEN_EXPIRED code when token is expired', async () => {
+      vi.spyOn(JwtUtil, 'verifyToken').mockImplementation(() => {
+        throw new UnauthorizedException('Token has expired', ErrorCode.TOKEN_EXPIRED)
+      })
+
+      const token = JwtUtil.generateToken(validClaims)
+      mockRequest.headers = { authorization: `Bearer ${token}` }
+
+      await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply)
+
+      expect(codeSpy).toHaveBeenCalledWith(401)
+      expect(sendSpy).toHaveBeenCalledWith({ error: 'Token has expired' })
+      expect(logWarnSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          errorCode: ErrorCode.TOKEN_EXPIRED,
+        }),
+        'Authentication failed: Token has expired'
       )
     })
   })

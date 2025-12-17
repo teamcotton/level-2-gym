@@ -4,6 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { EnvConfig } from '../../../src/infrastructure/config/env.config.js'
 import { JwtUtil } from '../../../src/infrastructure/security/jwt.util.js'
 import type { JwtUserClaims } from '../../../src/shared/types/index.js'
+import { UnauthorizedException } from '../../../src/shared/exceptions/unauthorized.exception.js'
+import { ErrorCode } from '../../../src/shared/constants/error-codes.js'
 
 describe('JwtUtil', () => {
   const validClaims: JwtUserClaims = {
@@ -116,37 +118,44 @@ describe('JwtUtil', () => {
       })
     })
 
-    it('should throw error for invalid token signature', () => {
+    it('should throw UnauthorizedException for invalid token signature', () => {
       const invalidToken = validToken.slice(0, -5) + 'XXXXX'
 
-      expect(() => JwtUtil.verifyToken(invalidToken)).toThrow()
+      expect(() => JwtUtil.verifyToken(invalidToken)).toThrow(UnauthorizedException)
     })
 
-    it('should throw error for token with wrong issuer', () => {
+    it('should throw UnauthorizedException for token with wrong issuer', () => {
       const tokenWithWrongIssuer = jwt.sign(validClaims, EnvConfig.JWT_SECRET as string, {
         issuer: 'wrong-issuer',
         expiresIn: 3600,
       })
 
-      expect(() => JwtUtil.verifyToken(tokenWithWrongIssuer)).toThrow()
+      expect(() => JwtUtil.verifyToken(tokenWithWrongIssuer)).toThrow(UnauthorizedException)
     })
 
-    it('should throw error for expired token', () => {
+    it('should throw UnauthorizedException with TOKEN_EXPIRED code for expired token', () => {
       const expiredToken = jwt.sign(validClaims, EnvConfig.JWT_SECRET as string, {
         issuer: EnvConfig.JWT_ISSUER,
         expiresIn: -1,
       })
 
-      expect(() => JwtUtil.verifyToken(expiredToken)).toThrow()
+      try {
+        JwtUtil.verifyToken(expiredToken)
+        expect.fail('Should have thrown UnauthorizedException')
+      } catch (error) {
+        expect(error).toBeInstanceOf(UnauthorizedException)
+        expect((error as UnauthorizedException).code).toBe(ErrorCode.TOKEN_EXPIRED)
+        expect((error as UnauthorizedException).message).toBe('Token has expired')
+      }
     })
 
-    it('should throw error for malformed token', () => {
+    it('should throw UnauthorizedException for malformed token', () => {
       const malformedToken = 'not.a.valid.jwt'
 
-      expect(() => JwtUtil.verifyToken(malformedToken)).toThrow()
+      expect(() => JwtUtil.verifyToken(malformedToken)).toThrow(UnauthorizedException)
     })
 
-    it('should throw error for token missing sub claim', () => {
+    it('should throw UnauthorizedException for token missing sub claim', () => {
       const tokenWithoutSub = jwt.sign(
         { email: 'test@example.com' },
         EnvConfig.JWT_SECRET as string,
@@ -157,24 +166,27 @@ describe('JwtUtil', () => {
       )
 
       expect(() => JwtUtil.verifyToken(tokenWithoutSub)).toThrow('Token missing required claims')
+      expect(() => JwtUtil.verifyToken(tokenWithoutSub)).toThrow(UnauthorizedException)
     })
 
-    it('should throw error for token missing email claim', () => {
+    it('should throw UnauthorizedException for token missing email claim', () => {
       const tokenWithoutEmail = jwt.sign({ sub: 'user-123' }, EnvConfig.JWT_SECRET as string, {
         issuer: EnvConfig.JWT_ISSUER,
         expiresIn: 3600,
       })
 
       expect(() => JwtUtil.verifyToken(tokenWithoutEmail)).toThrow('Token missing required claims')
+      expect(() => JwtUtil.verifyToken(tokenWithoutEmail)).toThrow(UnauthorizedException)
     })
 
-    it('should throw error for null decoded payload', () => {
+    it('should throw UnauthorizedException for null decoded payload', () => {
       // Create a mock token that would result in null when decoded
       // We'll mock jwt.verify to return null to simulate this edge case
       const token = JwtUtil.generateToken(validClaims)
       vi.spyOn(jwt, 'verify').mockReturnValue(null as any)
 
       expect(() => JwtUtil.verifyToken(token)).toThrow('Invalid token payload')
+      expect(() => JwtUtil.verifyToken(token)).toThrow(UnauthorizedException)
     })
 
     it('should verify token and check issuer from EnvConfig', () => {
@@ -337,7 +349,7 @@ describe('JwtUtil', () => {
         expiresIn: 3600,
       })
 
-      expect(() => JwtUtil.verifyToken(tokenWithWrongSecret)).toThrow()
+      expect(() => JwtUtil.verifyToken(tokenWithWrongSecret)).toThrow(UnauthorizedException)
     })
 
     it('should not accept tampered token', () => {
@@ -350,7 +362,7 @@ describe('JwtUtil', () => {
       ).toString('base64url')
       const tamperedToken = `${header}.${tamperedPayload}.${signature}`
 
-      expect(() => JwtUtil.verifyToken(tamperedToken)).toThrow()
+      expect(() => JwtUtil.verifyToken(tamperedToken)).toThrow(UnauthorizedException)
     })
 
     it('should validate token expiration', () => {
@@ -368,7 +380,7 @@ describe('JwtUtil', () => {
         expiresIn: 3600,
       })
 
-      expect(() => JwtUtil.verifyToken(tokenWithoutIssuer)).toThrow()
+      expect(() => JwtUtil.verifyToken(tokenWithoutIssuer)).toThrow(UnauthorizedException)
     })
   })
 
