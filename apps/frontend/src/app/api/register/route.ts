@@ -1,4 +1,3 @@
-import { logger } from '@/application/services/log-layer.server.js'
 import type { RegisterUserData, RegisterUserResponse } from '@/domain/auth/index.js'
 
 export async function POST(request: Request) {
@@ -22,7 +21,7 @@ export async function POST(request: Request) {
     try {
       url = new URL(apiUrl)
     } catch (parseError) {
-      logger.withPrefix('[registration-route]').errorOnly(parseError)
+      console.error('[registration-route] Failed to parse Backend API URL:', parseError)
       return Response.json(
         {
           success: false,
@@ -108,11 +107,7 @@ export async function POST(request: Request) {
 
     return Response.json(result, { status: 200 })
   } catch (error) {
-    if (error instanceof Error) {
-      logger.withPrefix('[registration-route]').errorOnly(error)
-    } else {
-      logger.withPrefix('[registration-route]').errorOnly(error)
-    }
+    console.error('[registration-route] Registration error:', error)
     return Response.json(
       {
         success: false,
