@@ -1,4 +1,5 @@
 import * as fs from 'node:fs'
+import { writeFile, readFile } from 'node:fs/promises'
 import * as path from 'node:path'
 import { ValidationException } from '../exceptions/validation.exception.js'
 
@@ -83,7 +84,6 @@ export class FileUtil {
         fs.mkdirSync(dir, { recursive: true })
       }
 
-      const { writeFile } = await import('node:fs/promises')
       await writeFile(fullPath, content, 'utf8')
 
       return {
@@ -117,9 +117,7 @@ export class FileUtil {
         }
       }
 
-      const { readFile } = await import('node:fs/promises')
-      const data = readFile(fullPath, 'utf8')
-      const content = await data
+      const content = await readFile(fullPath, 'utf8')
 
       return {
         success: true,
