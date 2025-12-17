@@ -5,7 +5,9 @@ import { readFileSync } from 'fs'
 import { join } from 'path'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
+import { PinoLoggerService } from './adapters/secondary/services/logger.service.js'
 
+const logger = new PinoLoggerService()
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
@@ -26,14 +28,14 @@ if (useHttps) {
         cert: readFileSync(join(certsPath, 'cert.pem')),
       },
     } as FastifyServerOptions
-    console.log('🔒 HTTPS enabled for development')
+    logger.info('🔒 HTTPS enabled for development')
   } catch (error) {
-    console.warn('⚠️  HTTPS certificates not found, falling back to HTTP')
-    console.warn(`   Looked in: ${join(__dirname, '..', 'certs')}`)
-    console.warn('   To generate certificates with proper Subject Alternative Names:')
-    console.warn('   cd apps/backend/certs && openssl req -x509 -newkey rsa:4096 \\')
-    console.warn('     -keyout key.pem -out cert.pem -sha256 -days 365 -nodes \\')
-    console.warn('     -config openssl.cnf -extensions v3_req')
+    logger.warn('⚠️  HTTPS certificates not found, falling back to HTTP')
+    logger.warn(`   Looked in: ${join(__dirname, '..', 'certs')}`)
+    logger.warn('   To generate certificates with proper Subject Alternative Names:')
+    logger.warn('   cd apps/backend/certs && openssl req -x509 -newkey rsa:4096 \\')
+    logger.warn('     -keyout key.pem -out cert.pem -sha256 -days 365 -nodes \\')
+    logger.warn('     -config openssl.cnf -extensions v3_req')
   }
 }
 
@@ -47,8 +49,8 @@ const start = async () => {
 
     await fastify.listen({ port, host })
     const protocol = useHttps ? 'https' : 'http'
-    console.log(`Server listening on ${protocol}://${host}:${port}`)
-    console.log(`📚 API Documentation: ${protocol}://${host}:${port}/docs`)
+    logger.info(`Server listening on ${protocol}://${host}:${port}`)
+    logger.info(`📚 API Documentation: ${protocol}://${host}:${port}/docs`)
   } catch (err) {
     fastify.log.error(err)
     process.exit(1)
