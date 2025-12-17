@@ -4,8 +4,7 @@ import { obscured } from 'obscured'
 import { EnvConfig } from '../config/env.config.js'
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
 
-const connectionString = obscured.value(EnvConfig.DATABASE_URL)
-if (!connectionString) {
+if (!obscured.value(EnvConfig.DATABASE_URL)) {
   throw new ValidationException('DATABASE_URL is required but not configured')
 }
 

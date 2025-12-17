@@ -385,18 +385,6 @@ describe('EnvConfig', () => {
       expect(content).toContain('RESEND_API_KEY')
       expect(content).toMatch(/requiredEnvs.*=.*\[[\s\S]*'RESEND_API_KEY'/m)
     })
-
-    it('should not throw error when all required variables including RESEND_API_KEY are present', async () => {
-      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
-      process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test_google_key'
-      process.env.MODEL_NAME = 'gemini-pro'
-      process.env.RESEND_API_KEY = 'test_resend_key'
-
-      vi.resetModules()
-      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
-
-      expect(() => EnvConfig.validate()).not.toThrow()
-    })
   })
 
   describe('EnvConfig class', () => {

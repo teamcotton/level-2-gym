@@ -22,3 +22,9 @@ export type MyDataPart = z.infer<typeof dataPartSchema>
 // UIMessagePart requires 2 type arguments: data part and tools
 // Since we're not using custom tools types, we use never for the tools parameter
 export type MyUIMessagePart = UIMessagePart<MyDataPart, never>
+
+export type JwtUserClaims = {
+  sub: string
+  email: string
+  roles?: string[]
+}

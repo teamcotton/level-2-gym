@@ -8,6 +8,7 @@ const requiredEnvs: string[] = [
   'GOOGLE_GENERATIVE_AI_API_KEY',
   'MODEL_NAME',
   'RESEND_API_KEY',
+  'JWT_SECRET',
 ]
 
 export class EnvConfig {
@@ -33,6 +34,9 @@ export class EnvConfig {
   static readonly EMAIL_FROM_ADDRESS = process.env.EMAIL_FROM_ADDRESS || ''
   static readonly HOST = process.env.HOST || '127.0.0.1'
   static readonly USE_HTTPS = process.env.USE_HTTPS || 'true'
+  static readonly JWT_SECRET = process.env.JWT_SECRET
+  static readonly JWT_EXPIRATION = process.env.JWT_EXPIRATION || '3600' // 1 hour in seconds
+  static readonly JWT_ISSUER = process.env.JWT_ISSUER || 'my-app'
 
   static validate(): void {
     const missing = requiredEnvs.filter((key) => !process.env[key])
