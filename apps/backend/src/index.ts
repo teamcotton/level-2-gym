@@ -52,7 +52,7 @@ const start = async () => {
     logger.info(`Server listening on ${protocol}://${host}:${port}`)
     logger.info(`📚 API Documentation: ${protocol}://${host}:${port}/docs`)
   } catch (err) {
-    fastify.log.error(err)
+    logger.error('Failed to start server', err instanceof Error ? err : new Error(String(err)))
     process.exit(1)
   }
 }

@@ -3,9 +3,11 @@ import { Pool } from 'pg'
 import { obscured } from 'obscured'
 import { EnvConfig } from '../config/env.config.js'
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
-import { PinoLoggerService } from '../../adapters/secondary/services/logger.service.js'
 
-const logger = new PinoLoggerService()
+const logger = {
+  info: (...params: unknown[]) => console.info(...params),
+  error: (...params: unknown[]) => console.error(...params),
+}
 
 logger.info('Connecting to database...')
 
