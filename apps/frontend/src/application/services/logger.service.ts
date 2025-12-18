@@ -7,11 +7,41 @@ const LogLevel = {
 
 type LogLevelType = (typeof LogLevel)[keyof typeof LogLevel]
 
+/**
+ * Configuration options for the UnifiedLogger.
+ */
 export interface LoggerOptions {
+  /**
+   * The minimum log level to output. Messages below this level will be filtered out.
+   * Hierarchy: DEBUG < INFO < WARN < ERROR
+   * @default 'debug'
+   */
   level?: LogLevelType
+  /**
+   * An optional prefix to prepend to all log messages.
+   * Useful for identifying the source of log messages (e.g., component name, module name).
+   * @example '[AuthService]', '[UserAPI]'
+   */
   prefix?: string
 }
 
+/**
+ * A unified logging service that provides consistent formatting and level-based filtering
+ * across the application. Supports debug, info, warn, and error levels with automatic
+ * timestamp and prefix formatting.
+ *
+ * @example
+ * ```typescript
+ * // Create a logger with default settings (INFO level)
+ * const logger = new UnifiedLogger()
+ * logger.info('Application started')
+ *
+ * // Create a logger with custom options
+ * const logger = new UnifiedLogger({ level: 'debug', prefix: 'MyComponent' })
+ * logger.debug('Debug information', { userId: 123 })
+ * logger.error('An error occurred', error)
+ * ```
+ */
 export class UnifiedLogger {
   private static readonly LOG_LEVELS = [
     LogLevel.DEBUG,
@@ -24,7 +54,7 @@ export class UnifiedLogger {
   private readonly prefix: string
 
   constructor(options: LoggerOptions = {}) {
-    this.level = options.level || LogLevel.INFO
+    this.level = options.level || LogLevel.DEBUG
     this.prefix = options.prefix || ''
   }
 

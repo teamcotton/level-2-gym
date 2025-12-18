@@ -27,7 +27,7 @@ describe('UnifiedLogger', () => {
       const logger = new UnifiedLogger()
 
       expect(logger).toBeInstanceOf(UnifiedLogger)
-      expect(logger.getLevel()).toBe('info')
+      expect(logger.getLevel()).toBe('debug')
     })
 
     it('should create logger with custom log level', () => {
@@ -272,16 +272,16 @@ describe('UnifiedLogger', () => {
   })
 
   describe('setLevel', () => {
-    it('should change log level from info to debug', () => {
-      const logger = new UnifiedLogger({ level: 'info' })
-
-      expect(logger.getLevel()).toBe('info')
-
-      logger.setLevel('debug')
+    it('should change log level from debug to warn', () => {
+      const logger = new UnifiedLogger({ level: 'debug' })
 
       expect(logger.getLevel()).toBe('debug')
-      logger.debug('now visible')
-      expect(consoleDebugSpy).toHaveBeenCalled()
+
+      logger.setLevel('warn')
+
+      expect(logger.getLevel()).toBe('warn')
+      logger.debug('should not appear')
+      expect(consoleDebugSpy).not.toHaveBeenCalled()
     })
 
     it('should change log level from debug to error', () => {
@@ -318,7 +318,7 @@ describe('UnifiedLogger', () => {
     it('should return default level when not specified', () => {
       const logger = new UnifiedLogger()
 
-      expect(logger.getLevel()).toBe('info')
+      expect(logger.getLevel()).toBe('debug')
     })
   })
 
@@ -432,7 +432,7 @@ describe('UnifiedLogger', () => {
       const logger = createLogger()
 
       expect(logger).toBeInstanceOf(UnifiedLogger)
-      expect(logger.getLevel()).toBe('info')
+      expect(logger.getLevel()).toBe('debug')
     })
 
     it('should create logger instance with options', () => {
