@@ -595,21 +595,31 @@ const result = await registerUserAction(formData) // Direct call
    - If yes → Use Hybrid Approach
    - If no → Full Server Actions migration
 
+- The answer to question is **no**
+
 2. **Is authentication/authorization required for backend API calls?**
    - If yes → Plan for JWT/session handling in Server Actions
    - If no → Current plan is sufficient
+
+- The answer to this question is **yes**
 
 3. **Do we need real-time updates or subscriptions?**
    - If yes → Consider WebSocket or Server-Sent Events
    - If no → Server Actions are sufficient
 
+- The answer to this question is **yes**
+
 4. **What is our deployment environment?**
    - Vercel/Netlify → Server Actions work seamlessly
    - Self-hosted/Docker → Ensure Node.js runtime support
 
+- The answer to this question is **Vercel** but I may want to host on AWS in the future
+
 5. **Do we have rate limiting or caching requirements?**
    - If yes → Plan for middleware or infrastructure layer enhancements
    - If no → Basic implementation is sufficient
+
+- The answer so this question is **yes**
 
 ---
 
@@ -626,11 +636,362 @@ const result = await registerUserAction(formData) // Direct call
 
 This refactoring eliminates duplicate code, reduces network hops, and simplifies your architecture by leveraging Next.js Server Actions. The migration can be done incrementally with low risk, and the benefits include better performance, maintainability, and developer experience.
 
+---
+
+## Updated Recommendations Based on Your Requirements
+
+Based on your answers, here are the **critical adjustments** needed:
+
+### 1. Authentication/Authorization Strategy
+
+Since you require auth, you need to implement JWT/session handling in Server Actions:
+
+**Implementation:**
+
+```typescript
+// apps/frontend/src/application/actions/auth/withAuth.ts
+'use server'
+
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
+
+export async function getAuthToken(): Promise<string | null> {
+  const cookieStore = await cookies()
+  return cookieStore.get('auth_token')?.value ?? null
+}
+
+export async function requireAuth(): Promise<string> {
+  const token = await getAuthToken()
+  if (!token) {
+    redirect('/signin')
+  }
+  return token
+}
+
+// Usage in Server Action
+;('use server')
+
+import { requireAuth } from './auth/withAuth'
+
+export async function getAllUsers() {
+  const token = await requireAuth() // Redirects if not authenticated
+
+  const response = await fetch(`${process.env.BACKEND_URL}/users`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  // ... rest of logic
+}
+```
+
+**Session Management:**
+
+- Use `next-auth` (Auth.js) for session management
+- Store JWT in HTTP-only cookies
+- Server Actions automatically access cookies server-side
+- Middleware can protect routes
+
+### 2. Real-Time Updates Architecture
+
+Since you need real-time updates, **Server Actions alone are insufficient**. You need:
+
+**Recommended Hybrid Approach:**
+
+```
+Server Actions (mutations/fetching)
+    +
+WebSocket/Server-Sent Events (real-time updates)
+```
+
+**Implementation Options:**
+
+**Option A: Server-Sent Events (SSE)**
+
+```typescript
+// apps/frontend/src/app/api/stream/route.ts
+export async function GET(request: Request) {
+  const encoder = new TextEncoder()
+  const token = request.headers.get('authorization')
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      // Connect to backend WebSocket/SSE
+      const ws = new WebSocket(`${process.env.BACKEND_WS_URL}/stream?token=${token}`)
+
+      ws.onmessage = (event) => {
+        const data = `data: ${event.data}\n\n`
+        controller.enqueue(encoder.encode(data))
+      }
+
+      ws.onerror = () => controller.close()
+    },
+  })
+
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+    },
+  })
+}
+
+// Client hook
+function useRealtimeUpdates() {
+  useEffect(() => {
+    const eventSource = new EventSource('/api/stream')
+    eventSource.onmessage = (event) => {
+      // Handle real-time update
+    }
+    return () => eventSource.close()
+  }, [])
+}
+```
+
+**Option B: WebSocket with Separate Service**
+
+- Keep WebSocket connection separate from Server Actions
+- Use Vercel's serverless functions with streaming
+- Or use a dedicated WebSocket service (Ably, Pusher, or self-hosted)
+
+**Recommended:** Use **Server Actions for mutations** + **SSE for real-time updates**
+
+### 3. Deployment Considerations (Vercel → AWS Migration)
+
+**Current (Vercel):**
+
+- Server Actions work natively
+- Edge Runtime available
+- Automatic scaling
+
+**Future (AWS Migration):**
+
+To ensure portability:
+
+1. **Use Standalone Output Mode:**
+
+```typescript
+// next.config.ts
+const nextConfig: NextConfig = {
+  output: 'standalone', // Creates self-contained build
+  // ... rest of config
+}
+```
+
+2. **Deployment Options:**
+   - **AWS Lambda + API Gateway** (via Serverless Framework)
+   - **AWS ECS/Fargate** (Docker container)
+   - **AWS EC2** (traditional hosting)
+
+3. **Considerations:**
+   - Server Actions require Node.js runtime (not static)
+   - SSE/WebSocket may need separate service (AWS API Gateway WebSocket)
+   - Environment variables via AWS Systems Manager or Secrets Manager
+
+**Migration Path:**
+
+```
+Phase 1: Vercel (Server Actions + SSE)
+    ↓
+Phase 2: AWS ECS/Fargate (Docker with Next.js standalone)
+    ↓
+Optional: AWS Lambda for serverless (with adapter)
+```
+
+### 4. Rate Limiting Implementation
+
+Since you need rate limiting, implement it at **multiple layers**:
+
+**Layer 1: Next.js Middleware (Edge)**
+
+```typescript
+// apps/frontend/src/middleware.ts
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { Ratelimit } from '@upstash/ratelimit'
+import { Redis } from '@upstash/redis'
+
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(10, '10 s'), // 10 requests per 10 seconds
+  analytics: true,
+})
+
+export async function middleware(request: NextRequest) {
+  // Rate limit API routes and Server Actions
+  if (request.nextUrl.pathname.startsWith('/api')) {
+    const ip = request.ip ?? '127.0.0.1'
+    const { success, limit, reset, remaining } = await ratelimit.limit(ip)
+
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Too many requests' },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': limit.toString(),
+            'X-RateLimit-Remaining': remaining.toString(),
+            'X-RateLimit-Reset': reset.toString(),
+          },
+        }
+      )
+    }
+  }
+
+  return NextResponse.next()
+}
+
+export const config = {
+  matcher: '/api/:path*',
+}
+```
+
+**Layer 2: Backend API (Fastify)**
+
+Backend already handles rate limiting, so frontend middleware provides additional protection.
+
+**Dependencies:**
+
+```bash
+pnpm add @upstash/ratelimit @upstash/redis
+```
+
+### 5. Updated Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Client (Browser)                          │
+│  - React Components (UI)                                     │
+│  - Hooks (useRegistrationForm, useAdminPage)                 │
+│  - Real-time updates via SSE                                 │
+└─────────────────┬──────────────────────┬────────────────────┘
+                  │                      │
+                  │ Server Actions       │ EventSource(/api/stream)
+                  ↓                      ↓
+┌─────────────────────────────────────────────────────────────┐
+│              Next.js Server (Vercel/AWS)                     │
+│                                                               │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │  Middleware (Edge)                                   │    │
+│  │  - Rate limiting (Upstash Redis)                     │    │
+│  │  - Auth check                                        │    │
+│  └─────────────────────────────────────────────────────┘    │
+│                        ↓                                      │
+│  ┌──────────────────────────┬──────────────────────────┐    │
+│  │  Server Actions          │  SSE Route (/api/stream) │    │
+│  │  - registerUser()        │  - Real-time updates     │    │
+│  │  - getAllUsers()         │  - WebSocket proxy       │    │
+│  │  - With auth tokens      │                          │    │
+│  └──────────────────────────┴──────────────────────────┘    │
+│                        ↓                      ↓               │
+└────────────────────────┼──────────────────────┼──────────────┘
+                         │                      │
+                   Authorization:           WebSocket
+                   Bearer <JWT>             Connection
+                         ↓                      ↓
+┌─────────────────────────────────────────────────────────────┐
+│              Backend Fastify API (Port 3000)                 │
+│  - REST endpoints (/users/register, /users)                 │
+│  - WebSocket endpoint (/stream)                              │
+│  - Rate limiting                                             │
+│  - PostgreSQL database                                       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 6. Revised Migration Phases
+
+**Phase 1: Authentication Infrastructure (Week 1)**
+
+1. Install next-auth: `pnpm add next-auth`
+2. Configure JWT provider
+3. Create auth utilities (`withAuth`, `getAuthToken`)
+4. Update middleware for auth checks
+5. Add rate limiting middleware
+
+**Phase 2: Server Actions with Auth (Week 2)**
+
+1. Migrate `registerUser` (public, no auth)
+2. Migrate `getAllUsers` (protected, requires auth)
+3. Add proper error handling for auth failures
+4. Test auth flow end-to-end
+
+**Phase 3: Real-Time Updates (Week 3)**
+
+1. Create SSE route `/api/stream`
+2. Connect to backend WebSocket
+3. Update client hooks to consume SSE
+4. Test real-time data flow
+
+**Phase 4: Cleanup & Optimization (Week 4)**
+
+1. Remove old API routes
+2. Add rate limiting analytics
+3. Performance testing
+4. Documentation
+
+**Phase 5: AWS Migration Prep (Future)**
+
+1. Test standalone build
+2. Create Dockerfile
+3. Document environment variables
+4. Plan infrastructure (ECS, Lambda, etc.)
+
+### 7. Required Dependencies
+
+```bash
+# Authentication
+pnpm add next-auth
+
+# Rate limiting
+pnpm add @upstash/ratelimit @upstash/redis
+
+# Real-time updates (built-in to Next.js)
+# No additional dependencies needed for SSE
+```
+
+### 8. Risk Mitigation
+
+**Risks:**
+
+1. **Auth complexity** → Mitigate with thorough testing
+2. **Real-time updates on Vercel** → Use SSE (native support) or external service
+3. **AWS migration** → Use standalone mode from day one
+4. **Rate limiting costs** → Upstash has generous free tier, monitor usage
+
 **Recommended Timeline:**
 
-- Week 1: Infrastructure setup + Server Actions for registration
-- Week 2: Migrate remaining features + comprehensive testing
-- Week 3: Clean up old code + documentation
-- Week 4: QA + staging validation + production deployment
+- Week 1: Auth infrastructure + rate limiting
+- Week 2: Server Actions migration (with auth)
+- Week 3: Real-time updates (SSE)
+- Week 4: Testing + cleanup
+- **Total: 4 weeks** (more thorough than initial estimate due to auth/real-time requirements)
 
-**Estimated Effort:** 2-3 weeks for full migration with thorough testing
+### 9. Alternative: Keep API Routes for Real-Time
+
+If Server Actions + SSE is too complex, consider:
+
+**Hybrid Approach:**
+
+- Use **Server Actions** for mutations (registerUser)
+- Keep **API Routes** for real-time SSE/WebSocket
+- Maintain current architecture for real-time features
+
+This reduces migration scope but keeps some API routes.
+
+---
+
+## Final Recommendation
+
+Based on your requirements:
+
+✅ **Server Actions** for mutations (with JWT auth)  
+✅ **SSE via API Route** for real-time updates  
+✅ **Next.js Middleware** for rate limiting  
+✅ **Standalone build mode** for AWS portability  
+✅ **4-week timeline** (extended for auth/real-time work)
+
+This approach balances modern Next.js patterns with your specific needs for auth, real-time updates, and future AWS migration.
+
+**Estimated Effort:** 4 weeks for full migration with auth, real-time, and rate limiting

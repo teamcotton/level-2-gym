@@ -24,3 +24,4 @@ pnpm run format
 pnpm run lint
 pnpm run typecheck
 pnpm run test
+pnpm run test:e2e ## This is for developers only. AI can pass this test
