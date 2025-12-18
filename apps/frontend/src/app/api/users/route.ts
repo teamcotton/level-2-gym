@@ -76,8 +76,6 @@ export async function GET(request: Request) {
   } catch (error) {
     if (error instanceof Error) {
       logger.error('User API error:', error.message, error.stack)
-    } else {
-      logger.error('User API error: An unexpected error occurred')
     }
     return Response.json(
       {
