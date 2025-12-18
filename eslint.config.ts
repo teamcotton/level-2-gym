@@ -69,6 +69,8 @@ const config: Linter.Config[] = [
       '**/coverage/',
       '**/build/',
       '**/frontend/next-env.d.ts',
+      '**/playwright-report/',
+      '**/test-results/',
     ],
   },
 ]
