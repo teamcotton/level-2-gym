@@ -35,6 +35,7 @@ interface RegistrationFormProps {
     readonly password: string
     readonly confirmPassword: string
   }
+  readonly generalError?: string
   readonly onFieldChange: (
     field: 'email' | 'name' | 'password' | 'confirmPassword'
   ) => (event: React.ChangeEvent<HTMLInputElement>) => void
@@ -46,6 +47,7 @@ interface RegistrationFormProps {
 export function RegistrationForm({
   errors,
   formData,
+  generalError,
   onFieldChange,
   onGitHubSignUp,
   onGoogleSignUp,
@@ -97,9 +99,9 @@ export function RegistrationForm({
             Create your account
           </Typography>
 
-          {isAlertLevelEmailError(errors.email) && (
+          {(generalError || isAlertLevelEmailError(errors.email)) && (
             <Alert severity="error" sx={{ mb: 3 }}>
-              {errors.email}
+              {generalError || errors.email}
             </Alert>
           )}
 

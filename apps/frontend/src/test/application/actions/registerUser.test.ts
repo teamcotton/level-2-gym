@@ -87,6 +87,7 @@ describe('registerUser', () => {
 
       ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: false,
+        status: 400,
         json: async () => mockErrorResponse,
       })
 
@@ -99,6 +100,7 @@ describe('registerUser', () => {
       const result = await registerUser(userData)
 
       expect(result).toEqual({
+        status: 400,
         success: false,
         error: 'Email already exists',
       })
@@ -107,6 +109,7 @@ describe('registerUser', () => {
     it('should return default error message when API response has no error property', async () => {
       ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: false,
+        status: 500,
         json: async () => ({ success: false }),
       })
 
@@ -119,6 +122,7 @@ describe('registerUser', () => {
       const result = await registerUser(userData)
 
       expect(result).toEqual({
+        status: 500,
         success: false,
         error: 'Registration failed',
       })
@@ -136,6 +140,7 @@ describe('registerUser', () => {
       const result = await registerUser(userData)
 
       expect(result).toEqual({
+        status: 500,
         success: false,
         error: 'Network error',
       })
@@ -153,6 +158,7 @@ describe('registerUser', () => {
       const result = await registerUser(userData)
 
       expect(result).toEqual({
+        status: 500,
         success: false,
         error: 'An unexpected error occurred',
       })

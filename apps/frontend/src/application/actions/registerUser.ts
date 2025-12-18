@@ -15,6 +15,7 @@ export async function registerUser(data: RegisterUserData): Promise<RegisterUser
 
     if (response.status === 409) {
       return {
+        status: response.status,
         success: false,
         error: result.error || 'Email already in use',
       }
@@ -22,6 +23,7 @@ export async function registerUser(data: RegisterUserData): Promise<RegisterUser
 
     if (!response.ok) {
       return {
+        status: response.status,
         success: false,
         error: result.error || 'Registration failed',
       }
@@ -30,6 +32,7 @@ export async function registerUser(data: RegisterUserData): Promise<RegisterUser
     return result
   } catch (error) {
     return {
+      status: 500,
       success: false,
       error: error instanceof Error ? error.message : 'An unexpected error occurred',
     }

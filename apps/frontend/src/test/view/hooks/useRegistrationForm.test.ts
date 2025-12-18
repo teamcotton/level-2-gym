@@ -746,6 +746,7 @@ describe('useRegistrationForm', () => {
     it('should set specific email error and return early for "Email already in use" without setting generic error', async () => {
       // Mock registerUser to return "Email already in use" error
       vi.mocked(registerUser).mockResolvedValue({
+        status: 409,
         success: false,
         error: 'Email already in use',
       })
@@ -800,6 +801,7 @@ describe('useRegistrationForm', () => {
     it('should set generic error for other registration failures (not "Email already in use")', async () => {
       // Mock registerUser to return a different error
       vi.mocked(registerUser).mockResolvedValue({
+        status: 500,
         success: false,
         error: 'Server error occurred',
       })
@@ -840,13 +842,15 @@ describe('useRegistrationForm', () => {
         } as React.FormEvent)
       })
 
-      // Should set the server error message (not the specific "already registered" message)
-      expect(result.current.errors.email).toBe('Server error occurred')
+      // Should set the server error message in generalError (not errors.email)
+      expect(result.current.generalError).toBe('Server error occurred')
+      expect(result.current.errors.email).toBe('')
     })
 
     it('should set fallback "Registration failed" when error message is undefined', async () => {
       // Mock registerUser to return success: false with no error message
       vi.mocked(registerUser).mockResolvedValue({
+        status: 500,
         success: false,
         error: undefined,
       })
@@ -887,8 +891,9 @@ describe('useRegistrationForm', () => {
         } as React.FormEvent)
       })
 
-      // Should set the fallback "Registration failed" message
-      expect(result.current.errors.email).toBe('Registration failed')
+      // Should set the fallback "Registration failed" message in generalError
+      expect(result.current.generalError).toBe('Registration failed. Please try again.')
+      expect(result.current.errors.email).toBe('')
     })
   })
 })

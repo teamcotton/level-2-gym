@@ -33,12 +33,14 @@ export function useRegistrationForm() {
     confirmPassword: '',
   })
 
+  const [generalError, setGeneralError] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleChange = (field: keyof FormData) => (event: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [field]: event.target.value })
-    // Clear error when user starts typing
+    // Clear errors when user starts typing
     setErrors({ ...errors, [field]: '' })
+    setGeneralError('')
   }
 
   const validateForm = (): boolean => {
@@ -100,6 +102,7 @@ export function useRegistrationForm() {
     event.preventDefault()
     if (validateForm()) {
       setIsSubmitting(true)
+      setGeneralError('')
 
       try {
         const result = await registerUser(formData)
@@ -112,10 +115,7 @@ export function useRegistrationForm() {
           // Handle registration error
 
           // Check if error is about duplicate email (handles both backend messages)
-          if (
-            result.error === 'Email already in use' ||
-            result.error?.includes('email already exists')
-          ) {
+          if (result.status === 409) {
             setErrors((prev) => ({
               ...prev,
               email: 'This email is already registered. Please use a different email.',
@@ -123,16 +123,17 @@ export function useRegistrationForm() {
             return
           }
 
-          setErrors((prev) => ({
-            ...prev,
-            email: result.error || 'Registration failed',
-          }))
+          // Backend connection errors should appear in alert
+          if (result.status === 503) {
+            setGeneralError(result.error || 'Service unavailable. Please try again later.')
+            return
+          }
+
+          // Other registration failures should appear in alert
+          setGeneralError(result.error || 'Registration failed. Please try again.')
         }
       } catch {
-        setErrors((prev) => ({
-          ...prev,
-          email: 'An unexpected error occurred. Please try again.',
-        }))
+        setGeneralError('An unexpected error occurred. Please try again.')
       } finally {
         setIsSubmitting(false)
       }
@@ -152,6 +153,7 @@ export function useRegistrationForm() {
   return {
     formData,
     errors,
+    generalError,
     isSubmitting,
     handleChange,
     handleSubmit,

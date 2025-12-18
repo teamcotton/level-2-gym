@@ -108,10 +108,42 @@ export async function POST(request: Request) {
     return Response.json(result, { status: 200 })
   } catch (error) {
     console.error('[registration-route] Registration error:', error)
+
+    // Handle backend connection failures specifically
+    if (error instanceof Error) {
+      // Check for connection refused errors
+      if (
+        error.message.includes('fetch failed') ||
+        error.message.includes('ECONNREFUSED') ||
+        (error.cause &&
+          typeof error.cause === 'object' &&
+          'code' in error.cause &&
+          error.cause.code === 'ECONNREFUSED')
+      ) {
+        return Response.json(
+          {
+            success: false,
+            error:
+              'Unable to connect to backend service. Please ensure the backend server is running.',
+          },
+          { status: 503 } // Service Unavailable
+        )
+      }
+
+      // Handle other errors with generic message
+      return Response.json(
+        {
+          success: false,
+          error: error.message,
+        },
+        { status: 500 }
+      )
+    }
+
     return Response.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'An unexpected error occurred',
+        error: 'An unexpected error occurred',
       },
       { status: 500 }
     )

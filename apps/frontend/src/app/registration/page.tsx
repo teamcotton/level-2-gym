@@ -9,13 +9,21 @@ import { useRegistrationForm } from '@/view/hooks/useRegistrationForm.js'
  * Business logic is in the hook, presentation is in the component.
  */
 export default function RegistrationPage() {
-  const { errors, formData, handleChange, handleGitHubSignUp, handleGoogleSignUp, handleSubmit } =
-    useRegistrationForm()
+  const {
+    errors,
+    formData,
+    generalError,
+    handleChange,
+    handleGitHubSignUp,
+    handleGoogleSignUp,
+    handleSubmit,
+  } = useRegistrationForm()
 
   return (
     <RegistrationForm
       formData={formData}
       errors={errors}
+      generalError={generalError}
       onFieldChange={handleChange}
       onSubmit={handleSubmit}
       onGoogleSignUp={handleGoogleSignUp}
