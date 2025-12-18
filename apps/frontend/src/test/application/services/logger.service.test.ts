@@ -505,4 +505,65 @@ describe('UnifiedLogger', () => {
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('message'), error, stack)
     })
   })
+
+  describe('production environment behavior', () => {
+    let originalEnv: string | undefined
+
+    beforeEach(() => {
+      originalEnv = process.env.NODE_ENV
+      process.env.NODE_ENV = 'production'
+    })
+
+    afterEach(() => {
+      process.env.NODE_ENV = originalEnv
+    })
+
+    it('should suppress debug messages in production', () => {
+      const logger = new UnifiedLogger({ level: 'debug' })
+
+      logger.debug('debug message')
+
+      expect(consoleDebugSpy).not.toHaveBeenCalled()
+    })
+
+    it('should suppress info messages in production', () => {
+      const logger = new UnifiedLogger({ level: 'info' })
+
+      logger.info('info message')
+
+      expect(consoleInfoSpy).not.toHaveBeenCalled()
+    })
+
+    it('should allow warn messages in production', () => {
+      const logger = new UnifiedLogger({ level: 'warn' })
+
+      logger.warn('warn message')
+
+      expect(consoleWarnSpy).toHaveBeenCalledTimes(1)
+      expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('[WARN]'))
+    })
+
+    it('should allow error messages in production', () => {
+      const logger = new UnifiedLogger({ level: 'error' })
+
+      logger.error('error message')
+
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(1)
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('[ERROR]'))
+    })
+
+    it('should suppress debug and info but allow warn and error in production', () => {
+      const logger = new UnifiedLogger({ level: 'debug' })
+
+      logger.debug('debug message')
+      logger.info('info message')
+      logger.warn('warn message')
+      logger.error('error message')
+
+      expect(consoleDebugSpy).not.toHaveBeenCalled()
+      expect(consoleInfoSpy).not.toHaveBeenCalled()
+      expect(consoleWarnSpy).toHaveBeenCalledTimes(1)
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(1)
+    })
+  })
 })
