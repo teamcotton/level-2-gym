@@ -32,8 +32,8 @@ describe('UnifiedLogger', () => {
       expect(logger).toBeInstanceOf(UnifiedLogger)
     })
 
-    it('should create logger with custom log method', () => {
-      const logger = new UnifiedLogger({ method: 'debug' })
+    it('should create logger with custom minimum log level', () => {
+      const logger = new UnifiedLogger({ minLevel: 'debug' })
 
       logger.debug('test')
       expect(consoleDebugSpy).toHaveBeenCalledTimes(1)
@@ -49,8 +49,8 @@ describe('UnifiedLogger', () => {
       expect(loggedMessage.prefix).toBe('[MyApp] ')
     })
 
-    it('should create logger with both custom method and prefix', () => {
-      const logger = new UnifiedLogger({ method: 'warn', prefix: 'API' })
+    it('should create logger with both custom minimum level and prefix', () => {
+      const logger = new UnifiedLogger({ minLevel: 'warn', prefix: 'API' })
 
       logger.warn('test warning')
 
@@ -61,8 +61,8 @@ describe('UnifiedLogger', () => {
   })
 
   describe('trace', () => {
-    it('should log trace messages when method is trace', () => {
-      const logger = new UnifiedLogger({ method: 'trace' })
+    it('should log trace messages when minLevel is trace', () => {
+      const logger = new UnifiedLogger({ minLevel: 'trace' })
 
       logger.trace('trace message')
 
@@ -72,32 +72,32 @@ describe('UnifiedLogger', () => {
       expect(loggedMessage.method).toBe('TRACE')
     })
 
-    it('should not log trace messages when method is debug', () => {
-      const logger = new UnifiedLogger({ method: 'debug' })
+    it('should not log trace messages when minLevel is debug', () => {
+      const logger = new UnifiedLogger({ minLevel: 'debug' })
 
       logger.trace('trace message')
 
       expect(consoleTraceSpy).not.toHaveBeenCalled()
     })
 
-    it('should not log trace messages when method is info', () => {
-      const logger = new UnifiedLogger({ method: 'info' })
+    it('should not log trace messages when minLevel is info', () => {
+      const logger = new UnifiedLogger({ minLevel: 'info' })
 
       logger.trace('trace message')
 
       expect(consoleTraceSpy).not.toHaveBeenCalled()
     })
 
-    it('should not log trace messages when method is warn', () => {
-      const logger = new UnifiedLogger({ method: 'warn' })
+    it('should not log trace messages when minLevel is warn', () => {
+      const logger = new UnifiedLogger({ minLevel: 'warn' })
 
       logger.trace('trace message')
 
       expect(consoleTraceSpy).not.toHaveBeenCalled()
     })
 
-    it('should not log trace messages when method is error', () => {
-      const logger = new UnifiedLogger({ method: 'error' })
+    it('should not log trace messages when minLevel is error', () => {
+      const logger = new UnifiedLogger({ minLevel: 'error' })
 
       logger.trace('trace message')
 
@@ -105,7 +105,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should include timestamp in trace message', () => {
-      const logger = new UnifiedLogger({ method: 'trace' })
+      const logger = new UnifiedLogger({ minLevel: 'trace' })
 
       logger.trace('test')
 
@@ -115,7 +115,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should log trace message with additional arguments', () => {
-      const logger = new UnifiedLogger({ method: 'trace' })
+      const logger = new UnifiedLogger({ minLevel: 'trace' })
       const obj = { key: 'value' }
 
       logger.trace('trace message', obj)
@@ -128,8 +128,8 @@ describe('UnifiedLogger', () => {
   })
 
   describe('debug', () => {
-    it('should log debug messages when method is debug', () => {
-      const logger = new UnifiedLogger({ method: 'debug' })
+    it('should log debug messages when minLevel is debug', () => {
+      const logger = new UnifiedLogger({ minLevel: 'debug' })
 
       logger.debug('debug message')
 
@@ -139,24 +139,24 @@ describe('UnifiedLogger', () => {
       expect(loggedMessage.method).toBe('DEBUG')
     })
 
-    it('should not log debug messages when method is info', () => {
-      const logger = new UnifiedLogger({ method: 'info' })
+    it('should not log debug messages when minLevel is info', () => {
+      const logger = new UnifiedLogger({ minLevel: 'info' })
 
       logger.debug('debug message')
 
       expect(consoleDebugSpy).not.toHaveBeenCalled()
     })
 
-    it('should not log debug messages when method is warn', () => {
-      const logger = new UnifiedLogger({ method: 'warn' })
+    it('should not log debug messages when minLevel is warn', () => {
+      const logger = new UnifiedLogger({ minLevel: 'warn' })
 
       logger.debug('debug message')
 
       expect(consoleDebugSpy).not.toHaveBeenCalled()
     })
 
-    it('should not log debug messages when method is error', () => {
-      const logger = new UnifiedLogger({ method: 'error' })
+    it('should not log debug messages when minLevel is error', () => {
+      const logger = new UnifiedLogger({ minLevel: 'error' })
 
       logger.debug('debug message')
 
@@ -164,7 +164,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should include timestamp in debug message', () => {
-      const logger = new UnifiedLogger({ method: 'debug' })
+      const logger = new UnifiedLogger({ minLevel: 'debug' })
 
       logger.debug('test')
 
@@ -174,7 +174,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should log debug message with additional arguments', () => {
-      const logger = new UnifiedLogger({ method: 'debug' })
+      const logger = new UnifiedLogger({ minLevel: 'debug' })
       const obj = { key: 'value' }
 
       logger.debug('debug message', obj)
@@ -187,8 +187,8 @@ describe('UnifiedLogger', () => {
   })
 
   describe('info', () => {
-    it('should log info messages when method is debug', () => {
-      const logger = new UnifiedLogger({ method: 'debug' })
+    it('should log info messages when minLevel is debug', () => {
+      const logger = new UnifiedLogger({ minLevel: 'debug' })
 
       logger.info('info message')
 
@@ -198,24 +198,24 @@ describe('UnifiedLogger', () => {
       expect(loggedMessage.method).toBe('INFO')
     })
 
-    it('should log info messages when method is info', () => {
-      const logger = new UnifiedLogger({ method: 'info' })
+    it('should log info messages when minLevel is info', () => {
+      const logger = new UnifiedLogger({ minLevel: 'info' })
 
       logger.info('info message')
 
       expect(consoleInfoSpy).toHaveBeenCalledTimes(1)
     })
 
-    it('should not log info messages when method is warn', () => {
-      const logger = new UnifiedLogger({ method: 'warn' })
+    it('should not log info messages when minLevel is warn', () => {
+      const logger = new UnifiedLogger({ minLevel: 'warn' })
 
       logger.info('info message')
 
       expect(consoleInfoSpy).not.toHaveBeenCalled()
     })
 
-    it('should not log info messages when method is error', () => {
-      const logger = new UnifiedLogger({ method: 'error' })
+    it('should not log info messages when minLevel is error', () => {
+      const logger = new UnifiedLogger({ minLevel: 'error' })
 
       logger.info('info message')
 
@@ -223,7 +223,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should include timestamp in info message', () => {
-      const logger = new UnifiedLogger({ method: 'info' })
+      const logger = new UnifiedLogger({ minLevel: 'info' })
 
       logger.info('test')
 
@@ -233,7 +233,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should log info message with additional arguments', () => {
-      const logger = new UnifiedLogger({ method: 'info' })
+      const logger = new UnifiedLogger({ minLevel: 'info' })
       const data = [1, 2, 3]
 
       logger.info('info message', data)
@@ -246,8 +246,8 @@ describe('UnifiedLogger', () => {
   })
 
   describe('warn', () => {
-    it('should log warn messages when method is debug', () => {
-      const logger = new UnifiedLogger({ method: 'debug' })
+    it('should log warn messages when minLevel is debug', () => {
+      const logger = new UnifiedLogger({ minLevel: 'debug' })
 
       logger.warn('warn message')
 
@@ -257,24 +257,24 @@ describe('UnifiedLogger', () => {
       expect(loggedMessage.method).toBe('WARN')
     })
 
-    it('should log warn messages when method is info', () => {
-      const logger = new UnifiedLogger({ method: 'info' })
+    it('should log warn messages when minLevel is info', () => {
+      const logger = new UnifiedLogger({ minLevel: 'info' })
 
       logger.warn('warn message')
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1)
     })
 
-    it('should log warn messages when method is warn', () => {
-      const logger = new UnifiedLogger({ method: 'warn' })
+    it('should log warn messages when minLevel is warn', () => {
+      const logger = new UnifiedLogger({ minLevel: 'warn' })
 
       logger.warn('warn message')
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1)
     })
 
-    it('should not log warn messages when method is error', () => {
-      const logger = new UnifiedLogger({ method: 'error' })
+    it('should not log warn messages when minLevel is error', () => {
+      const logger = new UnifiedLogger({ minLevel: 'error' })
 
       logger.warn('warn message')
 
@@ -282,7 +282,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should include timestamp in warn message', () => {
-      const logger = new UnifiedLogger({ method: 'warn' })
+      const logger = new UnifiedLogger({ minLevel: 'warn' })
 
       logger.warn('test')
 
@@ -292,7 +292,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should log warn message with additional arguments', () => {
-      const logger = new UnifiedLogger({ method: 'warn' })
+      const logger = new UnifiedLogger({ minLevel: 'warn' })
       const error = new Error('test error')
 
       logger.warn('warn message', error)
@@ -305,8 +305,8 @@ describe('UnifiedLogger', () => {
   })
 
   describe('error', () => {
-    it('should log error messages when method is debug', () => {
-      const logger = new UnifiedLogger({ method: 'debug' })
+    it('should log error messages when minLevel is debug', () => {
+      const logger = new UnifiedLogger({ minLevel: 'debug' })
 
       logger.error('error message')
 
@@ -316,24 +316,24 @@ describe('UnifiedLogger', () => {
       expect(loggedMessage.method).toBe('ERROR')
     })
 
-    it('should log error messages when method is info', () => {
-      const logger = new UnifiedLogger({ method: 'info' })
+    it('should log error messages when minLevel is info', () => {
+      const logger = new UnifiedLogger({ minLevel: 'info' })
 
       logger.error('error message')
 
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1)
     })
 
-    it('should log error messages when method is warn', () => {
-      const logger = new UnifiedLogger({ method: 'warn' })
+    it('should log error messages when minLevel is warn', () => {
+      const logger = new UnifiedLogger({ minLevel: 'warn' })
 
       logger.error('error message')
 
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1)
     })
 
-    it('should log error messages when method is error', () => {
-      const logger = new UnifiedLogger({ method: 'error' })
+    it('should log error messages when minLevel is error', () => {
+      const logger = new UnifiedLogger({ minLevel: 'error' })
 
       logger.error('error message')
 
@@ -341,7 +341,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should include timestamp in error message', () => {
-      const logger = new UnifiedLogger({ method: 'error' })
+      const logger = new UnifiedLogger({ minLevel: 'error' })
 
       logger.error('test')
 
@@ -351,7 +351,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should log error message with additional arguments', () => {
-      const logger = new UnifiedLogger({ method: 'error' })
+      const logger = new UnifiedLogger({ minLevel: 'error' })
       const error = new Error('critical error')
       const context = { userId: '123' }
 
@@ -364,49 +364,49 @@ describe('UnifiedLogger', () => {
     })
   })
 
-  describe('setMethod and getMethod', () => {
-    it('should change log method from debug to warn', () => {
-      const logger = new UnifiedLogger({ method: 'debug' })
+  describe('setMinLevel and getMinLevel', () => {
+    it('should change minimum log level from debug to warn', () => {
+      const logger = new UnifiedLogger({ minLevel: 'debug' })
 
-      expect(logger.getMethod()).toBe('debug')
+      expect(logger.getMinLevel()).toBe('debug')
 
-      logger.setMethod('warn')
+      logger.setMinLevel('warn')
 
-      expect(logger.getMethod()).toBe('warn')
+      expect(logger.getMinLevel()).toBe('warn')
       logger.debug('should not appear')
       expect(consoleDebugSpy).not.toHaveBeenCalled()
     })
 
-    it('should change log method from debug to error', () => {
-      const logger = new UnifiedLogger({ method: 'debug' })
+    it('should change minimum log level from debug to error', () => {
+      const logger = new UnifiedLogger({ minLevel: 'debug' })
 
-      logger.setMethod('error')
+      logger.setMinLevel('error')
 
-      expect(logger.getMethod()).toBe('error')
+      expect(logger.getMinLevel()).toBe('error')
       logger.info('should not appear')
       expect(consoleInfoSpy).not.toHaveBeenCalled()
     })
 
-    it('should allow changing method multiple times', () => {
-      const logger = new UnifiedLogger({ method: 'info' })
+    it('should allow changing minimum level multiple times', () => {
+      const logger = new UnifiedLogger({ minLevel: 'info' })
 
-      logger.setMethod('debug')
-      expect(logger.getMethod()).toBe('debug')
+      logger.setMinLevel('debug')
+      expect(logger.getMinLevel()).toBe('debug')
 
-      logger.setMethod('warn')
-      expect(logger.getMethod()).toBe('warn')
+      logger.setMinLevel('warn')
+      expect(logger.getMinLevel()).toBe('warn')
 
-      logger.setMethod('error')
-      expect(logger.getMethod()).toBe('error')
+      logger.setMinLevel('error')
+      expect(logger.getMinLevel()).toBe('error')
     })
 
-    it('should affect logging behavior after method change', () => {
-      const logger = new UnifiedLogger({ method: 'error' })
+    it('should affect logging behavior after minimum level change', () => {
+      const logger = new UnifiedLogger({ minLevel: 'error' })
 
       logger.info('should not log')
       expect(consoleInfoSpy).not.toHaveBeenCalled()
 
-      logger.setMethod('info')
+      logger.setMinLevel('info')
       logger.info('should log now')
       expect(consoleInfoSpy).toHaveBeenCalledTimes(1)
     })
@@ -414,7 +414,7 @@ describe('UnifiedLogger', () => {
 
   describe('setLevel and getLevel', () => {
     it('should set and get numeric level', () => {
-      const logger = new UnifiedLogger({ method: 'info' })
+      const logger = new UnifiedLogger({ minLevel: 'info' })
 
       expect(logger.getLevel()).toBeUndefined()
 
@@ -424,7 +424,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should include level in formatted message after setLevel', () => {
-      const logger = new UnifiedLogger({ method: 'info' })
+      const logger = new UnifiedLogger({ minLevel: 'info' })
 
       logger.info('without level')
       let loggedMessage = consoleInfoSpy.mock.calls[0][0]
@@ -438,7 +438,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should allow changing level multiple times', () => {
-      const logger = new UnifiedLogger({ method: 'info', level: 10 })
+      const logger = new UnifiedLogger({ minLevel: 'info', level: 10 })
 
       expect(logger.getLevel()).toBe(10)
 
@@ -452,7 +452,7 @@ describe('UnifiedLogger', () => {
 
   describe('optional numeric level field', () => {
     it('should include level when provided', () => {
-      const logger = new UnifiedLogger({ method: 'info', level: 20 })
+      const logger = new UnifiedLogger({ minLevel: 'info', level: 20 })
 
       logger.info('test message')
 
@@ -462,7 +462,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should not include level when not provided', () => {
-      const logger = new UnifiedLogger({ method: 'info' })
+      const logger = new UnifiedLogger({ minLevel: 'info' })
 
       logger.info('test message')
 
@@ -474,7 +474,7 @@ describe('UnifiedLogger', () => {
 
   describe('message formatting', () => {
     it('should include prefix in formatted message', () => {
-      const logger = new UnifiedLogger({ method: 'info', prefix: 'TestPrefix' })
+      const logger = new UnifiedLogger({ minLevel: 'info', prefix: 'TestPrefix' })
 
       logger.info('test message')
 
@@ -484,7 +484,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should not include prefix when not specified', () => {
-      const logger = new UnifiedLogger({ method: 'info' })
+      const logger = new UnifiedLogger({ minLevel: 'info' })
 
       logger.info('test message')
 
@@ -494,7 +494,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should format message with correct structure', () => {
-      const logger = new UnifiedLogger({ method: 'info', prefix: 'APP' })
+      const logger = new UnifiedLogger({ minLevel: 'info', prefix: 'APP' })
 
       logger.info('test message')
 
@@ -507,7 +507,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should uppercase log method in formatted message', () => {
-      const logger = new UnifiedLogger({ method: 'trace' })
+      const logger = new UnifiedLogger({ minLevel: 'trace' })
 
       logger.trace('test')
       expect(consoleTraceSpy.mock.calls[0][0].method).toBe('TRACE')
@@ -526,9 +526,9 @@ describe('UnifiedLogger', () => {
     })
   })
 
-  describe('log method hierarchy', () => {
-    it('should respect log method hierarchy for trace', () => {
-      const logger = new UnifiedLogger({ method: 'trace' })
+  describe('log level hierarchy', () => {
+    it('should respect log level hierarchy for trace', () => {
+      const logger = new UnifiedLogger({ minLevel: 'trace' })
 
       logger.trace('trace')
       logger.debug('debug')
@@ -543,8 +543,8 @@ describe('UnifiedLogger', () => {
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1)
     })
 
-    it('should respect log method hierarchy for debug', () => {
-      const logger = new UnifiedLogger({ method: 'debug' })
+    it('should respect log level hierarchy for debug', () => {
+      const logger = new UnifiedLogger({ minLevel: 'debug' })
 
       logger.trace('trace')
       logger.debug('debug')
@@ -559,8 +559,8 @@ describe('UnifiedLogger', () => {
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1)
     })
 
-    it('should respect log method hierarchy for info', () => {
-      const logger = new UnifiedLogger({ method: 'info' })
+    it('should respect log level hierarchy for info', () => {
+      const logger = new UnifiedLogger({ minLevel: 'info' })
 
       logger.trace('trace')
       logger.debug('debug')
@@ -575,8 +575,8 @@ describe('UnifiedLogger', () => {
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1)
     })
 
-    it('should respect log method hierarchy for warn', () => {
-      const logger = new UnifiedLogger({ method: 'warn' })
+    it('should respect log level hierarchy for warn', () => {
+      const logger = new UnifiedLogger({ minLevel: 'warn' })
 
       logger.trace('trace')
       logger.debug('debug')
@@ -591,8 +591,8 @@ describe('UnifiedLogger', () => {
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1)
     })
 
-    it('should respect log method hierarchy for error', () => {
-      const logger = new UnifiedLogger({ method: 'error' })
+    it('should respect log level hierarchy for error', () => {
+      const logger = new UnifiedLogger({ minLevel: 'error' })
 
       logger.trace('trace')
       logger.debug('debug')
@@ -618,7 +618,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should create logger instance with options', () => {
-      const logger = createLogger({ method: 'debug', prefix: 'Factory' })
+      const logger = createLogger({ minLevel: 'debug', prefix: 'Factory' })
 
       expect(logger).toBeInstanceOf(UnifiedLogger)
       logger.debug('test')
@@ -627,8 +627,8 @@ describe('UnifiedLogger', () => {
     })
 
     it('should create independent logger instances', () => {
-      const logger1 = createLogger({ method: 'debug' })
-      const logger2 = createLogger({ method: 'error' })
+      const logger1 = createLogger({ minLevel: 'debug' })
+      const logger2 = createLogger({ minLevel: 'error' })
 
       logger1.debug('test')
       expect(consoleDebugSpy).toHaveBeenCalledTimes(1)
@@ -643,7 +643,7 @@ describe('UnifiedLogger', () => {
 
   describe('multiple arguments', () => {
     it('should pass multiple arguments to console.trace', () => {
-      const logger = new UnifiedLogger({ method: 'trace' })
+      const logger = new UnifiedLogger({ minLevel: 'trace' })
       const arg1 = { key: 'value' }
       const arg2 = [1, 2, 3]
       const arg3 = 'string'
@@ -657,7 +657,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should pass multiple arguments to console.debug', () => {
-      const logger = new UnifiedLogger({ method: 'debug' })
+      const logger = new UnifiedLogger({ minLevel: 'debug' })
       const arg1 = { key: 'value' }
       const arg2 = [1, 2, 3]
       const arg3 = 'string'
@@ -671,7 +671,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should pass multiple arguments to console.info', () => {
-      const logger = new UnifiedLogger({ method: 'info' })
+      const logger = new UnifiedLogger({ minLevel: 'info' })
       const error = new Error('test')
       const context = { userId: '123' }
 
@@ -684,7 +684,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should pass multiple arguments to console.warn', () => {
-      const logger = new UnifiedLogger({ method: 'warn' })
+      const logger = new UnifiedLogger({ minLevel: 'warn' })
       const data = { warning: true }
 
       logger.warn('message', data)
@@ -696,7 +696,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should pass multiple arguments to console.error', () => {
-      const logger = new UnifiedLogger({ method: 'error' })
+      const logger = new UnifiedLogger({ minLevel: 'error' })
       const error = new Error('critical')
       const stack = error.stack
 
@@ -732,7 +732,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should suppress trace messages in production', () => {
-      const logger = new UnifiedLogger({ method: 'trace' })
+      const logger = new UnifiedLogger({ minLevel: 'trace' })
 
       logger.trace('trace message')
 
@@ -740,7 +740,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should suppress debug messages in production', () => {
-      const logger = new UnifiedLogger({ method: 'debug' })
+      const logger = new UnifiedLogger({ minLevel: 'debug' })
 
       logger.debug('debug message')
 
@@ -748,7 +748,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should suppress info messages in production', () => {
-      const logger = new UnifiedLogger({ method: 'info' })
+      const logger = new UnifiedLogger({ minLevel: 'info' })
 
       logger.info('info message')
 
@@ -756,7 +756,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should allow warn messages in production', () => {
-      const logger = new UnifiedLogger({ method: 'warn' })
+      const logger = new UnifiedLogger({ minLevel: 'warn' })
 
       logger.warn('warn message')
 
@@ -767,7 +767,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should allow error messages in production', () => {
-      const logger = new UnifiedLogger({ method: 'error' })
+      const logger = new UnifiedLogger({ minLevel: 'error' })
 
       logger.error('error message')
 
@@ -778,7 +778,7 @@ describe('UnifiedLogger', () => {
     })
 
     it('should suppress debug and info but allow warn and error in production', () => {
-      const logger = new UnifiedLogger({ method: 'trace' })
+      const logger = new UnifiedLogger({ minLevel: 'trace' })
 
       logger.trace('trace message')
       logger.debug('debug message')

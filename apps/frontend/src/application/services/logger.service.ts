@@ -1,4 +1,4 @@
-const LogMethod = {
+const LogLevel = {
   TRACE: 'trace',
   DEBUG: 'debug',
   INFO: 'info',
@@ -6,7 +6,7 @@ const LogMethod = {
   ERROR: 'error',
 } as const
 
-type LogMethodType = (typeof LogMethod)[keyof typeof LogMethod]
+type LogLevelType = (typeof LogLevel)[keyof typeof LogLevel]
 
 /**
  * Configuration options for the UnifiedLogger.
@@ -17,7 +17,7 @@ export interface LoggerOptions {
    * Hierarchy: TRACE < DEBUG < INFO < WARN < ERROR
    * @default 'debug'
    */
-  method?: LogMethodType
+  minLevel?: LogLevelType
   /**
    * An optional prefix to prepend to all log messages.
    * Useful for identifying the source of log messages (e.g., component name, module name).
@@ -64,52 +64,52 @@ export interface FormattedLogMessage {
  *
  * @example
  * ```typescript
- * // Create a logger with default settings (DEBUG method)
+ * // Create a logger with default settings (DEBUG minLevel)
  * const logger = new UnifiedLogger()
  * logger.info('Application started')
  *
  * // Create a logger with custom options
- * const logger = new UnifiedLogger({ method: 'debug', prefix: 'MyComponent' })
+ * const logger = new UnifiedLogger({ minLevel: 'debug', prefix: 'MyComponent' })
  * logger.debug('Debug information', { userId: 123 })
  * logger.error('An error occurred', error)
  *
  * // Create a logger with numeric level for compatibility
- * const logger = new UnifiedLogger({ method: 'info', level: 20 })
+ * const logger = new UnifiedLogger({ minLevel: 'info', level: 20 })
  * logger.info('Message') // Output includes level: 20
  *
  * // Change logging threshold dynamically
- * logger.setMethod('warn') // Only warn and error will log now
- * logger.getMethod() // Returns 'warn'
+ * logger.setMinLevel('warn') // Only warn and error will log now
+ * logger.getMinLevel() // Returns 'warn'
  * ```
  */
 export class UnifiedLogger {
-  private static readonly METHOD_LEVELS = [
-    LogMethod.TRACE,
-    LogMethod.DEBUG,
-    LogMethod.INFO,
-    LogMethod.WARN,
-    LogMethod.ERROR,
+  private static readonly LOG_LEVELS = [
+    LogLevel.TRACE,
+    LogLevel.DEBUG,
+    LogLevel.INFO,
+    LogLevel.WARN,
+    LogLevel.ERROR,
   ]
 
-  private method: LogMethodType
+  private minLevel: LogLevelType
   private readonly prefix: string
   private level?: number
 
   constructor(options: LoggerOptions = {}) {
     this.level = options.level
-    this.method = options.method || LogMethod.DEBUG
+    this.minLevel = options.minLevel || LogLevel.DEBUG
     this.prefix = options.prefix || ''
   }
 
-  private shouldLog(method: LogMethodType): boolean {
+  private shouldLog(logLevel: LogLevelType): boolean {
     return (
-      UnifiedLogger.METHOD_LEVELS.indexOf(method) >=
-      UnifiedLogger.METHOD_LEVELS.indexOf(this.method)
+      UnifiedLogger.LOG_LEVELS.indexOf(logLevel) >=
+      UnifiedLogger.LOG_LEVELS.indexOf(this.minLevel)
     )
   }
 
   private formatMessage(
-    level: LogMethodType,
+    logLevel: LogLevelType,
     message: string,
     ..._args: unknown[]
   ): FormattedLogMessage {
@@ -118,7 +118,7 @@ export class UnifiedLogger {
     const result: FormattedLogMessage = {
       timestamp: timestamp,
       prefix: prefixPart,
-      method: level.toUpperCase(),
+      method: logLevel.toUpperCase(),
       message,
     }
 
@@ -132,7 +132,7 @@ export class UnifiedLogger {
   /**
    * Logs a trace-level message with optional additional arguments.
    * Trace messages are only logged in non-production environments and when the logger's
-   * method threshold allows trace output.
+   * minLevel threshold allows trace output.
    *
    * @param message - The main log message
    * @param args - Additional arguments to log (objects, errors, etc.)
@@ -144,15 +144,15 @@ export class UnifiedLogger {
    * ```
    */
   trace(message: string, ...args: unknown[]): void {
-    if (this.shouldLog(LogMethod.TRACE) && process.env.NODE_ENV !== 'production') {
-      console.trace(this.formatMessage(LogMethod.TRACE, message), ...args)
+    if (this.shouldLog(LogLevel.TRACE) && process.env.NODE_ENV !== 'production') {
+      console.trace(this.formatMessage(LogLevel.TRACE, message), ...args)
     }
   }
 
   /**
    * Logs a debug-level message with optional additional arguments.
    * Debug messages are only logged in non-production environments and when the logger's
-   * method threshold allows debug output.
+   * minLevel threshold allows debug output.
    *
    * @param message - The main log message
    * @param args - Additional arguments to log (objects, errors, etc.)
@@ -164,15 +164,15 @@ export class UnifiedLogger {
    * ```
    */
   debug(message: string, ...args: unknown[]): void {
-    if (this.shouldLog(LogMethod.DEBUG) && process.env.NODE_ENV !== 'production') {
-      console.debug(this.formatMessage(LogMethod.DEBUG, message), ...args)
+    if (this.shouldLog(LogLevel.DEBUG) && process.env.NODE_ENV !== 'production') {
+      console.debug(this.formatMessage(LogLevel.DEBUG, message), ...args)
     }
   }
 
   /**
    * Logs an info-level message with optional additional arguments.
    * Info messages are only logged in non-production environments and when the logger's
-   * method threshold allows info output.
+   * minLevel threshold allows info output.
    *
    * @param message - The main log message
    * @param args - Additional arguments to log (objects, errors, etc.)
@@ -184,15 +184,15 @@ export class UnifiedLogger {
    * ```
    */
   info(message: string, ...args: unknown[]): void {
-    if (this.shouldLog(LogMethod.INFO) && process.env.NODE_ENV !== 'production') {
-      console.info(this.formatMessage(LogMethod.INFO, message), ...args)
+    if (this.shouldLog(LogLevel.INFO) && process.env.NODE_ENV !== 'production') {
+      console.info(this.formatMessage(LogLevel.INFO, message), ...args)
     }
   }
 
   /**
    * Logs a warning-level message with optional additional arguments.
    * Warning messages are logged in all environments (including production) when the logger's
-   * method threshold allows warn output.
+   * minLevel threshold allows warn output.
    *
    * @param message - The main log message
    * @param args - Additional arguments to log (objects, errors, etc.)
@@ -204,15 +204,15 @@ export class UnifiedLogger {
    * ```
    */
   warn(message: string, ...args: unknown[]): void {
-    if (this.shouldLog(LogMethod.WARN)) {
-      console.warn(this.formatMessage(LogMethod.WARN, message), ...args)
+    if (this.shouldLog(LogLevel.WARN)) {
+      console.warn(this.formatMessage(LogLevel.WARN, message), ...args)
     }
   }
 
   /**
    * Logs an error-level message with optional additional arguments.
    * Error messages are logged in all environments (including production) when the logger's
-   * method threshold allows error output.
+   * minLevel threshold allows error output.
    *
    * @param message - The main log message
    * @param args - Additional arguments to log (errors, context objects, etc.)
@@ -224,39 +224,39 @@ export class UnifiedLogger {
    * ```
    */
   error(message: string, ...args: unknown[]): void {
-    if (this.shouldLog(LogMethod.ERROR)) {
-      console.error(this.formatMessage(LogMethod.ERROR, message), ...args)
+    if (this.shouldLog(LogLevel.ERROR)) {
+      console.error(this.formatMessage(LogLevel.ERROR, message), ...args)
     }
   }
 
   /**
-   * Sets the minimum logging method threshold.
+   * Sets the minimum logging level threshold.
    * Messages below this threshold will be filtered out.
    *
-   * @param method - The new logging method ('trace' | 'debug' | 'info' | 'warn' | 'error')
+   * @param minLevel - The new minimum logging level ('trace' | 'debug' | 'info' | 'warn' | 'error')
    *
    * @example
    * ```typescript
-   * logger.setMethod('warn') // Only warn and error messages will be logged
-   * logger.setMethod('debug') // Debug, info, warn, and error messages will be logged
+   * logger.setMinLevel('warn') // Only warn and error messages will be logged
+   * logger.setMinLevel('debug') // Debug, info, warn, and error messages will be logged
    * ```
    */
-  setMethod(method: LogMethodType): void {
-    this.method = method
+  setMinLevel(minLevel: LogLevelType): void {
+    this.minLevel = minLevel
   }
 
   /**
-   * Returns the current logging method threshold.
+   * Returns the current minimum logging level threshold.
    *
-   * @returns The current method ('trace' | 'debug' | 'info' | 'warn' | 'error')
+   * @returns The current minimum level ('trace' | 'debug' | 'info' | 'warn' | 'error')
    *
    * @example
    * ```typescript
-   * const currentMethod = logger.getMethod() // e.g., 'debug'
+   * const currentMinLevel = logger.getMinLevel() // e.g., 'debug'
    * ```
    */
-  getMethod(): LogMethodType {
-    return this.method
+  getMinLevel(): LogLevelType {
+    return this.minLevel
   }
 
   /**
@@ -300,7 +300,7 @@ export class UnifiedLogger {
  *
  * @example
  * ```typescript
- * const logger = createLogger({ method: 'info', prefix: 'API' })
+ * const logger = createLogger({ minLevel: 'info', prefix: 'API' })
  * logger.info('Request received')
  * ```
  */

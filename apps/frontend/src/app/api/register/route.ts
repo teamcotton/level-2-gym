@@ -1,7 +1,7 @@
 import { createLogger } from '@/application/services/logger.service.js'
 import type { RegisterUserData, RegisterUserResponse } from '@/domain/auth/index.js'
 
-const logger = createLogger({ method: 'info', prefix: '[register:route]' })
+const logger = createLogger({ minLevel: 'info', prefix: '[register:route]' })
 
 export async function POST(request: Request) {
   try {
