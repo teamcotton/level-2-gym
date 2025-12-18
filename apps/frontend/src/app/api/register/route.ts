@@ -110,7 +110,7 @@ export async function POST(request: Request) {
 
     return Response.json(result, { status: 200 })
   } catch (error) {
-    loggerError.error('[registration-route] Registration error:', error)
+    loggerError.error('Registration error:', error)
 
     // Handle backend connection failures specifically
     if (error instanceof Error) {
