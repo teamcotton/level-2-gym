@@ -13,11 +13,6 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     serverActions: {
-      allowedOrigins: [
-        process.env.NODE_ENV === 'development'
-          ? (process.env.BACKEND_AI_CALLBACK_URL_DEV as string)
-          : (process.env.BACKEND_AI_CALLBACK_URL_PROD as string),
-      ],
       bodySizeLimit: '10mb',
     },
   },
