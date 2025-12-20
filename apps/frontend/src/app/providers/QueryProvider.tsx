@@ -10,11 +10,11 @@ import { useState } from 'react'
  * Provides React Query functionality throughout the app with preconfigured defaults
  * for caching, refetching, and retry behavior. Includes React Query DevTools in development.
  *
- * @component
+ * @name QueryProvider
  * @param {object} props - Component props
  * @param {React.ReactNode} props.children - Child components to wrap with QueryClientProvider
  *
- * @remarks
+ * @description
  * Configuration:
  * - **Queries**: 1-minute stale time, 5-minute garbage collection, auto-refetch on window focus, 3 retries
  * - **Mutations**: 1 retry attempt
