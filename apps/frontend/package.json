@@ -8,8 +8,8 @@
     "pnpm": ">=10"
   },
   "scripts": {
-    "dev": "next dev -p 4321",
-    "dev:debug": "next dev -p 4321 --inspect",
+    "dev": "next dev -p 4321 --experimental-https",
+    "dev:debug": "next dev -p 4321 --inspect --experimental-https",
     "upgrade": "next upgrade",
     "build": "next build",
     "start": "next start -p 4321",

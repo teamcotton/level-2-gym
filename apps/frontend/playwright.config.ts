@@ -10,8 +10,9 @@ export default defineConfig({
   globalSetup: './e2e/global-setup.ts',
   globalTeardown: './e2e/global-teardown.ts',
   use: {
-    baseURL: 'http://localhost:4321',
+    baseURL: 'https://localhost:4321',
     trace: 'on-first-retry',
+    ignoreHTTPSErrors: true,
   },
   projects: [
     {
@@ -21,8 +22,9 @@ export default defineConfig({
   ],
   webServer: {
     command: 'pnpm dev',
-    url: 'http://localhost:4321',
+    url: 'https://localhost:4321',
     reuseExistingServer: !process.env.CI,
+    ignoreHTTPSErrors: true,
     env: {
       BACKEND_AI_CALLBACK_URL_DEV: 'http://localhost:3000',
       BACKEND_AI_CALLBACK_URL_PROD: 'http://localhost:3000',

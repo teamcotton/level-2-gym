@@ -36,7 +36,7 @@ describe('POST /api/register', () => {
         password: 'password123',
       }
 
-      const request = new Request('http://localhost:4321/api/register', {
+      const request = new Request('https://localhost:4321/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -83,7 +83,7 @@ describe('POST /api/register', () => {
         password: 'securepass',
       }
 
-      const request = new Request('http://localhost:4321/api/register', {
+      const request = new Request('https://localhost:4321/api/register', {
         method: 'POST',
         body: JSON.stringify(requestBody),
       })
@@ -118,7 +118,7 @@ describe('POST /api/register', () => {
         json: async () => mockBackendResponse,
       })
 
-      const request = new Request('http://localhost:4321/api/register', {
+      const request = new Request('https://localhost:4321/api/register', {
         method: 'POST',
         body: JSON.stringify({
           email: 'custom@example.com',
@@ -140,7 +140,7 @@ describe('POST /api/register', () => {
     it('should return 500 when BACKEND_AI_CALLBACK_URL_DEV is not configured', async () => {
       delete process.env.BACKEND_AI_CALLBACK_URL_DEV
 
-      const request = new Request('http://localhost:4321/api/register', {
+      const request = new Request('https://localhost:4321/api/register', {
         method: 'POST',
         body: JSON.stringify({
           email: 'test@example.com',
@@ -172,7 +172,7 @@ describe('POST /api/register', () => {
         json: async () => mockErrorResponse,
       })
 
-      const request = new Request('http://localhost:4321/api/register', {
+      const request = new Request('https://localhost:4321/api/register', {
         method: 'POST',
         body: JSON.stringify({
           email: 'duplicate@example.com',
@@ -202,7 +202,7 @@ describe('POST /api/register', () => {
         json: async () => mockErrorResponse,
       })
 
-      const request = new Request('http://localhost:4321/api/register', {
+      const request = new Request('https://localhost:4321/api/register', {
         method: 'POST',
         body: JSON.stringify({
           email: 'test@example.com',
@@ -224,7 +224,7 @@ describe('POST /api/register', () => {
     it('should handle network errors gracefully', async () => {
       ;(global.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('Network error'))
 
-      const request = new Request('http://localhost:4321/api/register', {
+      const request = new Request('https://localhost:4321/api/register', {
         method: 'POST',
         body: JSON.stringify({
           email: 'test@example.com',
@@ -252,7 +252,7 @@ describe('POST /api/register', () => {
       })
       ;(global.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(connectionError)
 
-      const request = new Request('http://localhost:4321/api/register', {
+      const request = new Request('https://localhost:4321/api/register', {
         method: 'POST',
         body: JSON.stringify({
           email: 'test@example.com',
@@ -282,7 +282,7 @@ describe('POST /api/register', () => {
       })
       ;(global.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(connectionError)
 
-      const request = new Request('http://localhost:4321/api/register', {
+      const request = new Request('https://localhost:4321/api/register', {
         method: 'POST',
         body: JSON.stringify({
           email: 'test@example.com',
@@ -304,7 +304,7 @@ describe('POST /api/register', () => {
     it('should handle fetch failed error message', async () => {
       ;(global.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('fetch failed'))
 
-      const request = new Request('http://localhost:4321/api/register', {
+      const request = new Request('https://localhost:4321/api/register', {
         method: 'POST',
         body: JSON.stringify({
           email: 'test@example.com',
@@ -326,7 +326,7 @@ describe('POST /api/register', () => {
     it('should handle non-Error exceptions', async () => {
       ;(global.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce('String error')
 
-      const request = new Request('http://localhost:4321/api/register', {
+      const request = new Request('https://localhost:4321/api/register', {
         method: 'POST',
         body: JSON.stringify({
           email: 'test@example.com',
@@ -346,7 +346,7 @@ describe('POST /api/register', () => {
     })
 
     it('should handle invalid JSON in request body', async () => {
-      const request = new Request('http://localhost:4321/api/register', {
+      const request = new Request('https://localhost:4321/api/register', {
         method: 'POST',
         body: 'invalid json',
       })
@@ -383,7 +383,7 @@ describe('POST /api/register', () => {
         password: 'password123',
       }
 
-      const request = new Request('http://localhost:4321/api/register', {
+      const request = new Request('https://localhost:4321/api/register', {
         method: 'POST',
         body: JSON.stringify(requestBody),
       })
@@ -420,7 +420,7 @@ describe('POST /api/register', () => {
         password: 'p@ss!w0rd#123',
       }
 
-      const request = new Request('http://localhost:4321/api/register', {
+      const request = new Request('https://localhost:4321/api/register', {
         method: 'POST',
         body: JSON.stringify(requestBody),
       })
@@ -454,7 +454,7 @@ describe('POST /api/register', () => {
         password: 'complex!P@ssw0rd#with$symbols',
       }
 
-      const request = new Request('http://localhost:4321/api/register', {
+      const request = new Request('https://localhost:4321/api/register', {
         method: 'POST',
         body: JSON.stringify(requestBody),
       })
@@ -478,7 +478,7 @@ describe('POST /api/register', () => {
         json: async () => ({ success: true, data: {} }),
       })
 
-      const request = new Request('http://localhost:4321/api/register', {
+      const request = new Request('https://localhost:4321/api/register', {
         method: 'POST',
         body: JSON.stringify({
           email: 'test@example.com',
@@ -499,7 +499,7 @@ describe('POST /api/register', () => {
         json: async () => ({ success: false, error: 'Conflict' }),
       })
 
-      const request = new Request('http://localhost:4321/api/register', {
+      const request = new Request('https://localhost:4321/api/register', {
         method: 'POST',
         body: JSON.stringify({
           email: 'test@example.com',
@@ -516,7 +516,7 @@ describe('POST /api/register', () => {
     it('should return 500 for server errors', async () => {
       ;(global.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('Server error'))
 
-      const request = new Request('http://localhost:4321/api/register', {
+      const request = new Request('https://localhost:4321/api/register', {
         method: 'POST',
         body: JSON.stringify({
           email: 'test@example.com',

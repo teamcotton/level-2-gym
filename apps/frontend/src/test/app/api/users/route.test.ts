@@ -47,7 +47,7 @@ describe('GET /api/users', () => {
         json: async () => mockBackendResponse,
       })
 
-      const request = new Request('http://localhost:4321/api/users', {
+      const request = new Request('https://localhost:4321/api/users', {
         method: 'GET',
       })
 
@@ -88,7 +88,7 @@ describe('GET /api/users', () => {
         json: async () => mockBackendResponse,
       })
 
-      const request = new Request('http://localhost:4321/api/users', {
+      const request = new Request('https://localhost:4321/api/users', {
         method: 'GET',
       })
 
@@ -117,7 +117,7 @@ describe('GET /api/users', () => {
         json: async () => mockBackendResponse,
       })
 
-      const request = new Request('http://localhost:4321/api/users', {
+      const request = new Request('https://localhost:4321/api/users', {
         method: 'GET',
       })
 
@@ -148,7 +148,7 @@ describe('GET /api/users', () => {
         json: async () => mockBackendResponse,
       })
 
-      const request = new Request('http://localhost:4321/api/users?limit=5', {
+      const request = new Request('https://localhost:4321/api/users?limit=5', {
         method: 'GET',
       })
 
@@ -177,7 +177,7 @@ describe('GET /api/users', () => {
         json: async () => mockBackendResponse,
       })
 
-      const request = new Request('http://localhost:4321/api/users?offset=20', {
+      const request = new Request('https://localhost:4321/api/users?offset=20', {
         method: 'GET',
       })
 
@@ -206,7 +206,7 @@ describe('GET /api/users', () => {
         json: async () => mockBackendResponse,
       })
 
-      const request = new Request('http://localhost:4321/api/users?limit=20&offset=40', {
+      const request = new Request('https://localhost:4321/api/users?limit=20&offset=40', {
         method: 'GET',
       })
 
@@ -235,7 +235,7 @@ describe('GET /api/users', () => {
         json: async () => mockBackendResponse,
       })
 
-      const request = new Request('http://localhost:4321/api/users?limit=0&offset=0', {
+      const request = new Request('https://localhost:4321/api/users?limit=0&offset=0', {
         method: 'GET',
       })
 
@@ -264,7 +264,7 @@ describe('GET /api/users', () => {
         json: async () => mockBackendResponse,
       })
 
-      const request = new Request('http://localhost:4321/api/users', {
+      const request = new Request('https://localhost:4321/api/users', {
         method: 'GET',
       })
 
@@ -278,7 +278,7 @@ describe('GET /api/users', () => {
     it('should return 500 when BACKEND_AI_CALLBACK_URL_DEV is not configured', async () => {
       delete process.env.BACKEND_AI_CALLBACK_URL_DEV
 
-      const request = new Request('http://localhost:4321/api/users', {
+      const request = new Request('https://localhost:4321/api/users', {
         method: 'GET',
       })
 
@@ -300,7 +300,7 @@ describe('GET /api/users', () => {
         json: async () => ({ success: false, error: 'Not found' }),
       })
 
-      const request = new Request('http://localhost:4321/api/users', {
+      const request = new Request('https://localhost:4321/api/users', {
         method: 'GET',
       })
 
@@ -321,7 +321,7 @@ describe('GET /api/users', () => {
         json: async () => ({ success: false, error: 'Internal server error' }),
       })
 
-      const request = new Request('http://localhost:4321/api/users', {
+      const request = new Request('https://localhost:4321/api/users', {
         method: 'GET',
       })
 
@@ -336,7 +336,7 @@ describe('GET /api/users', () => {
     it('should handle network errors gracefully', async () => {
       ;(global.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('Network error'))
 
-      const request = new Request('http://localhost:4321/api/users', {
+      const request = new Request('https://localhost:4321/api/users', {
         method: 'GET',
       })
 
@@ -353,7 +353,7 @@ describe('GET /api/users', () => {
     it('should handle non-Error exceptions', async () => {
       ;(global.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce('String error')
 
-      const request = new Request('http://localhost:4321/api/users', {
+      const request = new Request('https://localhost:4321/api/users', {
         method: 'GET',
       })
 
@@ -372,7 +372,7 @@ describe('GET /api/users', () => {
         new Error('Request timeout')
       )
 
-      const request = new Request('http://localhost:4321/api/users', {
+      const request = new Request('https://localhost:4321/api/users', {
         method: 'GET',
       })
 
@@ -397,7 +397,7 @@ describe('GET /api/users', () => {
         }),
       })
 
-      const request = new Request('http://localhost:4321/api/users', {
+      const request = new Request('https://localhost:4321/api/users', {
         method: 'GET',
       })
 
@@ -413,7 +413,7 @@ describe('GET /api/users', () => {
         json: async () => ({ success: false, error: 'Forbidden' }),
       })
 
-      const request = new Request('http://localhost:4321/api/users', {
+      const request = new Request('https://localhost:4321/api/users', {
         method: 'GET',
       })
 
@@ -427,7 +427,7 @@ describe('GET /api/users', () => {
         new Error('Unexpected error')
       )
 
-      const request = new Request('http://localhost:4321/api/users', {
+      const request = new Request('https://localhost:4321/api/users', {
         method: 'GET',
       })
 
@@ -469,7 +469,7 @@ describe('GET /api/users', () => {
         Agent: mockHttpsAgent,
       }))
 
-      const request = new Request('http://localhost:4321/api/users', {
+      const request = new Request('https://localhost:4321/api/users', {
         method: 'GET',
       })
 
@@ -518,7 +518,7 @@ describe('GET /api/users', () => {
         Agent: mockHttpsAgent,
       }))
 
-      const request = new Request('http://localhost:4321/api/users', {
+      const request = new Request('https://localhost:4321/api/users', {
         method: 'GET',
       })
 
@@ -555,7 +555,7 @@ describe('GET /api/users', () => {
         json: async () => mockBackendResponse,
       })
 
-      const request = new Request('http://localhost:4321/api/users', {
+      const request = new Request('https://localhost:4321/api/users', {
         method: 'GET',
       })
 
@@ -590,7 +590,7 @@ describe('GET /api/users', () => {
         json: async () => mockBackendResponse,
       })
 
-      const request = new Request('http://localhost:4321/api/users', {
+      const request = new Request('https://localhost:4321/api/users', {
         method: 'GET',
       })
 
@@ -633,7 +633,7 @@ describe('GET /api/users', () => {
         json: async () => mockBackendResponse,
       })
 
-      const request = new Request('http://localhost:4321/api/users', {
+      const request = new Request('https://localhost:4321/api/users', {
         method: 'GET',
       })
 
@@ -675,7 +675,7 @@ describe('GET /api/users', () => {
         json: async () => mockBackendResponse,
       })
 
-      const request = new Request('http://localhost:4321/api/users', {
+      const request = new Request('https://localhost:4321/api/users', {
         method: 'GET',
       })
 
@@ -724,7 +724,7 @@ describe('GET /api/users', () => {
         json: async () => mockBackendResponse,
       })
 
-      const request = new Request('http://localhost:4321/api/users', {
+      const request = new Request('https://localhost:4321/api/users', {
         method: 'GET',
       })
 
@@ -756,7 +756,7 @@ describe('GET /api/users', () => {
         json: async () => mockBackendResponse,
       })
 
-      const request = new Request('http://localhost:4321/api/users', {
+      const request = new Request('https://localhost:4321/api/users', {
         method: 'GET',
       })
 
@@ -787,7 +787,7 @@ describe('GET /api/users', () => {
         json: async () => mockBackendResponse,
       })
 
-      const request = new Request('http://localhost:4321/api/users', {
+      const request = new Request('https://localhost:4321/api/users', {
         method: 'GET',
       })
 

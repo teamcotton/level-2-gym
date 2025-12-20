@@ -177,3 +177,4 @@ playwright/.cache/
 .idea/
 .vscode/
 .git/history/
+apps/frontend/certificates/*
