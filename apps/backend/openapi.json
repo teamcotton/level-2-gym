@@ -83,7 +83,7 @@
                     "timestamp": {
                       "type": "string",
                       "format": "date-time",
-                      "example": "2025-12-04T12:00:00.000Z"
+                      "example": "2035-01-01T00:00:00.000Z"
                     }
                   },
                   "required": ["status", "timestamp"]
@@ -290,7 +290,7 @@
           "createdAt": {
             "type": "string",
             "format": "date-time",
-            "example": "2025-12-04T12:00:00.000Z"
+            "example": "2035-01-01T00:00:00.000Z"
           }
         }
       },
