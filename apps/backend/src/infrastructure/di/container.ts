@@ -4,6 +4,7 @@ import { createFastifyApp } from '../http/fastify.config.js'
 // Application
 import { RegisterUserUseCase } from '../../application/use-cases/register-user.use-case.js'
 import { GetAllUsersUseCase } from '../../application/use-cases/get-all-users.use-case.js'
+import { LoginUserUseCase } from '../../application/use-cases/login-user.use-case.js'
 
 // Adapters
 import { PostgresUserRepository } from '../../adapters/secondary/repositories/user.repository.js'
@@ -11,6 +12,7 @@ import { ResendService } from '../../adapters/secondary/services/email.service.j
 import { PinoLoggerService } from '../../adapters/secondary/services/logger.service.js'
 import { JwtTokenGeneratorService } from '../../adapters/secondary/services/jwt-token-generator.service.js'
 import { UserController } from '../../adapters/primary/http/user.controller.js'
+import { AuthController } from '../../adapters/primary/http/auth.controller.js'
 
 import { EnvConfig } from '../config/env.config.js'
 import { fileURLToPath } from 'node:url'
@@ -37,9 +39,11 @@ export class Container {
   // Use Cases
   public readonly registerUserUseCase: RegisterUserUseCase
   public readonly getAllUsersUseCase: GetAllUsersUseCase
+  public readonly loginUserUseCase: LoginUserUseCase
 
   // Controllers
   public readonly userController: UserController
+  public readonly authController: AuthController
 
   private constructor() {
     // Validate environment
@@ -112,9 +116,15 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.tokenGenerator
     )
     this.getAllUsersUseCase = new GetAllUsersUseCase(this.userRepository, this.logger)
+    this.loginUserUseCase = new LoginUserUseCase(
+      this.userRepository,
+      this.logger,
+      this.tokenGenerator
+    )
 
     // Initialize controllers (primary adapters)
     this.userController = new UserController(this.registerUserUseCase, this.getAllUsersUseCase)
+    this.authController = new AuthController(this.loginUserUseCase)
 
     // Register routes
     this.registerRoutes()
@@ -122,6 +132,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
 
   private registerRoutes(): void {
     this.userController.registerRoutes(this.app)
+    this.authController.registerRoutes(this.app)
   }
 
   static getInstance(): Container {

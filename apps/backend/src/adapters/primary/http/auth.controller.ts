@@ -1,0 +1,188 @@
+import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
+import { LoginUserUseCase } from '../../../application/use-cases/login-user.use-case.js'
+import { LoginUserDto } from '../../../application/dtos/login-user.dto.js'
+import { BaseException } from '../../../shared/exceptions/base.exception.js'
+
+/**
+ * HTTP controller for authentication endpoints
+ *
+ * Handles authentication-related HTTP requests in the Fastify application.
+ * Acts as a primary adapter in the Hexagonal Architecture, translating HTTP
+ * requests into application use case calls and formatting responses.
+ *
+ * @class
+ *
+ * @remarks
+ * This controller is part of the Ports & Adapters architecture, serving as
+ * a primary (driving) adapter that receives external requests and delegates
+ * business logic to application use cases. It handles:
+ * - HTTP request validation and DTO conversion
+ * - Use case orchestration
+ * - HTTP response formatting (success and error cases)
+ * - Exception translation to appropriate HTTP status codes
+ *
+ * Routes registered:
+ * - `POST /auth/login` - User authentication endpoint
+ *
+ * Response format:
+ * - Success: `{ success: true, data: {...} }`
+ * - Error: `{ success: false, error: "message" }`
+ *
+ * @example
+ * ```typescript
+ * // Register controller in Fastify app
+ * const authController = new AuthController(loginUserUseCase)
+ * authController.registerRoutes(app)
+ *
+ * // Routes are now available at /auth/login
+ * ```
+ *
+ * @see {@link LoginUserUseCase} for authentication business logic
+ * @see {@link LoginUserDto} for request data structure
+ */
+export class AuthController {
+  /**
+   * Creates a new AuthController instance
+   *
+   * @param {LoginUserUseCase} loginUserUseCase - Use case for user authentication
+   *
+   * @example
+   * ```typescript
+   * const loginUseCase = new LoginUserUseCase(
+   *   userRepository,
+   *   logger,
+   *   tokenGenerator
+   * )
+   * const authController = new AuthController(loginUseCase)
+   * ```
+   */
+  constructor(private readonly loginUserUseCase: LoginUserUseCase) {}
+
+  /**
+   * Registers authentication routes with the Fastify application
+   *
+   * Binds HTTP endpoints to their respective handler methods. All routes
+   * are prefixed with `/auth` and use proper HTTP method binding.
+   *
+   * @param {FastifyInstance} app - Fastify application instance
+   * @returns {void}
+   *
+   * @example
+   * ```typescript
+   * import Fastify from 'fastify'
+   * const app = Fastify()
+   *
+   * const authController = new AuthController(loginUserUseCase)
+   * authController.registerRoutes(app)
+   *
+   * await app.listen({ port: 3000 })
+   * // POST /auth/login is now available
+   * ```
+   */
+  registerRoutes(app: FastifyInstance): void {
+    app.post('/auth/login', this.login.bind(this))
+  }
+
+  /**
+   * Handles user login requests
+   *
+   * Authenticates users by validating credentials and generating JWT access tokens.
+   * Validates request body, executes login use case, and formats the response
+   * with appropriate HTTP status codes.
+   *
+   * @async
+   * @param {FastifyRequest} request - Fastify request object with login credentials in body
+   * @param {FastifyReply} reply - Fastify reply object for sending HTTP response
+   * @returns {Promise<void>} Resolves when response is sent
+   *
+   * @remarks
+   * Request body should contain:
+   * - `email` (string): User's email address
+   * - `password` (string): User's password
+   *
+   * Success response (200):
+   * ```json
+   * {
+   *   "success": true,
+   *   "data": {
+   *     "userId": "uuid",
+   *     "email": "user@example.com",
+   *     "access_token": "jwt_token",
+   *     "roles": ["user"]
+   *   }
+   * }
+   * ```
+   *
+   * Error responses:
+   * - 400: Validation error (invalid request body)
+   * - 401: Unauthorized (invalid credentials)
+   * - 500: Internal server error
+   *
+   * Error response format:
+   * ```json
+   * {
+   *   "success": false,
+   *   "error": "Error message"
+   * }
+   * ```
+   *
+   * @example
+   * ```typescript
+   * // Successful login request
+   * // POST /auth/login
+   * // Body: { "email": "user@example.com", "password": "password123" }
+   *
+   * // Response:
+   * // Status: 200
+   * // {
+   * //   "success": true,
+   * //   "data": {
+   * //     "userId": "550e8400-e29b-41d4-a716-446655440000",
+   * //     "email": "user@example.com",
+   * //     "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+   * //     "roles": ["user"]
+   * //   }
+   * // }
+   * ```
+   *
+   * @example
+   * ```typescript
+   * // Failed login request - invalid credentials
+   * // POST /auth/login
+   * // Body: { "email": "user@example.com", "password": "wrongPassword" }
+   *
+   * // Response:
+   * // Status: 401
+   * // {
+   * //   "success": false,
+   * //   "error": "Invalid email or password"
+   * // }
+   * ```
+   *
+   * @see {@link LoginUserDto.validate} for request body validation
+   * @see {@link LoginUserUseCase.execute} for authentication logic
+   */
+  async login(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    try {
+      // Convert HTTP request to DTO
+      const dto = LoginUserDto.validate(request.body)
+
+      // Execute use case
+      const result = await this.loginUserUseCase.execute(dto)
+
+      // Convert result to HTTP response
+      reply.code(200).send({
+        success: true,
+        data: result,
+      })
+    } catch (error) {
+      const err = error as Error
+      const statusCode = err instanceof BaseException ? err.statusCode : 500
+      const errorMessage = err?.message || 'An unexpected error occurred'
+      reply.code(statusCode).send({
+        success: false,
+        error: errorMessage,
+      })
+    }
+  }
+}

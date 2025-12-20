@@ -202,6 +202,26 @@ export class User {
   }
 
   /**
+   * Verifies if a plain text password matches the user's password.
+   *
+   * Uses bcrypt's constant-time comparison to prevent timing attacks.
+   *
+   * @param plainPassword - The plain text password to verify
+   * @returns A Promise resolving to true if the password matches, false otherwise
+   *
+   * @example
+   * ```typescript
+   * const isValid = await user.verifyPassword('myPassword123')
+   * if (isValid) {
+   *   // Password is correct
+   * }
+   * ```
+   */
+  async verifyPassword(plainPassword: string): Promise<boolean> {
+    return this.password.matches(plainPassword)
+  }
+
+  /**
    * Gets the user's creation date.
    *
    * @returns The date when the user was created

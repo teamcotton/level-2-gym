@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import React from 'react'
 
 import { QueryProvider } from './providers/QueryProvider.js'
+import { SessionProvider } from './providers/SessionProvider.js'
 import ThemeRegistry from './ThemeRegistry.js'
 
 export const metadata: Metadata = {
@@ -19,9 +20,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <QueryProvider>
-          <ThemeRegistry>{children}</ThemeRegistry>
-        </QueryProvider>
+        <SessionProvider>
+          <QueryProvider>
+            <ThemeRegistry>{children}</ThemeRegistry>
+          </QueryProvider>
+        </SessionProvider>
       </body>
     </html>
   )

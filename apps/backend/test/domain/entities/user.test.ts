@@ -378,4 +378,275 @@ describe('User Entity', () => {
       expect(modifiedName).toBe('JOHN DOE')
     })
   })
+
+  describe('getPasswordHash()', () => {
+    it('should return the password hash as a string', () => {
+      const hash = testUser.getPasswordHash()
+
+      expect(typeof hash).toBe('string')
+      expect(hash.length).toBeGreaterThan(0)
+    })
+
+    it('should return a bcrypt hash format', () => {
+      const hash = testUser.getPasswordHash()
+
+      // Bcrypt hashes start with $2a$, $2b$, or $2y$ followed by cost factor
+      expect(hash).toMatch(/^\$2[aby]\$\d{2}\$/)
+    })
+
+    it('should return different hashes for different passwords', async () => {
+      const password1 = await Password.create('password123')
+      const password2 = await Password.create('differentpass456')
+
+      const user1 = new User('id-1', testEmail, password1, 'User 1', testRole)
+      const user2 = new User('id-2', testEmail, password2, 'User 2', testRole)
+
+      expect(user1.getPasswordHash()).not.toBe(user2.getPasswordHash())
+    })
+
+    it('should return the same hash for same password input', async () => {
+      const password = await Password.create('samepassword123')
+      const user = new User('id-1', testEmail, password, 'Test User', testRole)
+
+      const hash1 = user.getPasswordHash()
+      const hash2 = user.getPasswordHash()
+
+      expect(hash1).toBe(hash2)
+    })
+
+    it('should return updated hash after password change', async () => {
+      const originalHash = testUser.getPasswordHash()
+
+      const newPassword = await Password.create('newpassword456')
+      await testUser.updatePassword('password123', newPassword)
+
+      const updatedHash = testUser.getPasswordHash()
+
+      expect(updatedHash).not.toBe(originalHash)
+      expect(updatedHash).toMatch(/^\$2[aby]\$\d{2}\$/)
+    })
+
+    it('should never expose the plain text password', () => {
+      const hash = testUser.getPasswordHash()
+
+      expect(hash).not.toContain('password123')
+      expect(hash).not.toMatch(/password123/i)
+    })
+
+    it('should return consistent hash length (bcrypt produces 60 character hashes)', () => {
+      const hash = testUser.getPasswordHash()
+
+      expect(hash.length).toBe(60)
+    })
+  })
+
+  describe('verifyPassword()', () => {
+    it('should return true for correct password', async () => {
+      const isValid = await testUser.verifyPassword('password123')
+
+      expect(isValid).toBe(true)
+    })
+
+    it('should return false for incorrect password', async () => {
+      const isValid = await testUser.verifyPassword('wrongpassword')
+
+      expect(isValid).toBe(false)
+    })
+
+    it('should return false for empty string password', async () => {
+      const isValid = await testUser.verifyPassword('')
+
+      expect(isValid).toBe(false)
+    })
+
+    it('should be case-sensitive', async () => {
+      const isValid = await testUser.verifyPassword('PASSWORD123')
+
+      expect(isValid).toBe(false)
+    })
+
+    it('should handle special characters correctly', async () => {
+      const specialPassword = 'P@ssw0rd!#$%'
+      const password = await Password.create(specialPassword)
+      const user = new User('id-1', testEmail, password, 'Test User', testRole)
+
+      const isValid = await user.verifyPassword(specialPassword)
+
+      expect(isValid).toBe(true)
+    })
+
+    it('should handle passwords with spaces', async () => {
+      const passwordWithSpaces = 'pass word 123'
+      const password = await Password.create(passwordWithSpaces)
+      const user = new User('id-1', testEmail, password, 'Test User', testRole)
+
+      const isValid = await user.verifyPassword(passwordWithSpaces)
+
+      expect(isValid).toBe(true)
+    })
+
+    it('should verify password after password update', async () => {
+      const newPassword = await Password.create('newpassword456')
+      await testUser.updatePassword('password123', newPassword)
+
+      const isOldPasswordValid = await testUser.verifyPassword('password123')
+      const isNewPasswordValid = await testUser.verifyPassword('newpassword456')
+
+      expect(isOldPasswordValid).toBe(false)
+      expect(isNewPasswordValid).toBe(true)
+    })
+
+    it('should use constant-time comparison to prevent timing attacks', async () => {
+      // This is a behavior test - bcrypt.compare uses constant-time comparison
+      const shortPassword = await testUser.verifyPassword('a')
+      const longPassword = await testUser.verifyPassword('a'.repeat(100))
+
+      // Both should return false but timing should be similar (we can't test timing here)
+      expect(shortPassword).toBe(false)
+      expect(longPassword).toBe(false)
+    })
+
+    it('should handle unicode characters in password', async () => {
+      const unicodePassword = 'pässwørd123汉字'
+      const password = await Password.create(unicodePassword)
+      const user = new User('id-1', testEmail, password, 'Test User', testRole)
+
+      const isValid = await user.verifyPassword(unicodePassword)
+
+      expect(isValid).toBe(true)
+    })
+
+    it('should return false for password that is substring of correct password', async () => {
+      const isValid = await testUser.verifyPassword('password')
+
+      expect(isValid).toBe(false)
+    })
+
+    it('should return false for password that contains correct password', async () => {
+      const isValid = await testUser.verifyPassword('password123extra')
+
+      expect(isValid).toBe(false)
+    })
+
+    it('should handle multiple concurrent verifications', async () => {
+      const verifications = await Promise.all([
+        testUser.verifyPassword('password123'),
+        testUser.verifyPassword('wrongpassword'),
+        testUser.verifyPassword('password123'),
+        testUser.verifyPassword('another'),
+        testUser.verifyPassword('password123'),
+      ])
+
+      expect(verifications).toEqual([true, false, true, false, true])
+    })
+  })
+
+  describe('getCreatedAt()', () => {
+    it('should return the creation date', () => {
+      const createdAt = testUser.getCreatedAt()
+
+      expect(createdAt).toBeInstanceOf(Date)
+    })
+
+    it('should return a valid Date object', () => {
+      const createdAt = testUser.getCreatedAt()
+
+      expect(createdAt.getTime()).not.toBeNaN()
+      expect(createdAt instanceof Date).toBe(true)
+    })
+
+    it('should return the custom date when provided in constructor', () => {
+      const customDate = new Date('2024-01-15T10:30:00Z')
+      const user = new User('id-123', testEmail, testPassword, 'Test User', testRole, customDate)
+
+      const createdAt = user.getCreatedAt()
+
+      expect(createdAt).toEqual(customDate)
+      expect(createdAt.toISOString()).toBe('2024-01-15T10:30:00.000Z')
+    })
+
+    it('should return current date when no date provided in constructor', () => {
+      const beforeCreation = new Date()
+      const user = new User('id-123', testEmail, testPassword, 'Test User', testRole)
+      const afterCreation = new Date()
+
+      const createdAt = user.getCreatedAt()
+
+      expect(createdAt.getTime()).toBeGreaterThanOrEqual(beforeCreation.getTime())
+      expect(createdAt.getTime()).toBeLessThanOrEqual(afterCreation.getTime())
+    })
+
+    it('should persist the same creation date across multiple calls', () => {
+      const createdAt1 = testUser.getCreatedAt()
+      const createdAt2 = testUser.getCreatedAt()
+      const createdAt3 = testUser.getCreatedAt()
+
+      expect(createdAt1).toEqual(createdAt2)
+      expect(createdAt2).toEqual(createdAt3)
+    })
+
+    it('should have different creation dates for users created at different times', async () => {
+      const user1 = new User('id-1', testEmail, testPassword, 'User 1', testRole)
+
+      // Wait a small amount
+      await new Promise((resolve) => globalThis.setTimeout(resolve, 10))
+
+      const user2 = new User('id-2', testEmail, testPassword, 'User 2', testRole)
+
+      expect(user2.getCreatedAt().getTime()).toBeGreaterThan(user1.getCreatedAt().getTime())
+    })
+
+    it('should maintain creation date after email updates', () => {
+      const originalCreatedAt = testUser.getCreatedAt()
+
+      const newEmail = new Email('newemail@example.com')
+      testUser.updateEmail(newEmail)
+
+      const updatedCreatedAt = testUser.getCreatedAt()
+
+      expect(updatedCreatedAt).toEqual(originalCreatedAt)
+    })
+
+    it('should maintain creation date after password updates', async () => {
+      const originalCreatedAt = testUser.getCreatedAt()
+
+      const newPassword = await Password.create('newpassword123')
+      await testUser.updatePassword('password123', newPassword)
+
+      const updatedCreatedAt = testUser.getCreatedAt()
+
+      expect(updatedCreatedAt).toEqual(originalCreatedAt)
+    })
+
+    it('should maintain creation date after role updates', () => {
+      const originalCreatedAt = testUser.getCreatedAt()
+
+      const newRole = new Role('admin')
+      testUser.updateRole(newRole)
+
+      const updatedCreatedAt = testUser.getCreatedAt()
+
+      expect(updatedCreatedAt).toEqual(originalCreatedAt)
+    })
+
+    it('should handle dates in the past', () => {
+      const pastDate = new Date('2020-01-01T00:00:00Z')
+      const user = new User('id-123', testEmail, testPassword, 'Test User', testRole, pastDate)
+
+      const createdAt = user.getCreatedAt()
+
+      expect(createdAt).toEqual(pastDate)
+      expect(createdAt.getFullYear()).toBe(2020)
+    })
+
+    it('should return Date object that can be formatted', () => {
+      const customDate = new Date('2024-06-15T14:30:00Z')
+      const user = new User('id-123', testEmail, testPassword, 'Test User', testRole, customDate)
+
+      const createdAt = user.getCreatedAt()
+
+      expect(createdAt.toISOString()).toBe('2024-06-15T14:30:00.000Z')
+      expect(createdAt.toLocaleDateString('en-US')).toMatch(/\d{1,2}\/\d{1,2}\/\d{4}/)
+    })
+  })
 })
