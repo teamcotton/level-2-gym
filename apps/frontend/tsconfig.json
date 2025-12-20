@@ -6,7 +6,6 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "incremental": true,
-    "verbatimModuleSyntax": false,
     "plugins": [
       {
         "name": "next"
