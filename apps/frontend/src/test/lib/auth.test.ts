@@ -10,6 +10,8 @@ import {
   hasRole,
   requireAuth,
   requireRole,
+  withAuth,
+  withRole,
 } from '../../lib/auth.js'
 
 // Mock next-auth
@@ -439,6 +441,293 @@ describe('Auth Utilities', () => {
       const session = await requireRole('moderator')
 
       expect(session).toEqual(mockSession)
+    })
+  })
+
+  describe('withAuth', () => {
+    it('should execute action with session when authenticated', async () => {
+      const mockSession: Session = {
+        accessToken: 'mock-jwt-token',
+        user: { id: '123', email: 'test@example.com', roles: ['user'] },
+        expires: '2025-12-31',
+      }
+
+      vi.mocked(getServerSession).mockResolvedValueOnce(mockSession)
+
+      const mockAction = vi.fn().mockResolvedValue({ success: true })
+      const wrappedAction = withAuth(mockAction)
+
+      const result = await wrappedAction('arg1', 'arg2')
+
+      expect(mockAction).toHaveBeenCalledWith(mockSession, 'arg1', 'arg2')
+      expect(result).toEqual({ success: true })
+    })
+
+    it('should throw error when not authenticated', async () => {
+      vi.mocked(getServerSession).mockResolvedValueOnce(null)
+
+      const mockAction = vi.fn()
+      const wrappedAction = withAuth(mockAction)
+
+      await expect(wrappedAction()).rejects.toThrow('Unauthorized - Please sign in')
+      expect(mockAction).not.toHaveBeenCalled()
+    })
+
+    it('should pass multiple arguments to wrapped action', async () => {
+      const mockSession: Session = {
+        accessToken: 'mock-jwt-token',
+        user: { id: '123', email: 'test@example.com', roles: ['user'] },
+        expires: '2025-12-31',
+      }
+
+      vi.mocked(getServerSession).mockResolvedValueOnce(mockSession)
+
+      const mockAction = vi.fn().mockResolvedValue({ data: 'result' })
+      const wrappedAction = withAuth(mockAction)
+
+      const result = await wrappedAction({ id: 1 }, { name: 'test' }, [1, 2, 3])
+
+      expect(mockAction).toHaveBeenCalledWith(mockSession, { id: 1 }, { name: 'test' }, [1, 2, 3])
+      expect(result).toEqual({ data: 'result' })
+    })
+
+    it('should preserve action return type', async () => {
+      const mockSession: Session = {
+        accessToken: 'mock-jwt-token',
+        user: { id: '123', email: 'test@example.com', roles: ['user'] },
+        expires: '2025-12-31',
+      }
+
+      vi.mocked(getServerSession).mockResolvedValueOnce(mockSession)
+
+      const mockAction = vi.fn().mockResolvedValue({ count: 42, items: ['a', 'b'] })
+      const wrappedAction = withAuth(mockAction)
+
+      const result = await wrappedAction()
+
+      expect(result).toEqual({ count: 42, items: ['a', 'b'] })
+    })
+
+    it('should allow action to access session properties', async () => {
+      const mockSession: Session = {
+        accessToken: 'mock-jwt-token',
+        user: { id: '456', email: 'admin@example.com', roles: ['admin'] },
+        expires: '2025-12-31',
+      }
+
+      vi.mocked(getServerSession).mockResolvedValueOnce(mockSession)
+
+      const action = async (session: Session) => {
+        return {
+          userId: session.user.id,
+          token: session.accessToken,
+          roles: session.user.roles,
+        }
+      }
+
+      const wrappedAction = withAuth(action)
+      const result = await wrappedAction()
+
+      expect(result).toEqual({
+        userId: '456',
+        token: 'mock-jwt-token',
+        roles: ['admin'],
+      })
+    })
+
+    it('should propagate errors from wrapped action', async () => {
+      const mockSession: Session = {
+        accessToken: 'mock-jwt-token',
+        user: { id: '123', email: 'test@example.com', roles: ['user'] },
+        expires: '2025-12-31',
+      }
+
+      vi.mocked(getServerSession).mockResolvedValueOnce(mockSession)
+
+      const mockAction = vi.fn().mockRejectedValue(new Error('Action failed'))
+      const wrappedAction = withAuth(mockAction)
+
+      await expect(wrappedAction()).rejects.toThrow('Action failed')
+    })
+  })
+
+  describe('withRole', () => {
+    it('should execute action when user has required role', async () => {
+      const mockSession: Session = {
+        accessToken: 'mock-jwt-token',
+        user: { id: '123', email: 'admin@example.com', roles: ['admin'] },
+        expires: '2025-12-31',
+      }
+
+      vi.mocked(getServerSession).mockResolvedValueOnce(mockSession)
+
+      const mockAction = vi.fn().mockResolvedValue({ success: true })
+      const wrappedAction = withRole('admin', mockAction)
+
+      const result = await wrappedAction('data')
+
+      expect(mockAction).toHaveBeenCalledWith(mockSession, 'data')
+      expect(result).toEqual({ success: true })
+    })
+
+    it('should throw error when user does not have required role', async () => {
+      const mockSession: Session = {
+        accessToken: 'mock-jwt-token',
+        user: { id: '123', email: 'user@example.com', roles: ['user'] },
+        expires: '2025-12-31',
+      }
+
+      vi.mocked(getServerSession).mockResolvedValueOnce(mockSession)
+
+      const mockAction = vi.fn()
+      const wrappedAction = withRole('admin', mockAction)
+
+      await expect(wrappedAction()).rejects.toThrow('Forbidden - Requires one of: admin')
+      expect(mockAction).not.toHaveBeenCalled()
+    })
+
+    it('should throw error when not authenticated', async () => {
+      vi.mocked(getServerSession).mockResolvedValueOnce(null)
+
+      const mockAction = vi.fn()
+      const wrappedAction = withRole('admin', mockAction)
+
+      await expect(wrappedAction()).rejects.toThrow('Unauthorized - Please sign in')
+      expect(mockAction).not.toHaveBeenCalled()
+    })
+
+    it('should accept array of required roles', async () => {
+      const mockSession: Session = {
+        accessToken: 'mock-jwt-token',
+        user: { id: '123', email: 'moderator@example.com', roles: ['moderator'] },
+        expires: '2025-12-31',
+      }
+
+      vi.mocked(getServerSession).mockResolvedValueOnce(mockSession)
+
+      const mockAction = vi.fn().mockResolvedValue({ success: true })
+      const wrappedAction = withRole(['admin', 'moderator'], mockAction)
+
+      const result = await wrappedAction()
+
+      expect(mockAction).toHaveBeenCalledWith(mockSession)
+      expect(result).toEqual({ success: true })
+    })
+
+    it('should throw error when user has none of the required roles', async () => {
+      const mockSession: Session = {
+        accessToken: 'mock-jwt-token',
+        user: { id: '123', email: 'user@example.com', roles: ['user'] },
+        expires: '2025-12-31',
+      }
+
+      vi.mocked(getServerSession).mockResolvedValueOnce(mockSession)
+
+      const mockAction = vi.fn()
+      const wrappedAction = withRole(['admin', 'moderator'], mockAction)
+
+      await expect(wrappedAction()).rejects.toThrow('Forbidden - Requires one of: admin, moderator')
+      expect(mockAction).not.toHaveBeenCalled()
+    })
+
+    it('should execute when user has one of multiple required roles', async () => {
+      const mockSession: Session = {
+        accessToken: 'mock-jwt-token',
+        user: { id: '123', email: 'admin@example.com', roles: ['admin', 'superuser'] },
+        expires: '2025-12-31',
+      }
+
+      vi.mocked(getServerSession).mockResolvedValueOnce(mockSession)
+
+      const mockAction = vi.fn().mockResolvedValue({ data: 'success' })
+      const wrappedAction = withRole(['admin', 'moderator', 'editor'], mockAction)
+
+      const result = await wrappedAction('arg1', 'arg2')
+
+      expect(mockAction).toHaveBeenCalledWith(mockSession, 'arg1', 'arg2')
+      expect(result).toEqual({ data: 'success' })
+    })
+
+    it('should handle user with no roles', async () => {
+      const mockSession: Session = {
+        accessToken: 'mock-jwt-token',
+        user: { id: '123', email: 'user@example.com', roles: [] },
+        expires: '2025-12-31',
+      }
+
+      vi.mocked(getServerSession).mockResolvedValueOnce(mockSession)
+
+      const mockAction = vi.fn()
+      const wrappedAction = withRole('admin', mockAction)
+
+      await expect(wrappedAction()).rejects.toThrow('Forbidden - Requires one of: admin')
+      expect(mockAction).not.toHaveBeenCalled()
+    })
+
+    it('should handle user with undefined roles', async () => {
+      const mockSession: Session = {
+        accessToken: 'mock-jwt-token',
+        user: { id: '123', email: 'user@example.com', roles: undefined as unknown as string[] },
+        expires: '2025-12-31',
+      }
+
+      vi.mocked(getServerSession).mockResolvedValueOnce(mockSession)
+
+      const mockAction = vi.fn()
+      const wrappedAction = withRole('admin', mockAction)
+
+      await expect(wrappedAction()).rejects.toThrow('Forbidden - Requires one of: admin')
+      expect(mockAction).not.toHaveBeenCalled()
+    })
+
+    it('should pass through action return value', async () => {
+      const mockSession: Session = {
+        accessToken: 'mock-jwt-token',
+        user: { id: '123', email: 'admin@example.com', roles: ['admin'] },
+        expires: '2025-12-31',
+      }
+
+      vi.mocked(getServerSession).mockResolvedValueOnce(mockSession)
+
+      const action = async (session: Session, id: number) => {
+        return { id, userId: session.user.id, count: 100 }
+      }
+
+      const wrappedAction = withRole('admin', action)
+      const result = await wrappedAction(42)
+
+      expect(result).toEqual({ id: 42, userId: '123', count: 100 })
+    })
+
+    it('should be case-sensitive for role matching', async () => {
+      const mockSession: Session = {
+        accessToken: 'mock-jwt-token',
+        user: { id: '123', email: 'admin@example.com', roles: ['Admin'] },
+        expires: '2025-12-31',
+      }
+
+      vi.mocked(getServerSession).mockResolvedValueOnce(mockSession)
+
+      const mockAction = vi.fn()
+      const wrappedAction = withRole('admin', mockAction)
+
+      await expect(wrappedAction()).rejects.toThrow('Forbidden - Requires one of: admin')
+      expect(mockAction).not.toHaveBeenCalled()
+    })
+
+    it('should propagate errors from wrapped action', async () => {
+      const mockSession: Session = {
+        accessToken: 'mock-jwt-token',
+        user: { id: '123', email: 'admin@example.com', roles: ['admin'] },
+        expires: '2025-12-31',
+      }
+
+      vi.mocked(getServerSession).mockResolvedValueOnce(mockSession)
+
+      const mockAction = vi.fn().mockRejectedValue(new Error('Database error'))
+      const wrappedAction = withRole('admin', mockAction)
+
+      await expect(wrappedAction()).rejects.toThrow('Database error')
     })
   })
 })
