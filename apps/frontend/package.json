@@ -9,8 +9,11 @@
   },
   "scripts": {
     "dev": "next dev -p 4321",
+    "dev:debug": "next dev -p 4321 --inspect",
+    "upgrade": "next upgrade",
     "build": "next build",
     "start": "next start -p 4321",
+    "bundle:analyze": "pnpm run build && next experimental-analyze",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test:unit": "vitest run",
