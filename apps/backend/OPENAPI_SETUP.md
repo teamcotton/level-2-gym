@@ -2,7 +2,7 @@
 
 ## What's Been Added
 
-### 1. OpenAPI Specification (`openapi.yaml`)
+### 1. OpenAPI Specification (`openapi.json`)
 
 - **Version**: OpenAPI 3.1.0
 - **Endpoints**: Root, health check, user registration, get user by ID
@@ -25,7 +25,7 @@
 
 - **@fastify/swagger**: Loads OpenAPI spec
 - **@fastify/swagger-ui**: Interactive documentation at `/docs`
-- **YAML Parser**: Parses `openapi.yaml` at startup
+- **YAML Parser**: Parses `openapi.json` at startup
 
 ### 4. NPM Scripts
 
@@ -77,7 +77,7 @@ Features:
 
 **Design → Validate → Document → Implement**
 
-1. **Edit `openapi.yaml`** to design new endpoints
+1. **Edit `openapi.json`** to design new endpoints
 2. **Run `pnpm run api:lint`** to validate spec
 3. **Review at `/docs`** in browser
 4. **Implement** in hexagonal layers:
@@ -85,7 +85,7 @@ Features:
 
 ## Example: Adding New Endpoint
 
-### 1. Add to `openapi.yaml`
+### 1. Add to `openapi.json`
 
 ```yaml
 paths:
@@ -169,19 +169,19 @@ Add to `.github/workflows/ci-cd.yml`:
 
 ## Next Steps
 
-1. **Add more endpoints** to `openapi.yaml`
+1. **Add more endpoints** to `openapi.json`
 2. **Enable authentication** in Swagger UI (JWT bearer tokens)
 3. **Generate TypeScript types** from OpenAPI (optional):
    ```bash
    pnpm add -D openapi-typescript
-   openapi-typescript openapi.yaml -o src/types/api.ts
+   openapi-typescript openapi.json -o src/types/api.ts
    ```
 4. **Implement endpoints** following hexagonal architecture
 5. **Add contract tests** using OpenAPI spec
 
 ## Resources
 
-- OpenAPI Spec: `backend/openapi.yaml`
+- OpenAPI Spec: `backend/openapi.json`
 - Spectral Config: `backend/.spectral.yaml`
 - Workflow Guide: `backend/API_FIRST_WORKFLOW.md`
 - Architecture: `backend/src/HEXAGONAL_ARCHITECTURE.txt`

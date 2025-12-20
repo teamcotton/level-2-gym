@@ -5,7 +5,6 @@ import swaggerUI from '@fastify/swagger-ui'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 
-
 export function buildApp(options?: FastifyServerOptions): FastifyInstance {
   const fastify = Fastify({
     logger: true,

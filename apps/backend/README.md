@@ -66,7 +66,7 @@ The server will start on `http://localhost:3000` (or `https://localhost:3000` if
 
 This project follows API-first development:
 
-1. **Design API** in `openapi.yaml`
+1. **Design API** in `openapi.json`
 2. **Validate** with Spectral: `pnpm run api:lint`
 3. **Review** at `http://localhost:3000/docs`
 4. **Implement** following the spec

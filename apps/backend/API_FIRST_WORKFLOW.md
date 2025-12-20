@@ -16,7 +16,7 @@ API-first development means designing and documenting your API specification bef
 
 ### OpenAPI (Swagger)
 
-- **Specification**: `openapi.yaml` - The single source of truth for the API
+- **Specification**: `openapi.json` - The single source of truth for the API
 - **Interactive Docs**: Available at `http://localhost:3000/docs` when server is running
 - **Standard**: OpenAPI 3.1.0 specification
 
@@ -30,7 +30,7 @@ API-first development means designing and documenting your API specification bef
 
 ### 1. Design API Specification First
 
-Before writing any code, define your API in `openapi.yaml`:
+Before writing any code, define your API in `openapi.json`:
 
 ```yaml
 paths:
@@ -100,7 +100,7 @@ Now implement the endpoints following the hexagonal architecture:
 
 As you implement:
 
-- Update `openapi.yaml` if the design needs to change
+- Update `openapi.json` if the design needs to change
 - Run `pnpm run api:lint` before commits
 - Regenerate types if using OpenAPI code generation
 
@@ -111,8 +111,8 @@ Add these scripts to `package.json`:
 ```json
 {
   "scripts": {
-    "api:lint": "spectral lint openapi.yaml",
-    "api:lint:fix": "spectral lint openapi.yaml --format=stylish",
+    "api:lint": "spectral lint openapi.json",
+    "api:lint:fix": "spectral lint openapi.json --format=stylish",
     "api:docs": "echo 'Visit http://localhost:3000/docs when server is running'",
     "dev": "tsx watch src/index.ts"
   }
@@ -209,7 +209,7 @@ servers:
 The OpenAPI spec maps to hexagonal layers:
 
 ```
-openapi.yaml (Contract)
+openapi.json (Contract)
     ↓
 adapters/primary/http/     # HTTP Controllers
     ↓
@@ -262,7 +262,7 @@ Add to GitHub Actions workflow:
 
 - name: Check API changes
   run: |
-    if git diff --name-only origin/main | grep -q openapi.yaml; then
+    if git diff --name-only origin/main | grep -q openapi.json; then
       echo "API spec changed - review required"
     fi
 ```
@@ -279,13 +279,13 @@ Add to GitHub Actions workflow:
 
 ```bash
 # Validate spec
-spectral lint openapi.yaml
+spectral lint openapi.json
 
 # Generate types (optional)
-openapi-typescript openapi.yaml -o src/types/api.ts
+openapi-typescript openapi.json -o src/types/api.ts
 
 # Convert YAML to JSON
-yq eval -o=json openapi.yaml > openapi.json
+yq eval -o=json openapi.json > openapi.json
 ```
 
 ## Resources
