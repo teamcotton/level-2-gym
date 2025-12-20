@@ -1,3 +1,4 @@
+/** @type {import('next').NextConfig} */
 import type { NextConfig } from 'next'
 import path from 'path'
 
@@ -10,6 +11,12 @@ const nextConfig: NextConfig = {
   // Configure image optimization if needed
   images: {
     remotePatterns: [],
+  },
+  experimental: {
+    serverActions: {
+      allowedOrigins: ['*'],
+      bodySizeLimit: '10mb',
+    },
   },
   // Set the workspace root for turbopack
   turbopack: {
