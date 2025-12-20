@@ -5,17 +5,18 @@ import { Role } from '../../domain/value-objects/role.js'
 import type { UserRepositoryPort } from '../ports/user.repository.port.js'
 import type { EmailServicePort } from '../ports/email.service.port.js'
 import type { LoggerPort } from '../ports/logger.port.js'
+import type { TokenGeneratorPort } from '../ports/token-generator.port.js'
 import { RegisterUserDto } from '../dtos/register-user.dto.js'
 import { ConflictException } from '../../shared/exceptions/conflict.exception.js'
 import { DatabaseUtil } from '../../shared/utils/database.util.js'
-import { JwtUtil } from '../../infrastructure/security/jwt.util.js'
 import { uuidv7 } from 'uuidv7'
 
 export class RegisterUserUseCase {
   constructor(
     private readonly userRepository: UserRepositoryPort,
     private readonly emailService: EmailServicePort,
-    private readonly logger: LoggerPort
+    private readonly logger: LoggerPort,
+    private readonly tokenGenerator: TokenGeneratorPort
   ) {}
 
   async execute(dto: RegisterUserDto): Promise<{ userId: string; access_token: string }> {
@@ -59,7 +60,7 @@ export class RegisterUserUseCase {
     this.logger.info('User registered successfully', { userId })
 
     // Generate JWT access token
-    const accessToken = JwtUtil.generateToken({
+    const accessToken = this.tokenGenerator.generateToken({
       sub: userId,
       email: dto.email,
       roles: [dto.role],

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RegisterUserDto } from '../../../src/application/dtos/register-user.dto.js'
 import type { EmailServicePort } from '../../../src/application/ports/email.service.port.js'
 import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
+import type { TokenGeneratorPort } from '../../../src/application/ports/token-generator.port.js'
 import type { UserRepositoryPort } from '../../../src/application/ports/user.repository.port.js'
 import { RegisterUserUseCase } from '../../../src/application/use-cases/register-user.use-case.js'
 import { User } from '../../../src/domain/entities/user.js'
@@ -14,6 +15,7 @@ describe('RegisterUserUseCase', () => {
   let mockUserRepository: UserRepositoryPort
   let mockEmailService: EmailServicePort
   let mockLogger: LoggerPort
+  let mockTokenGenerator: TokenGeneratorPort
 
   beforeEach(() => {
     // Reset all mocks before each test
@@ -42,8 +44,17 @@ describe('RegisterUserUseCase', () => {
       debug: vi.fn(),
     }
 
+    mockTokenGenerator = {
+      generateToken: vi.fn().mockReturnValue('mock-jwt-token'),
+    }
+
     // Create use case instance with mocks
-    useCase = new RegisterUserUseCase(mockUserRepository, mockEmailService, mockLogger)
+    useCase = new RegisterUserUseCase(
+      mockUserRepository,
+      mockEmailService,
+      mockLogger,
+      mockTokenGenerator
+    )
   })
 
   describe('execute()', () => {
@@ -451,19 +462,73 @@ describe('RegisterUserUseCase', () => {
         expect(savedUser).toBeDefined()
         expect(result.userId).toBe(savedUser!.id)
       })
+
+      it('should return access_token from token generator', async () => {
+        const dto = new RegisterUserDto('test@example.com', 'SecurePass123!', 'Test User')
+
+        vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
+        vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
+
+        const result = await useCase.execute(dto)
+
+        expect(result.access_token).toBe('mock-jwt-token')
+        expect(mockTokenGenerator.generateToken).toHaveBeenCalledTimes(1)
+      })
+    })
+
+    describe('token generation', () => {
+      it('should call token generator with correct user claims', async () => {
+        const dto = new RegisterUserDto('test@example.com', 'SecurePass123!', 'Test User')
+
+        vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
+        vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
+
+        const result = await useCase.execute(dto)
+
+        expect(mockTokenGenerator.generateToken).toHaveBeenCalledWith({
+          sub: result.userId,
+          email: 'test@example.com',
+          roles: ['user'],
+        })
+      })
+
+      it('should include admin role in token when user is admin', async () => {
+        const dto = new RegisterUserDto('admin@example.com', 'SecurePass123!', 'Admin User', 'admin')
+
+        vi.mocked(mockUserRepository.save).mockResolvedValue(undefined)
+        vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
+
+        const result = await useCase.execute(dto)
+
+        expect(mockTokenGenerator.generateToken).toHaveBeenCalledWith({
+          sub: result.userId,
+          email: 'admin@example.com',
+          roles: ['admin'],
+        })
+      })
     })
   })
 
   describe('constructor', () => {
     it('should create instance with all dependencies', () => {
-      const instance = new RegisterUserUseCase(mockUserRepository, mockEmailService, mockLogger)
+      const instance = new RegisterUserUseCase(
+        mockUserRepository,
+        mockEmailService,
+        mockLogger,
+        mockTokenGenerator
+      )
 
       expect(instance).toBeInstanceOf(RegisterUserUseCase)
       expect(instance).toBeDefined()
     })
 
     it('should store dependencies as private readonly properties', () => {
-      const instance = new RegisterUserUseCase(mockUserRepository, mockEmailService, mockLogger)
+      const instance = new RegisterUserUseCase(
+        mockUserRepository,
+        mockEmailService,
+        mockLogger,
+        mockTokenGenerator
+      )
 
       // Dependencies should be accessible (TypeScript private/readonly are compile-time only)
       expect(instance).toBeDefined()

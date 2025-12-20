@@ -179,7 +179,8 @@ describe('Container', () => {
       expect(RegisterUserUseCase).toHaveBeenCalledWith(
         container.userRepository,
         container.emailService,
-        container.logger
+        container.logger,
+        container.tokenGenerator
       )
     })
 
@@ -364,6 +365,7 @@ describe('Container', () => {
       expect(container).toHaveProperty('app')
       expect(container).toHaveProperty('logger')
       expect(container).toHaveProperty('emailService')
+      expect(container).toHaveProperty('tokenGenerator')
       expect(container).toHaveProperty('userRepository')
       expect(container).toHaveProperty('registerUserUseCase')
       expect(container).toHaveProperty('userController')

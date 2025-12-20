@@ -9,6 +9,7 @@ import { GetAllUsersUseCase } from '../../application/use-cases/get-all-users.us
 import { PostgresUserRepository } from '../../adapters/secondary/repositories/user.repository.js'
 import { ResendService } from '../../adapters/secondary/services/email.service.js'
 import { PinoLoggerService } from '../../adapters/secondary/services/logger.service.js'
+import { JwtTokenGeneratorService } from '../../adapters/secondary/services/jwt-token-generator.service.js'
 import { UserController } from '../../adapters/primary/http/user.controller.js'
 
 import { EnvConfig } from '../config/env.config.js'
@@ -25,6 +26,7 @@ export class Container {
   // Services
   public readonly logger: PinoLoggerService
   public readonly emailService: ResendService
+  public readonly tokenGenerator: JwtTokenGeneratorService
 
   // Repositories
   public readonly userRepository: PostgresUserRepository
@@ -94,6 +96,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
 
     // Initialize services (secondary adapters)
     this.emailService = new ResendService(EnvConfig.RESEND_API_KEY, this.logger)
+    this.tokenGenerator = new JwtTokenGeneratorService()
 
     // Initialize repositories (secondary adapters)
     this.userRepository = new PostgresUserRepository()
@@ -105,7 +108,8 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     this.registerUserUseCase = new RegisterUserUseCase(
       this.userRepository,
       this.emailService,
-      this.logger
+      this.logger,
+      this.tokenGenerator
     )
     this.getAllUsersUseCase = new GetAllUsersUseCase(this.userRepository, this.logger)
 
