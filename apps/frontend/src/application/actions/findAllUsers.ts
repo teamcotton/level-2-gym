@@ -1,3 +1,4 @@
+import { UnifiedLogger } from '@/application/services/logger.service.js'
 import type { PaginatedUsersResponse, User } from '@/domain/user/user.js'
 
 export interface FindAllUsersParams {
@@ -12,6 +13,8 @@ export interface FindAllUsersResult {
   total: number
   error?: string
 }
+
+const logger = new UnifiedLogger({ prefix: '[find-all-users]' })
 
 /**
  * Fetch all users with pagination from the API.
@@ -30,6 +33,15 @@ export async function findAllUsers(params: FindAllUsersParams): Promise<FindAllU
       cache: 'no-store',
       signal,
     })
+
+    if (response.status === 404) {
+      return {
+        success: false,
+        users: [],
+        total: 0,
+        error: `Failed find users: Server returned ${response.status} ${response.statusText}. Please check your API URL in the .env file.`,
+      }
+    }
 
     if (!response.ok) {
       return {
@@ -61,7 +73,7 @@ export async function findAllUsers(params: FindAllUsersParams): Promise<FindAllU
     if (error instanceof Error && error.name === 'AbortError') {
       throw error
     }
-    console.warn('Error fetching users:', error)
+    logger.warn('Error fetching users:', error)
     return {
       success: false,
       users: [],

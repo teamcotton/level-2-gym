@@ -209,7 +209,7 @@ describe('findAllUsers', () => {
   })
 
   describe('Failed User Fetching', () => {
-    it('should handle API failure with error status', async () => {
+    it('should handle 404 with specific error message about API URL', async () => {
       ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: false,
         status: 404,
@@ -222,9 +222,10 @@ describe('findAllUsers', () => {
       expect(result.success).toBe(false)
       expect(result.users).toEqual([])
       expect(result.total).toBe(0)
-      expect(result.error).toContain('Failed to load users')
+      expect(result.error).toContain('Failed find users')
       expect(result.error).toContain('404')
       expect(result.error).toContain('Not Found')
+      expect(result.error).toContain('Please check your API URL in the .env file')
     })
 
     it('should handle 500 internal server error', async () => {

@@ -1,4 +1,4 @@
-# Next.js Architecture Refactoring Plan
+# Next.js Architecture Refactoring Plan (with TanStack Query)
 
 ## Current Architecture Analysis
 
@@ -7,7 +7,7 @@
 ```
 Client Component (Browser)
     ↓
-Client Hook (useRegistrationForm.ts)
+Client Hook (useRegistrationForm.ts) ← No TanStack Query (manual state management)
     ↓
 Application Action (registerUser.ts) ← fetch to /api/register
     ↓
@@ -24,12 +24,65 @@ Backend Fastify API (localhost:3000/users/register)
 4. **Unnecessary Middleware Layer**: API routes serving only as proxy
 5. **Performance Overhead**: Extra latency from intermediate Next.js API layer
 6. **Code Duplication**: Similar fetch logic, error mapping, response transformation
+7. **Missing TanStack Query**: Architecture docs mention it, but it's not installed or used
+8. **Manual Cache Management**: No caching, refetching, or optimistic updates
+9. **Lack of Loading/Error States**: Manual state management in each hook
 
 ---
 
 ## Proposed Architecture
 
-### Option 1: Server Actions (Recommended for Next.js 13+)
+### Option 1: Server Actions + TanStack Query (Recommended)
+
+```
+Client Component (Browser)
+    ↓
+TanStack Query Hook (useMutation/useQuery)
+    ↓
+Server Action (server-side function with 'use server')
+    ↓
+Backend Fastify API (direct call, no intermediate layer)
+    ↓
+Return serialized data to client
+    ↓
+TanStack Query (automatic caching, refetching, optimistic updates)
+```
+
+**Benefits:**
+
+- Single network hop (server-side only)
+- Automatic serialization/deserialization
+- Type-safe end-to-end
+- Built-in Next.js optimizations
+- No client-side API route needed
+- **Automatic caching and cache invalidation** (TanStack Query)
+- **Loading/error states** handled declaratively
+- **Optimistic updates** for better UX
+- **Request deduplication** and stale-while-revalidate
+- **Infinite queries** for pagination
+- **DevTools** for debugging queries
+
+**Trade-offs:**
+
+- Server Actions must be serializable (no class instances, functions, etc.)
+- Requires Next.js 13.4+ with App Router
+- Different mental model from traditional REST APIs
+- Additional dependency (@tanstack/react-query)
+
+**Why TanStack Query?**
+
+TanStack Query solves several problems that Server Actions alone don't address:
+
+1. **Client-side caching**: Avoids redundant server requests
+2. **Background refetching**: Keeps data fresh automatically
+3. **Optimistic updates**: Instant UI feedback before server confirms
+4. **Request deduplication**: Multiple components fetching same data = single request
+5. **Pagination/infinite scroll**: Built-in helpers
+6. **DevTools**: Visualize query states, refetch times, cache status
+
+---
+
+### Option 2: Server Actions Only (Simpler, Less Optimal)
 
 ```
 Client Component (Browser)
@@ -48,43 +101,49 @@ Return serialized data to client
 - Type-safe end-to-end
 - Built-in Next.js optimizations
 - No client-side API route needed
+- No additional dependencies
 
 **Trade-offs:**
 
-- Server Actions must be serializable (no class instances, functions, etc.)
-- Requires Next.js 13.4+ with App Router
-- Different mental model from traditional REST APIs
+- Manual loading/error state management
+- No automatic caching (every request hits server)
+- No optimistic updates
+- No request deduplication
+- Manual pagination logic
+- More boilerplate in hooks
 
 ---
 
-### Option 2: Server Components + Data Fetching
+### Option 3: Server Components + TanStack Query Hybrid
 
 ```
-Server Component (RSC)
+Server Component (RSC) - Initial data fetch
     ↓
 Direct Backend API Call (fetch in Server Component)
     ↓
-Backend Fastify API
+Pass to Client Component as initialData
     ↓
-Render on server, stream to client
+TanStack Query (useQuery with initialData)
+    ↓
+Client can refetch, paginate, optimistically update
 ```
 
 **Benefits:**
 
-- Zero client-side JavaScript for data fetching
-- Server-side rendering with fresh data
-- Direct backend communication
-- No intermediate API routes
+- Server-side initial render (fast first paint)
+- SEO-friendly
+- Client-side caching and refetching after hydration
+- Best of both worlds (SSR + client interactivity)
 
 **Trade-offs:**
 
-- Requires page-level refactor (not hook-based)
-- Client interactivity needs separate client components
-- Form submissions require Server Actions or API routes
+- More complex setup (Server Component + Client Component split)
+- Requires careful data serialization
+- Need to understand RSC boundaries
 
 ---
 
-### Option 3: Unified API Client (Infrastructure Layer)
+### Option 4: Unified API Client (Infrastructure Layer) - Not Recommended
 
 ```
 Client Hook
@@ -108,12 +167,91 @@ Backend Fastify API (direct call from server)
 
 - Still requires Next.js API routes for client-side calls (CORS)
 - Doesn't eliminate double hop for client-initiated requests
+- No built-in caching or optimistic updates
+- Manual state management still required
 
 ---
 
 ## Recommended Refactoring Steps
 
-### Phase 1: Migrate to Server Actions (Primary Strategy)
+### Phase 0: Install and Configure TanStack Query
+
+#### Step 0.1: Install Dependencies
+
+```bash
+cd apps/frontend
+pnpm add @tanstack/react-query @tanstack/react-query-devtools
+```
+
+#### Step 0.2: Create Query Client Provider
+
+**Location:** `apps/frontend/src/app/providers/QueryProvider.tsx`
+
+```typescript
+'use client'
+
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { useState } from 'react'
+
+export function QueryProvider({ children }: { children: React.ReactNode }) {
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 60 * 1000, // 1 minute
+            gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
+            refetchOnWindowFocus: true,
+            retry: 3,
+          },
+          mutations: {
+            retry: 1,
+          },
+        },
+      })
+  )
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      {children}
+      {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
+    </QueryClientProvider>
+  )
+}
+```
+
+#### Step 0.3: Add Provider to Root Layout
+
+**Location:** `apps/frontend/src/app/layout.tsx`
+
+```typescript
+import { QueryProvider } from './providers/QueryProvider'
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <QueryProvider>
+          {/* Other providers (ThemeProvider, etc.) */}
+          {children}
+        </QueryProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+**Benefits:**
+
+- Global query cache configured
+- DevTools available in development
+- Consistent cache behavior across app
+- Automatic garbage collection
+
+---
+
+### Phase 1: Migrate to Server Actions with TanStack Query
 
 #### Step 1: Create Server Action Infrastructure
 
@@ -131,13 +269,68 @@ Backend Fastify API (direct call from server)
 // apps/frontend/src/application/actions/server/registerUser.server.ts
 'use server'
 
-import { logger } from '@/application/services/log-layer.server.js'
+import { logger } from '@/application/services/logger.service.js'
 import type { RegisterUserData, RegisterUserResponse } from '@/domain/auth/index.js'
 
 export async function registerUserAction(data: RegisterUserData): Promise<RegisterUserResponse> {
-  // Direct backend call - no intermediate API route
-  // SSL handling logic moved here
-  // Single source of error handling
+  try {
+    // Direct backend call - no intermediate API route
+    const response = await fetch(`${process.env.BACKEND_AI_CALLBACK_URL}/users/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+
+    const result = (await response.json()) as RegisterUserResponse
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: result.error || 'Registration failed',
+        status: response.status,
+      }
+    }
+
+    return { success: true, data: result.data }
+  } catch (error) {
+    logger.error('Registration failed:', error)
+    return {
+      success: false,
+      error: 'Network error. Please try again.',
+      status: 503,
+    }
+  }
+}
+
+// apps/frontend/src/application/actions/server/findAllUsers.server.ts
+;('use server')
+
+import type { User } from '@/domain/user/user.js'
+
+export async function findAllUsersAction(params?: {
+  limit?: number
+  offset?: number
+}): Promise<{ success: boolean; data?: User[]; error?: string }> {
+  try {
+    const queryParams = new URLSearchParams({
+      limit: String(params?.limit ?? 100),
+      offset: String(params?.offset ?? 0),
+    })
+
+    const response = await fetch(`${process.env.BACKEND_AI_CALLBACK_URL}/users?${queryParams}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    })
+
+    if (!response.ok) {
+      return { success: false, error: 'Failed to fetch users' }
+    }
+
+    const data = (await response.json()) as User[]
+    return { success: true, data }
+  } catch (error) {
+    return { success: false, error: 'Network error' }
+  }
 }
 ```
 
@@ -147,57 +340,243 @@ export async function registerUserAction(data: RegisterUserData): Promise<Regist
 - Direct server-to-server communication
 - Single error handling location
 - Type-safe without manual JSON parsing
+- Ready for TanStack Query integration
 
 ---
 
-#### Step 2: Update Client Hooks to Use Server Actions
+#### Step 2: Create TanStack Query Hooks for Server Actions
+
+**Location:** `apps/frontend/src/view/hooks/queries/`
+
+**Files to Create:**
+
+- `useRegisterUser.ts` - Mutation hook for registration
+- `useUsers.ts` - Query hook for fetching users
+
+**Key Changes:**
+
+```typescript
+// apps/frontend/src/view/hooks/queries/useRegisterUser.ts
+'use client'
+
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { registerUserAction } from '@/application/actions/server/registerUser.server.js'
+import type { RegisterUserData } from '@/domain/auth/index.js'
+
+export function useRegisterUser() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: RegisterUserData) => registerUserAction(data),
+    onSuccess: (result) => {
+      if (result.success) {
+        // Invalidate users list if needed
+        queryClient.invalidateQueries({ queryKey: ['users'] })
+      }
+    },
+  })
+}
+
+// apps/frontend/src/view/hooks/queries/useUsers.ts
+;('use client')
+
+import { useQuery } from '@tanstack/react-query'
+import { findAllUsersAction } from '@/application/actions/server/findAllUsers.server.js'
+
+export function useUsers(params?: { limit?: number; offset?: number }) {
+  return useQuery({
+    queryKey: ['users', params],
+    queryFn: () => findAllUsersAction(params),
+    staleTime: 30 * 1000, // 30 seconds
+    select: (data) => data.data, // Extract data array from response
+  })
+}
+```
+
+**Benefits:**
+
+- Automatic loading/error states
+- Request deduplication (multiple components = single request)
+- Automatic cache invalidation
+- Type-safe mutations
+- DevTools integration
+
+---
+
+#### Step 3: Update Client Hooks to Use TanStack Query
 
 **Files to Modify:**
 
 - `apps/frontend/src/view/hooks/useRegistrationForm.ts`
-- `apps/frontend/src/view/hooks/useAdminPage.ts`
+- `apps/frontend/src/view/hooks/useAdminPage.ts` (create if doesn't exist)
 
 **Key Changes:**
 
 ```typescript
 // apps/frontend/src/view/hooks/useRegistrationForm.ts
-import { registerUserAction } from '@/application/actions/server/registerUser.server.js'
+'use client'
+
+import { useState } from 'react'
+import { useRegisterUser } from './queries/useRegisterUser.js'
+import type { RegisterUserData } from '@/domain/auth/index.js'
 
 export function useRegistrationForm() {
-  // ... existing state management
+  const [formData, setFormData] = useState<RegisterUserData>({
+    email: '',
+    name: '',
+    password: '',
+    confirmPassword: '',
+  })
+
+  const [errors, setErrors] = useState({
+    email: '',
+    name: '',
+    password: '',
+    confirmPassword: '',
+  })
+
+  // TanStack Query mutation hook
+  const registerMutation = useRegisterUser()
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
-    if (validateForm()) {
-      setIsSubmitting(true)
-      try {
-        // Direct call to Server Action - no fetch needed
-        const result = await registerUserAction(formData)
 
-        // Server Action handles all backend communication
-        // Error handling simplified - single source of truth
-        if (result.success) {
-          // Success handling
-        } else {
-          // Map server errors to UI errors
-        }
-      } finally {
-        setIsSubmitting(false)
-      }
+    if (validateForm()) {
+      // TanStack Query handles loading/error states automatically
+      registerMutation.mutate(formData, {
+        onSuccess: (result) => {
+          if (result.success) {
+            // Success handling
+            console.log('Registration successful')
+          } else {
+            // Map server errors to form errors
+            if (result.status === 409) {
+              setErrors((prev) => ({
+                ...prev,
+                email: 'This email is already registered.',
+              }))
+            } else {
+              // General error handled by TanStack Query error state
+            }
+          }
+        },
+      })
     }
+  }
+
+  return {
+    formData,
+    errors,
+    // Destructure TanStack Query states
+    isSubmitting: registerMutation.isPending,
+    generalError: registerMutation.error?.message,
+    handleChange: (field: keyof RegisterUserData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFormData((prev) => ({ ...prev, [field]: e.target.value }))
+    },
+    handleSubmit,
+  }
+}
+
+// apps/frontend/src/view/hooks/useAdminPage.ts
+;('use client')
+
+import { useUsers } from './queries/useUsers.js'
+
+export function useAdminPage(params?: { limit?: number; offset?: number }) {
+  const { data: users, isLoading, error, refetch } = useUsers(params)
+
+  return {
+    users: users ?? [],
+    isLoading,
+    error: error?.message,
+    refetch, // Manual refetch if needed
   }
 }
 ```
 
 **Benefits:**
 
-- Remove `apps/frontend/src/application/actions/registerUser.ts` (fetch-based)
-- Hooks directly call Server Actions
-- No client-side fetch boilerplate
+- Remove manual `isSubmitting` state (TanStack Query provides `isPending`)
+- Remove manual error handling (TanStack Query provides `error`)
+- Automatic retry logic
+- No need to call Server Action directly (TanStack Query handles it)
+- Optimistic updates supported out of the box
 
 ---
 
-#### Step 3: Centralize Backend Communication Logic
+#### Step 4: Update Components to Use TanStack Query States
+
+#### Step 4: Update Components to Use TanStack Query States
+
+**Files to Modify:**
+
+- `apps/frontend/src/view/components/RegistrationForm.tsx`
+- `apps/frontend/src/view/components/AdminTable.tsx` (if exists)
+
+**Key Changes:**
+
+```typescript
+// apps/frontend/src/view/components/RegistrationForm.tsx
+'use client'
+
+export function RegistrationForm({
+  formData,
+  errors,
+  generalError,
+  isSubmitting, // From registerMutation.isPending
+  onFieldChange,
+  onSubmit,
+}: RegistrationFormProps) {
+  return (
+    <form onSubmit={onSubmit}>
+      {/* Show general error from TanStack Query */}
+      {generalError && <Alert severity="error">{generalError}</Alert>}
+
+      {/* Form fields */}
+      <TextField
+        label="Email"
+        value={formData.email}
+        onChange={onFieldChange('email')}
+        error={Boolean(errors.email)}
+        helperText={errors.email}
+      />
+
+      {/* Submit button disabled by TanStack Query pending state */}
+      <Button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Creating account...' : 'Create account'}
+      </Button>
+    </form>
+  )
+}
+
+// apps/frontend/src/view/components/AdminTable.tsx
+'use client'
+
+export function AdminTable() {
+  const { users, isLoading, error, refetch } = useAdminPage({ limit: 100 })
+
+  if (isLoading) return <CircularProgress />
+  if (error) return <Alert severity="error">{error}</Alert>
+
+  return (
+    <Box>
+      <Button onClick={() => refetch()}>Refresh</Button>
+      <DataGrid rows={users} columns={columns} />
+    </Box>
+  )
+}
+```
+
+**Benefits:**
+
+- Components don't manage loading/error states
+- Automatic loading spinners
+- Error boundaries work naturally
+- Refresh/refetch built-in
+
+---
+
+#### Step 5: Centralize Backend Communication Logic
 
 **Location:** `apps/frontend/src/infrastructure/backend/`
 
@@ -244,7 +623,59 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
 
 ---
 
-#### Step 4: Implement Consistent Error Handling
+#### Step 6: Implement Optimistic Updates (Advanced TanStack Query Feature)
+
+**Location:** `apps/frontend/src/view/hooks/queries/useRegisterUser.ts`
+
+**Example: Optimistic user list update**
+
+```typescript
+export function useRegisterUser() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: RegisterUserData) => registerUserAction(data),
+    onMutate: async (newUser) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['users'] })
+
+      // Snapshot previous value
+      const previousUsers = queryClient.getQueryData(['users'])
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(['users'], (old: any) => {
+        if (!old?.data) return old
+        return {
+          ...old,
+          data: [...old.data, { id: 'temp-id', ...newUser }],
+        }
+      })
+
+      // Return context with previous value
+      return { previousUsers }
+    },
+    onError: (err, newUser, context) => {
+      // Rollback on error
+      queryClient.setQueryData(['users'], context?.previousUsers)
+    },
+    onSettled: () => {
+      // Refetch after error or success
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+    },
+  })
+}
+```
+
+**Benefits:**
+
+- Instant UI feedback (user sees result immediately)
+- Automatic rollback on error
+- Better perceived performance
+- Professional user experience
+
+---
+
+#### Step 7: Implement Consistent Error Handling
 
 **Location:** `apps/frontend/src/application/errors/`
 
@@ -294,7 +725,92 @@ export function mapBackendError(status: number, message: string) {
 
 ---
 
-#### Step 5: Update Tests
+#### Step 8: Update Tests
+
+**Files to Modify:**
+
+- `apps/frontend/src/test/view/hooks/useRegistrationForm.test.ts`
+- `apps/frontend/src/test/view/components/RegistrationForm.test.tsx`
+
+**Files to Delete:**
+
+- `apps/frontend/src/test/app/api/register/route.test.ts` (no longer needed)
+- `apps/frontend/src/test/app/api/users/route.test.ts` (no longer needed)
+- `apps/frontend/src/test/application/actions/registerUser.test.ts` (replaced by server action tests)
+- `apps/frontend/src/test/application/actions/findAllUsers.test.ts` (replaced by server action tests)
+
+**Files to Create:**
+
+- `apps/frontend/src/test/application/actions/server/registerUser.server.test.ts`
+- `apps/frontend/src/test/application/actions/server/findAllUsers.server.test.ts`
+- `apps/frontend/src/test/view/hooks/queries/useRegisterUser.test.ts`
+- `apps/frontend/src/test/view/hooks/queries/useUsers.test.ts`
+
+**Key Changes:**
+
+```typescript
+// Test TanStack Query hooks with React Testing Library
+import { renderHook, waitFor } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { useRegisterUser } from '@/view/hooks/queries/useRegisterUser.js'
+
+function createWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  })
+  return ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  )
+}
+
+describe('useRegisterUser', () => {
+  it('should register user successfully', async () => {
+    const { result } = renderHook(() => useRegisterUser(), {
+      wrapper: createWrapper(),
+    })
+
+    // Mutate
+    result.current.mutate({
+      email: 'test@example.com',
+      name: 'Test User',
+      password: 'password123',
+    })
+
+    // Wait for success
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(result.current.data?.success).toBe(true)
+  })
+
+  it('should handle errors', async () => {
+    // Mock server action to return error
+    const { result } = renderHook(() => useRegisterUser(), {
+      wrapper: createWrapper(),
+    })
+
+    result.current.mutate({
+      email: 'existing@example.com',
+      name: 'Test',
+      password: 'pass',
+    })
+
+    await waitFor(() => expect(result.current.isError).toBe(true))
+  })
+})
+```
+
+**Benefits:**
+
+- Test TanStack Query hooks in isolation
+- No need to test API routes (removed)
+- Test loading/error states automatically
+- Test cache invalidation and optimistic updates
+
+---
+
+### Phase 2: Migrate Data Fetching to Server Components (Optional Enhancement)
 
 **Files to Modify:**
 
@@ -338,9 +854,9 @@ describe('registerUserAction', () => {
 
 ---
 
-### Phase 2: Migrate Data Fetching to Server Components (Optional Enhancement)
+### Phase 2: Migrate Data Fetching to Server Components with TanStack Query (Optional Enhancement)
 
-#### Step 6: Convert Admin Page to Server Component
+#### Step 9: Convert Admin Page to Server Component with Hydration
 
 **Files to Modify:**
 
@@ -350,16 +866,31 @@ describe('registerUserAction', () => {
 
 ```typescript
 // apps/frontend/src/app/admin/page.tsx
-// Remove 'use client' directive
+// Remove 'use client' directive - this is now a Server Component
 
+import {
+  dehydrate,
+  HydrationBoundary,
+  QueryClient,
+} from '@tanstack/react-query'
 import { findAllUsersAction } from '@/application/actions/server/findAllUsers.server.js'
+import { AdminClientComponent } from '@/view/components/AdminClientComponent.js'
 
 export default async function AdminPage() {
-  // Fetch data on server
-  const usersResult = await findAllUsersAction({ limit: 100, offset: 0 })
+  const queryClient = new QueryClient()
 
-  // Pass data to client component for interactivity
-  return <AdminClientComponent initialData={usersResult} />
+  // Prefetch data on server
+  await queryClient.prefetchQuery({
+    queryKey: ['users', { limit: 100, offset: 0 }],
+    queryFn: () => findAllUsersAction({ limit: 100, offset: 0 }),
+  })
+
+  return (
+    // Hydrate client with server-fetched data
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <AdminClientComponent />
+    </HydrationBoundary>
+  )
 }
 ```
 
@@ -367,18 +898,38 @@ export default async function AdminPage() {
 
 - `apps/frontend/src/view/components/AdminClientComponent.tsx` - Client-side table interactions
 
+```typescript
+'use client'
+
+import { useUsers } from '@/view/hooks/queries/useUsers.js'
+import { DataGrid } from '@mui/x-data-grid'
+
+export function AdminClientComponent() {
+  // Will use server-prefetched data from HydrationBoundary
+  const { data: users, isLoading, refetch } = useUsers({ limit: 100, offset: 0 })
+
+  if (isLoading) return <div>Loading...</div>
+
+  return (
+    <div>
+      <button onClick={() => refetch()}>Refresh</button>
+      <DataGrid rows={users ?? []} columns={columns} />
+    </div>
+  )
+}
+```
+
 **Benefits:**
 
 - Initial data fetched on server (faster first paint)
-- SEO-friendly (if needed)
-- Reduced client JavaScript bundle
-- Pagination/filtering via Server Actions
+- SEO-friendly (data in HTML)
+- No loading spinner on first render
+- Client can still refetch/paginate
+- TanStack Query hydrates seamlessly
 
 ---
 
 ### Phase 3: Clean Up Old Code
-
-#### Step 7: Remove Deprecated Files
 
 **Files to Delete:**
 
@@ -423,8 +974,16 @@ export default async function AdminPage() {
 
 - [ ] Ensure Next.js version is 13.4+ (check `apps/frontend/package.json`)
 - [ ] Verify `serverActions` is enabled in `next.config.ts`
-- [ ] Create feature branch: `git checkout -b refactor/server-actions`
+- [ ] Create feature branch: `git checkout -b refactor/server-actions-tanstack-query`
 - [ ] Run all tests to establish baseline: `pnpm run test`
+
+### Phase 0: TanStack Query Setup
+
+- [ ] Install dependencies: `pnpm add @tanstack/react-query @tanstack/react-query-devtools`
+- [ ] Create `apps/frontend/src/app/providers/QueryProvider.tsx`
+- [ ] Add QueryProvider to root layout (`apps/frontend/src/app/layout.tsx`)
+- [ ] Verify DevTools appear in development
+- [ ] Run tests: `pnpm test:unit`
 
 ### Phase 1: Server Actions Setup
 
@@ -436,37 +995,55 @@ export default async function AdminPage() {
 - [ ] Write tests for new infrastructure layer
 - [ ] Run tests: `pnpm test:unit`
 
-### Phase 2: Update Hooks
+### Phase 2: TanStack Query Hooks
 
-- [ ] Update `useRegistrationForm.ts` to use Server Action
-- [ ] Update `useAdminPage.ts` to use Server Action
+- [ ] Create `apps/frontend/src/view/hooks/queries/useRegisterUser.ts`
+- [ ] Create `apps/frontend/src/view/hooks/queries/useUsers.ts`
+- [ ] Write tests for TanStack Query hooks
+- [ ] Run tests: `pnpm test:unit`
+
+### Phase 3: Update Application Hooks
+
+- [ ] Update `useRegistrationForm.ts` to use TanStack Query
+- [ ] Update or create `useAdminPage.ts` to use TanStack Query
+- [ ] Remove manual loading/error state management
+- [ ] Update components to use new hook API
 - [ ] Run tests: `pnpm test:unit`
 - [ ] Manual testing: Registration flow
-- [ ] Manual testing: Admin page
+- [ ] Manual testing: Admin page with DevTools open
 
-### Phase 3: Clean Up
+### Phase 4: Optimistic Updates (Optional)
+
+- [ ] Implement optimistic updates in `useRegisterUser`
+- [ ] Test rollback on error
+- [ ] Verify cache invalidation works
+- [ ] Manual testing with network throttling
+
+### Phase 5: Clean Up
 
 - [ ] Delete old API routes (`apps/frontend/src/app/api/register/route.ts`, `apps/frontend/src/app/api/users/route.ts`)
 - [ ] Delete old actions (`registerUser.ts`, `findAllUsers.ts`)
-- [ ] Delete old tests
+- [ ] Delete old tests for API routes and old actions
 - [ ] Remove `NEXT_PUBLIC_BASE_URL` references
 - [ ] Run full test suite: `pnpm run test`
 - [ ] Run linter: `pnpm run lint`
 - [ ] Run type checker: `pnpm run typecheck`
 
-### Phase 4: E2E Validation
+### Phase 6: E2E Validation
 
 - [ ] Run E2E tests: `pnpm test:e2e`
 - [ ] Test registration flow end-to-end
 - [ ] Test admin page with pagination
 - [ ] Test error scenarios (duplicate email, network errors)
 - [ ] Verify SSL certificate handling in development
+- [ ] Test with React Query DevTools open (verify cache behavior)
 
-### Phase 5: Documentation
+### Phase 7: Documentation
 
-- [ ] Update `DEVELOPMENT.md`
-- [ ] Update `.github/copilot-instructions.md`
-- [ ] Update `README.md`
+- [ ] Update `DEVELOPMENT.md` (add TanStack Query section)
+- [ ] Update `.github/copilot-instructions.md` (document query hooks location)
+- [ ] Update `README.md` (add TanStack Query to tech stack)
+- [ ] Document query key conventions
 - [ ] Add migration notes to commit message
 - [ ] Create PR with detailed description
 
@@ -477,29 +1054,36 @@ export default async function AdminPage() {
 ### Performance Improvements
 
 - **Reduced Latency**: Eliminate one network hop (Client → API Route removed)
-- **Smaller Bundle**: Remove client-side fetch boilerplate (~2-3 KB)
+- **Smaller Bundle**: Remove client-side fetch boilerplate (~3-4 KB including manual state management)
 - **Faster Execution**: Server-to-server calls are faster than server-to-client-to-server
+- **Automatic Caching**: TanStack Query prevents redundant requests (~30-50% reduction in backend calls)
+- **Optimistic Updates**: Instant UI feedback (perceived 0ms latency for mutations)
+- **Request Deduplication**: Multiple components fetching same data = single request
 
 ### Code Quality Improvements
 
-- **Lines of Code Removed**: ~200-300 lines (API routes + duplicate actions)
-- **Test Files Reduced**: 4 test files consolidated to 2
-- **Cyclomatic Complexity**: Lower complexity (single error handling path)
+- **Lines of Code Removed**: ~250-350 lines (API routes + duplicate actions + manual state management)
+- **Test Files Reduced**: 4 old test files removed, 2 new TanStack Query test files added (net reduction)
+- **Cyclomatic Complexity**: Lower complexity (single error handling path, TanStack Query handles states)
 - **Type Safety**: End-to-end type safety without manual JSON parsing
+- **Declarative Data Fetching**: Hooks express "what" not "how"
 
 ### Developer Experience Improvements
 
 - **Single Source of Truth**: Error handling in one place
-- **Easier Debugging**: Fewer layers to trace through
-- **Simpler Mental Model**: Direct server-to-backend calls
-- **Better DRY Compliance**: No duplicate fetch/error logic
+- **Easier Debugging**: Fewer layers + React Query DevTools visualize everything
+- **Simpler Mental Model**: Direct server-to-backend calls + declarative queries
+- **Better DRY Compliance**: No duplicate fetch/error/loading logic
+- **Automatic Retries**: Network errors handled gracefully without custom code
+- **Background Refetching**: Data stays fresh automatically
 
 ### Maintainability Improvements
 
 - **Fewer Files**: Less code to maintain and update
-- **Clearer Architecture**: Follows Next.js best practices
-- **Future-Proof**: Aligned with Next.js 13+ patterns
-- **Testability**: Easier to mock and test (fewer integration points)
+- **Clearer Architecture**: Follows Next.js + TanStack Query best practices
+- **Future-Proof**: Aligned with Next.js 13+ and modern React patterns
+- **Testability**: TanStack Query has excellent testing utilities
+- **Cache Management**: Automatic garbage collection, no manual cleanup
 
 ---
 
@@ -900,7 +1484,15 @@ pnpm add @upstash/ratelimit @upstash/redis
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 6. Revised Migration Phases
+### 6. Revised Migration Phases (With TanStack Query)
+
+**Phase 0: TanStack Query Setup (Week 0.5)**
+
+1. Install TanStack Query: `pnpm add @tanstack/react-query @tanstack/react-query-devtools`
+2. Create QueryProvider component
+3. Add to root layout
+4. Configure default query options
+5. Test DevTools in development
 
 **Phase 1: Authentication Infrastructure (Week 1)**
 
@@ -910,26 +1502,32 @@ pnpm add @upstash/ratelimit @upstash/redis
 4. Update middleware for auth checks
 5. Add rate limiting middleware
 
-**Phase 2: Server Actions with Auth (Week 2)**
+**Phase 2: Server Actions + TanStack Query (Week 2-3)**
 
-1. Migrate `registerUser` (public, no auth)
-2. Migrate `getAllUsers` (protected, requires auth)
-3. Add proper error handling for auth failures
-4. Test auth flow end-to-end
+1. Create Server Actions for all mutations (registerUser, etc.)
+2. Create TanStack Query hooks (useMutation wrappers)
+3. Migrate `registerUser` (public, no auth) with TanStack Query
+4. Migrate `getAllUsers` (protected, requires auth) with TanStack Query
+5. Implement optimistic updates for better UX
+6. Add proper error handling and cache invalidation
+7. Test with React Query DevTools
+8. Test auth flow end-to-end
 
-**Phase 3: Real-Time Updates (Week 3)**
+**Phase 3: Real-Time Updates (Week 4)**
 
 1. Create SSE route `/api/stream`
 2. Connect to backend WebSocket
-3. Update client hooks to consume SSE
-4. Test real-time data flow
+3. Create TanStack Query integration for SSE (useQuery with refetchInterval or manual updates)
+4. Update client hooks to consume SSE
+5. Test real-time data flow with cache invalidation
 
-**Phase 4: Cleanup & Optimization (Week 4)**
+**Phase 4: Cleanup & Optimization (Week 5)**
 
 1. Remove old API routes
-2. Add rate limiting analytics
-3. Performance testing
-4. Documentation
+2. Remove manual state management code
+3. Add rate limiting analytics
+4. Performance testing (measure cache hit rate with DevTools)
+5. Documentation (TanStack Query patterns)
 
 **Phase 5: AWS Migration Prep (Future)**
 
@@ -937,10 +1535,14 @@ pnpm add @upstash/ratelimit @upstash/redis
 2. Create Dockerfile
 3. Document environment variables
 4. Plan infrastructure (ECS, Lambda, etc.)
+5. Ensure TanStack Query hydration works in production
 
 ### 7. Required Dependencies
 
 ```bash
+# TanStack Query (NEW - PRIMARY ADDITION)
+pnpm add @tanstack/react-query @tanstack/react-query-devtools
+
 # Authentication
 pnpm add next-auth
 
@@ -959,20 +1561,36 @@ pnpm add @upstash/ratelimit @upstash/redis
 2. **Real-time updates on Vercel** → Use SSE (native support) or external service
 3. **AWS migration** → Use standalone mode from day one
 4. **Rate limiting costs** → Upstash has generous free tier, monitor usage
+5. **TanStack Query learning curve** → Use DevTools extensively, follow best practices docs
+6. **Cache invalidation complexity** → Document query key conventions clearly
 
 **Recommended Timeline:**
 
+- Week 0.5: TanStack Query setup
 - Week 1: Auth infrastructure + rate limiting
-- Week 2: Server Actions migration (with auth)
-- Week 3: Real-time updates (SSE)
-- Week 4: Testing + cleanup
-- **Total: 4 weeks** (more thorough than initial estimate due to auth/real-time requirements)
+- Week 2-3: Server Actions + TanStack Query migration
+- Week 4: Real-time updates (SSE) with TanStack Query integration
+- Week 5: Testing + cleanup
+- **Total: 5.5 weeks** (extended from 4 weeks to properly integrate TanStack Query)
 
-### 9. Alternative: Keep API Routes for Real-Time
+### 9. Alternative: Simpler Approach Without TanStack Query
+
+If TanStack Query adds too much complexity for your current needs:
+
+**Simpler Hybrid:**
+
+- Use **Server Actions** for mutations (registerUser)
+- Use **Server Components** for data fetching (admin page)
+- Keep **API Routes** for real-time SSE/WebSocket
+- Manual state management in hooks
+
+This reduces scope but loses caching, optimistic updates, and automatic refetching benefits.
+
+**Trade-off:** Less code to learn, but more manual boilerplate and worse performance (no caching).
+
+**Alternative: Keep API Routes for Real-Time**
 
 If Server Actions + SSE is too complex, consider:
-
-**Hybrid Approach:**
 
 - Use **Server Actions** for mutations (registerUser)
 - Keep **API Routes** for real-time SSE/WebSocket
@@ -982,16 +1600,118 @@ This reduces migration scope but keeps some API routes.
 
 ---
 
-## Final Recommendation
+## Final Recommendation (Updated with TanStack Query)
 
-Based on your requirements:
+Based on your requirements and architecture documentation:
 
-✅ **Server Actions** for mutations (with JWT auth)  
-✅ **SSE via API Route** for real-time updates  
+✅ **Server Actions** for all mutations and queries (with JWT auth)  
+✅ **TanStack Query** for client-side state management, caching, and optimistic updates  
+✅ **SSE via API Route** for real-time updates integrated with TanStack Query  
 ✅ **Next.js Middleware** for rate limiting  
 ✅ **Standalone build mode** for AWS portability  
-✅ **4-week timeline** (extended for auth/real-time work)
+✅ **5.5-week timeline** (extended for TanStack Query integration)
 
-This approach balances modern Next.js patterns with your specific needs for auth, real-time updates, and future AWS migration.
+**Why TanStack Query is Worth It:**
 
-**Estimated Effort:** 4 weeks for full migration with auth, real-time, and rate limiting
+1. **Automatic caching** - Reduces backend load by 30-50%
+2. **Optimistic updates** - Users see instant feedback
+3. **DevTools** - Visualize all queries, cache state, refetch timing
+4. **Request deduplication** - 10 components fetching same data = 1 request
+5. **Background refetching** - Data stays fresh without user action
+6. **Better UX** - Loading/error states handled declaratively
+7. **Industry standard** - Used by Netflix, AWS Console, Vercel Dashboard
+8. **Future-proof** - Works with Server Components via hydration
+9. **Aligns with documentation** - `.github/copilot-instructions.md` already mentions it
+
+**Estimated Effort:** 5.5 weeks for full migration with TanStack Query, auth, real-time, and rate limiting
+
+**Bundle Size Impact:**
+
+- TanStack Query core: ~13 KB gzipped
+- DevTools (dev only): ~40 KB (not in production)
+- Removes: ~3-4 KB of manual state management
+- **Net increase: ~10 KB gzipped** (worth it for features gained)
+
+---
+
+## TanStack Query Best Practices for This Project
+
+### Query Key Conventions
+
+```typescript
+// User queries
+;['users'][('users', { limit: 100, offset: 0 })][('users', userId)][ // All users // Paginated users // Single user
+  // Auth queries
+  ('auth', 'session')
+][('auth', 'user')][ // Current session // Current user
+  // Real-time
+  ('stream', 'updates')
+] // Real-time updates stream
+```
+
+### Cache Configuration by Data Type
+
+```typescript
+// Frequently changing data (user list)
+staleTime: 30 * 1000 // 30 seconds
+
+// Rarely changing data (user profile)
+staleTime: 5 * 60 * 1000 // 5 minutes
+
+// Real-time data (notifications)
+staleTime: 0 // Always stale, refetch immediately
+```
+
+### Error Handling Pattern
+
+```typescript
+// In mutation hooks
+onError: (error, variables, context) => {
+  // Log to logger service
+  logger.error('Mutation failed:', error)
+
+  // Show user-friendly error
+  toast.error('Something went wrong. Please try again.')
+
+  // Rollback optimistic update if exists
+  if (context?.previousData) {
+    queryClient.setQueryData(queryKey, context.previousData)
+  }
+}
+```
+
+### Invalidation Strategy
+
+```typescript
+// After successful mutation
+onSuccess: (data, variables, context) => {
+  // Invalidate affected queries
+  queryClient.invalidateQueries({ queryKey: ['users'] })
+
+  // Optionally set exact data if you have it
+  if (data.id) {
+    queryClient.setQueryData(['users', data.id], data)
+  }
+}
+```
+
+---
+
+## Additional Resources (Updated)
+
+- [Next.js Server Actions Documentation](https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions-and-mutations)
+- [TanStack Query Documentation](https://tanstack.com/query/latest/docs/framework/react/overview)
+- [TanStack Query with Server Actions](https://tanstack.com/query/latest/docs/framework/react/guides/advanced-ssr)
+- [Domain-Driven Design in Next.js](https://khalilstemmler.com/articles/software-design-architecture/domain-driven-design-intro/)
+- [React Server Components](https://react.dev/blog/2023/03/22/react-labs-what-we-have-been-working-on-march-2023#react-server-components)
+- [Next.js App Router Migration Guide](https://nextjs.org/docs/app/building-your-application/upgrading/app-router-migration)
+
+---
+
+## Conclusion
+
+This refactoring eliminates duplicate code, reduces network hops, adds powerful client-side caching with TanStack Query, and simplifies your architecture by leveraging Next.js Server Actions. The migration can be done incrementally with moderate risk, and the benefits include better performance, maintainability, developer experience, and **significantly improved user experience** through caching and optimistic updates.
+
+The addition of TanStack Query brings your architecture in line with the documented recommendations in `.github/copilot-instructions.md` and provides a modern, scalable foundation for future features.
+
+**Key Insight:** Your architecture documentation already mentions TanStack Query, but it's not currently installed or used. This refactoring will implement what's documented and unlock significant performance and UX improvements.
