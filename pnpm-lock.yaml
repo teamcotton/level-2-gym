@@ -246,15 +246,9 @@ importers:
       '@mui/x-data-grid-generator':
         specifier: ^8.22.1
         version: 8.22.1(8963d4d9c7f88e6c4105caead78c681c)
-      '@tanstack/eslint-plugin-query':
-        specifier: ^5.91.2
-        version: 5.91.2(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
       '@tanstack/react-query':
         specifier: ^5.90.12
         version: 5.90.12(react@19.2.3)
-      '@tanstack/react-query-devtools':
-        specifier: ^5.91.1
-        version: 5.91.1(@tanstack/react-query@5.90.12(react@19.2.3))(react@19.2.3)
       '@types/react':
         specifier: ^19.2.7
         version: 19.2.7
@@ -307,6 +301,12 @@ importers:
       '@playwright/test':
         specifier: ^1.57.0
         version: 1.57.0
+      '@tanstack/eslint-plugin-query':
+        specifier: ^5.91.2
+        version: 5.91.2(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
+      '@tanstack/react-query-devtools':
+        specifier: ^5.91.1
+        version: 5.91.1(@tanstack/react-query@5.90.12(react@19.2.3))(react@19.2.3)
       '@testcontainers/postgresql':
         specifier: ^11.10.0
         version: 11.10.0
