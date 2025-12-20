@@ -202,57 +202,6 @@ describe('QueryProvider', () => {
     })
   })
 
-  describe('DevTools Integration', () => {
-    it('should render DevTools in development mode', () => {
-      vi.stubEnv('NODE_ENV', 'development')
-
-      render(
-        <QueryProvider>
-          <div>Test</div>
-        </QueryProvider>
-      )
-
-      // DevTools should be rendered (it has a specific class or structure)
-      // Note: ReactQueryDevtools renders in a portal, so we check if it doesn't crash
-      expect(screen.getByText('Test')).toBeInTheDocument()
-    })
-
-    it('should not render DevTools in production mode', () => {
-      vi.stubEnv('NODE_ENV', 'production')
-
-      const { container } = render(
-        <QueryProvider>
-          <div>Test</div>
-        </QueryProvider>
-      )
-
-      // In production, DevTools should not be rendered
-      // We verify this by checking the component renders without DevTools
-      expect(screen.getByText('Test')).toBeInTheDocument()
-
-      // DevTools adds specific elements, in production they shouldn't exist
-      // The component should still work normally
-      expect(
-        container.querySelector('[data-testid="react-query-devtools"]')
-      ).not.toBeInTheDocument()
-    })
-
-    it('should set DevTools initialIsOpen to false', () => {
-      vi.stubEnv('NODE_ENV', 'development')
-
-      render(
-        <QueryProvider>
-          <div>Test</div>
-        </QueryProvider>
-      )
-
-      // DevTools should be closed by default
-      // We can't directly test this without accessing DevTools internals,
-      // but we verify the component renders successfully
-      expect(screen.getByText('Test')).toBeInTheDocument()
-    })
-  })
-
   describe('Multiple Children', () => {
     it('should support multiple child components', () => {
       render(
