@@ -2,8 +2,8 @@ name: Update Minor Dependencies
 
 on:
   schedule:
-    # Run every Monday at 9:00 AM UTC
-    - cron: '0 9 * * 1'
+    # Run every day at 9:00 AM UTC
+    - cron: '0 9 * * *'
   workflow_dispatch: # Allow manual trigger
 
 jobs:
@@ -33,7 +33,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Update minor and patch dependencies
+      - name: Update minor and patch dependencies in root
+        run: pnpm update
+
+      - name: Update minor and patch dependencies in frontend
+        working-directory: ./apps/frontend
+        run: pnpm update
+
+      - name: Update minor and patch dependencies in backend
+        working-directory: ./apps/backend
         run: pnpm update
 
       - name: Run tests to check for breaking changes
