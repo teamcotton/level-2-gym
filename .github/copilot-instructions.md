@@ -200,6 +200,7 @@ pnpm typecheck    # TypeScript type checking (no emit)
 - `pnpm run test:e2e` - Run E2E tests (skipped if `SKIP_E2E=1` is set)
 
 To skip E2E tests during pre-push (useful for CI or automated environments), set `SKIP_E2E=1`:
+
 ```bash
 SKIP_E2E=1 git push
 ```
