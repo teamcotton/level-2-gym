@@ -184,3 +184,4 @@ Current test status (branch): unit test suite passes locally (example run: `700`
 - [Next.js Middleware Docs](https://nextjs.org/docs/app/building-your-application/routing/middleware)
 - [NextAuth Middleware](https://next-auth.js.org/configuration/nextjs#in-middleware)
 - [REFACTORING_PLAN.md](../../../REFACTORING_PLAN.md) - Phase 1 guidance
+````
