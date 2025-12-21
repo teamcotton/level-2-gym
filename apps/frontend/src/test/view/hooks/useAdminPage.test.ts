@@ -66,9 +66,7 @@ describe('useAdminPage', () => {
 
       const { result } = renderHook(() => useAdminPage())
 
-      await waitFor(() => {
-        expect(result.current.loading).toBe(true)
-      })
+      expect(result.current.loading).toBe(true)
     })
 
     it('should initialize with no error', async () => {
