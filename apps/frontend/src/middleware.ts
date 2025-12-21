@@ -136,8 +136,10 @@ export async function middleware(request: Request) {
   const isAction = request.method === 'POST'
 
   if (isApiRoute || isAction) {
-    const ip =
-      request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
+    const xForwardedFor = request.headers.get('x-forwarded-for')
+    const ipFromHeader =
+      xForwardedFor && xForwardedFor.length > 0 ? xForwardedFor.split(',')[0]?.trim() || '' : ''
+    const ip = ipFromHeader || request.headers.get('x-real-ip') || 'unknown'
     type TokenLike = { sub?: string; id?: string } | undefined
     const tokenLike = token as TokenLike
     const userId = tokenLike?.sub ?? tokenLike?.id
