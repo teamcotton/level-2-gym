@@ -17,6 +17,34 @@ const RATE_LIMIT_MAX =
     : DEFAULT_RATE_LIMIT_MAX
 const rateMap = new Map<string, number[]>()
 
+// Periodic cleanup to prevent unbounded growth of `rateMap`.
+// This job:
+// - Prunes timestamps older than the current sliding window.
+// - Removes keys whose timestamp arrays become empty.
+const RATE_LIMIT_CLEANUP_INTERVAL_SECONDS = RATE_LIMIT_WINDOW * 2
+const rateMapCleanupTimer = setInterval(() => {
+  const cutoff = nowSeconds() - RATE_LIMIT_WINDOW
+  for (const [key, timestamps] of rateMap) {
+    const filtered = timestamps.filter((ts) => ts > cutoff)
+    if (filtered.length === 0) {
+      rateMap.delete(key)
+    } else if (filtered.length !== timestamps.length) {
+      rateMap.set(key, filtered)
+    }
+  }
+}, RATE_LIMIT_CLEANUP_INTERVAL_SECONDS * 1000)
+// In Node.js environments, avoid keeping the event loop alive solely for cleanup.
+// `unref` is not available in all runtimes (e.g. some edge runtimes), so guard it.
+// `unref` may not exist in all runtimes (edge, workers). Call it only when
+// available to avoid runtime errors and ESLint warnings about unexpected
+// expressions.
+// Avoid casting to `any` to satisfy `@typescript-eslint/no-explicit-any`.
+type TimerWithUnref = { unref?: () => void }
+const timerWithUnref = rateMapCleanupTimer as unknown as TimerWithUnref
+if (typeof timerWithUnref.unref === 'function') {
+  timerWithUnref.unref()
+}
+
 /**
  * Reset the in-memory rate limiter state.
  *
