@@ -32,6 +32,19 @@ export function __resetRateLimiter() {
 }
 
 /**
+ * Get the current size of the rate limiter map.
+ *
+ * This helper returns the number of keys currently stored in the internal
+ * `rateMap`. It is intended for use in tests to verify memory cleanup
+ * behavior. Do NOT use this in production code.
+ *
+ * @returns {number} The number of keys in the rate limiter map.
+ */
+export function __getRateLimiterSize() {
+  return rateMap.size
+}
+
+/**
  * Return the current time in whole seconds since the UNIX epoch.
  *
  * This is a small helper used by the in-memory rate limiter to compare and
@@ -80,6 +93,11 @@ export function checkAndUpdateRate(key: string) {
     // store back the filtered array (unchanged)
     rateMap.set(key, filtered)
     return { success: false, limit: RATE_LIMIT_MAX, remaining: 0, resetAfter }
+  }
+
+  // Clean up memory: if all timestamps have expired, remove the key
+  if (filtered.length === 0) {
+    rateMap.delete(key)
   }
 
   // allow request: add current timestamp

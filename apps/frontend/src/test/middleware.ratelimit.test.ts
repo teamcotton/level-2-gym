@@ -2,7 +2,8 @@
 import { getToken } from 'next-auth/jwt'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { __resetRateLimiter, middleware } from '../middleware.js'
+import * as middlewareModule from '../middleware.js'
+import { __getRateLimiterSize, __resetRateLimiter, middleware } from '../middleware.js'
 
 vi.mock('next-auth/jwt', () => ({ getToken: vi.fn() }))
 
@@ -68,5 +69,56 @@ describe('Middleware Rate Limiting', () => {
     // first request uses 1 of 10, so remaining should be 9
     expect(res.headers.get('X-RateLimit-Remaining')).toBe('9')
     expect(res.headers.get('X-RateLimit-Reset')).toBeTruthy()
+  })
+
+  it('removes expired keys from rateMap to prevent memory bloat', () => {
+    // Set a very short window for testing
+    process.env.RATE_LIMIT_WINDOW = '2'
+    process.env.RATE_LIMIT_MAX = '5'
+
+    const testKey = 'test:key:cleanup'
+    let currentTime = Math.floor(Date.now() / 1000)
+
+    // Mock nowSeconds to return controlled time
+    const nowSecondsSpy = vi.spyOn(middlewareModule, 'nowSeconds')
+    nowSecondsSpy.mockReturnValue(currentTime)
+
+    // Make a request to add entry to rateMap
+    const result1 = middlewareModule.checkAndUpdateRate(testKey)
+    expect(result1.success).toBe(true)
+    expect(__getRateLimiterSize()).toBe(1)
+
+    // Advance time by 3 seconds (past the 2-second window)
+    currentTime += 3
+    nowSecondsSpy.mockReturnValue(currentTime)
+
+    // Make another request - the old timestamp should be filtered out
+    // and since filtered array is empty, the key should be deleted before adding new entry
+    const result2 = middlewareModule.checkAndUpdateRate(testKey)
+    expect(result2.success).toBe(true)
+
+    // After cleanup and adding new entry, we should have 1 entry in the map
+    expect(__getRateLimiterSize()).toBe(1)
+
+    // Advance time again by 3 seconds
+    currentTime += 3
+    nowSecondsSpy.mockReturnValue(currentTime)
+
+    // Make a request to a different key
+    const result3 = middlewareModule.checkAndUpdateRate('test:key:different')
+    expect(result3.success).toBe(true)
+    expect(__getRateLimiterSize()).toBe(2)
+
+    // Advance time by 3 more seconds
+    currentTime += 3
+    nowSecondsSpy.mockReturnValue(currentTime)
+
+    // Access the first key again - it should be cleaned up and recreated
+    const result4 = middlewareModule.checkAndUpdateRate(testKey)
+    expect(result4.success).toBe(true)
+    expect(__getRateLimiterSize()).toBe(2)
+
+    // Restore the spy
+    nowSecondsSpy.mockRestore()
   })
 })
