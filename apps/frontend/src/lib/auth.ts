@@ -38,9 +38,9 @@ export async function getAuthToken(): Promise<string | null> {
  * @example
  * ```typescript
  * // Wrap a Server Action with authentication
+ * 'with server'
  * export const protectedAction = withAuth(
  *   async (session: Session, data: SomeData) => {
- *     'use server'
  *     // Access session.user.id, session.accessToken, etc.
  *     const userId = session.user.id
  *     // Your protected logic here
@@ -102,9 +102,9 @@ export function withAuth<TArgs extends unknown[], TReturn>(
  * @example
  * ```typescript
  * // Require one of multiple roles
+ *  'use server'
  * export const moderatorAction = withRole(['admin', 'moderator'],
  *   async (session: Session, data: SomeData) => {
- *     'use server'
  *     // Admins or moderators can execute this
  *     return { success: true }
  *   }
