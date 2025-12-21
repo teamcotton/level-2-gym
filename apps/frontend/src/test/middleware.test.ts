@@ -2,6 +2,7 @@ import { getToken } from 'next-auth/jwt'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { middleware } from '../middleware.js'
+import { createMockToken } from './helpers/mockToken.js'
 
 // Mock next-auth/jwt
 vi.mock('next-auth/jwt', () => ({
@@ -96,16 +97,7 @@ describe('Middleware', () => {
 
   describe('Protected Routes - Authenticated', () => {
     beforeEach(() => {
-      vi.mocked(getToken).mockResolvedValue({
-        sub: '123',
-        name: 'Test User',
-        email: 'test@example.com',
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + 86400,
-        accessToken: 'mock-access-token',
-        id: '123',
-        roles: ['user'],
-      })
+      vi.mocked(getToken).mockResolvedValue(createMockToken())
     })
 
     it('should allow authenticated user to access /admin', async () => {
@@ -173,16 +165,7 @@ describe('Middleware', () => {
 
   describe('Auth Routes - Authenticated', () => {
     beforeEach(() => {
-      vi.mocked(getToken).mockResolvedValue({
-        sub: '123',
-        name: 'Test User',
-        email: 'test@example.com',
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + 86400,
-        accessToken: 'mock-access-token',
-        id: '123',
-        roles: ['user'],
-      })
+      vi.mocked(getToken).mockResolvedValue(createMockToken())
     })
 
     it('should redirect authenticated user from /login to /admin', async () => {
@@ -220,16 +203,7 @@ describe('Middleware', () => {
     })
 
     it('should allow authenticated user to access /', async () => {
-      vi.mocked(getToken).mockResolvedValue({
-        sub: '123',
-        name: 'Test User',
-        email: 'test@example.com',
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + 86400,
-        accessToken: 'mock-access-token',
-        id: '123',
-        roles: ['user'],
-      })
+      vi.mocked(getToken).mockResolvedValue(createMockToken())
       const request = createRequest('/')
       const response = await middleware(request)
 
@@ -245,16 +219,7 @@ describe('Middleware', () => {
     })
 
     it('should allow authenticated user to access /about', async () => {
-      vi.mocked(getToken).mockResolvedValue({
-        sub: '123',
-        name: 'Test User',
-        email: 'test@example.com',
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + 86400,
-        accessToken: 'mock-access-token',
-        id: '123',
-        roles: ['user'],
-      })
+      vi.mocked(getToken).mockResolvedValue(createMockToken())
       const request = createRequest('/about')
       const response = await middleware(request)
 
@@ -284,16 +249,7 @@ describe('Middleware', () => {
     })
 
     it('should handle getToken returning a valid token', async () => {
-      const mockToken = {
-        sub: '123',
-        name: 'Test User',
-        email: 'test@example.com',
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + 86400,
-        accessToken: 'mock-access-token',
-        id: '123',
-        roles: ['user'],
-      }
+      const mockToken = createMockToken()
       vi.mocked(getToken).mockResolvedValue(mockToken)
       const request = createRequest('/admin')
 
@@ -435,16 +391,7 @@ describe('Middleware', () => {
     })
 
     it('should return proper redirect response for authenticated user on auth route', async () => {
-      vi.mocked(getToken).mockResolvedValue({
-        sub: '123',
-        name: 'Test User',
-        email: 'test@example.com',
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + 86400,
-        accessToken: 'mock-access-token',
-        id: '123',
-        roles: ['user'],
-      })
+      vi.mocked(getToken).mockResolvedValue(createMockToken())
       const request = createRequest('/login')
 
       const response = await middleware(request)
@@ -494,16 +441,7 @@ describe('Middleware', () => {
     })
 
     it('should correctly identify /login as auth route', async () => {
-      vi.mocked(getToken).mockResolvedValue({
-        sub: '123',
-        name: 'Test User',
-        email: 'test@example.com',
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + 86400,
-        accessToken: 'mock-access-token',
-        id: '123',
-        roles: ['user'],
-      })
+      vi.mocked(getToken).mockResolvedValue(createMockToken())
       const request = createRequest('/login')
 
       const response = await middleware(request)
@@ -512,16 +450,7 @@ describe('Middleware', () => {
     })
 
     it('should correctly identify /register as auth route', async () => {
-      vi.mocked(getToken).mockResolvedValue({
-        sub: '123',
-        name: 'Test User',
-        email: 'test@example.com',
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + 86400,
-        accessToken: 'mock-access-token',
-        id: '123',
-        roles: ['user'],
-      })
+      vi.mocked(getToken).mockResolvedValue(createMockToken())
       const request = createRequest('/register')
 
       const response = await middleware(request)
