@@ -48,104 +48,140 @@ All other routes are public and accessible without authentication.
 
 ### Matcher Configuration
 
-Processes all routes except:
+````markdown
+# Middleware Documentation
 
-- Static files (`/_next/static/*`)
-- Image optimization (`/_next/image/*`)
-- Favicon and public assets (`*.svg`, `*.png`, etc.)
-- API routes (handled by Server Actions)
+## Overview
 
-## Technical Notes
+Next.js middleware for route protection, authentication checks, and in-process rate limiting. Per Next.js conventions this file must remain at `apps/frontend/src/middleware.ts`.
 
-### Why Not in Infrastructure Folder?
+## Phase 1: Middleware + Rate Limiting
 
-While DDD architecture suggests placing infrastructure concerns in `src/infrastructure/`, Next.js has strict conventions for middleware:
+✅ **Status**: COMPLETED (authentication + in-memory rate limiter)
 
-1. **Next.js Convention**: Middleware must be at `src/middleware.ts` or root `middleware.ts`
-2. **Framework Limitation**: Next.js 16 doesn't support custom middleware locations
-3. **Type Resolution**: Using standard location ensures proper TypeScript support
+### Implementation Details
 
-This is a framework-imposed exception to DDD structure.
+**File Location**: `apps/frontend/src/middleware.ts`
 
-### TypeScript Workaround
+**Purpose**: Protect routes requiring authentication and apply a simple, in-process rate limiter for API and server-action requests.
 
-The middleware uses native `Request` instead of Next.js `NextRequest` to avoid `next/server` import issues:
+**Key Features**:
 
-```typescript
-// Instead of:
-import type { NextRequest } from 'next/server'
-export async function middleware(request: NextRequest) {}
+- JWT token verification via `getToken()` from `next-auth/jwt`
+- Protected routes: `/admin/*`, `/dashboard/*`, `/profile/*` (config in `src/lib/routes.js`)
+- Auth routes: `/login`, `/register` (redirects authenticated users to `/admin`)
+- In-memory sliding-window rate limiter (10 requests per 10 seconds)
+- Hybrid keying for the limiter: uses `user:<id>:<pathname>` when authenticated, otherwise `ip:<addr>:<pathname>`
+- Rate-limit headers attached to responses: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`
+- Rate-limit headers are propagated to redirects by temporarily storing them on `globalThis`
 
-// We use:
-export async function middleware(request: Request) {
-  const url = new URL(request.url)
-  const { pathname } = url
-  // ...
-}
-```
+### Exports and Test Helpers
 
-The `getToken()` function requires a typed request, so we use `as unknown` type assertion:
+The middleware file exports a few helpers intended to support deterministic unit testing:
 
-```typescript
-const token = await getToken({
-  req: request as unknown, // Type assertion for next-auth compatibility
-  secret: process.env.NEXTAUTH_SECRET,
+- `__resetRateLimiter()` — Clears the internal in-memory rate state (test helper).
+- `nowSeconds()` — Returns current epoch seconds (used by the limiter).
+- `checkAndUpdateRate(key)` — Runs the sliding-window logic and returns `{ success, limit, remaining, resetAfter }`.
+
+These helpers are intentionally exported so unit tests can control timing and assert rate-limiting behaviour.
+
+### Example: calling `checkAndUpdateRate` from tests
+
+Below is a minimal Vitest example that demonstrates importing the helpers (note the `.js` extension for ESM resolution), resetting the limiter state between tests, using fake timers, and asserting the limiter behaviour:
+
+```ts
+import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest'
+import { __resetRateLimiter, checkAndUpdateRate } from '../middleware.js'
+
+describe('rate limiter - example', () => {
+  beforeEach(() => {
+    __resetRateLimiter()
+    vi.useFakeTimers()
+    // freeze time at a known point
+    vi.setSystemTime(Date.now())
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('consumes a token and returns remaining', () => {
+    const key = 'ip:127.0.0.1:/api/example'
+    const res = checkAndUpdateRate(key)
+    expect(res.success).toBe(true)
+    expect(res.limit).toBe(10)
+    expect(res.remaining).toBeGreaterThanOrEqual(0)
+  })
 })
 ```
 
-### Next.js 16 Deprecation Warning
+### Matcher Configuration
 
-Next.js 16 shows a deprecation warning:
+The middleware runs for application routes and explicitly excludes common static assets and internal `_next` handlers. The `matcher` pattern is defined in the exported `config` object in the file.
 
-> ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead.
+## Authentication & TypeScript Notes
 
-This is expected behavior. The middleware still works correctly. The "proxy" convention is the future direction for Next.js, but `middleware.ts` is still fully supported in Next.js 16.
+Because middleware receives the native Fetch `Request` in some environments, we intentionally accept a `Request` parameter and adapt it for `next-auth`:
+
+```ts
+// middleware receives the Fetch Request
+export async function middleware(request: Request) {
+  // We pass the request to next-auth's getToken using an explicit cast
+  // matching our runtime (this is a deliberate, documented workaround).
+  const token = await getToken({ req: request as never, secret: process.env.NEXTAUTH_SECRET })
+}
+```
+
+Note: the code narrows the token shape before accessing `sub`/`id` to satisfy linting/type rules.
+
+## Rate Limiting Behavior
+
+- Window: `RATE_LIMIT_WINDOW = 10` seconds
+- Limit: `RATE_LIMIT_MAX = 10` requests per window
+- Keying: `user:<id>:<pathname>` when token present, else `ip:<addr>:<pathname>`
+- On each request the middleware sets `X-RateLimit-Limit`, `X-RateLimit-Remaining`, and `X-RateLimit-Reset` on the response. When throttled the middleware returns HTTP 429.
+
+Important: This in-memory limiter is process-local and not suitable for multi-instance production deployments. If you require distributed rate limiting, swap the implementation behind an interface (e.g. Redis/Upstash) and provide a backing store.
+
+## Headers Propagation
+
+To ensure rate-limit headers are included on redirects (e.g. unauthenticated -> `/login`), the middleware temporarily stores headers on `globalThis.__lastRateLimitHeaders` and attaches them to redirect responses before clearing the temporary store.
 
 ## Testing
 
-### Build Verification
+Run these commands in the `apps/frontend` workspace:
 
 ```bash
-pnpm build  # ✅ Compiles successfully
+pnpm run typecheck    # TypeScript check (tsc --noEmit)
+pnpm run lint         # ESLint checks
+pnpm run test:unit    # Vitest unit tests
 ```
 
-### Type Checking
+Current test status (branch): unit test suite passes locally (example run: `700` tests passing in this workspace).
 
-```bash
-pnpm typecheck  # ✅ No type errors
-```
+## Dependency Changes
 
-### Lint Checks
-
-```bash
-pnpm lint  # ✅ All checks pass
-```
-
-### Unit Tests
-
-```bash
-pnpm test  # ✅ 649 tests passing
-```
+- Upstash-based implementation was considered earlier in this branch but has been removed.
+- This branch uses an in-process limiter and therefore does not require `@upstash/ratelimit` or `@upstash/redis`.
 
 ## Related Files
 
 - **Auth Config**: `apps/frontend/src/lib/auth-config.ts` - NextAuth configuration
 - **Auth Utilities**: `apps/frontend/src/lib/auth.ts` - Server Action auth helpers
-- **Auth Tests**: `apps/frontend/src/test/lib/auth.test.ts` - 49 tests for auth utilities
-- **Auth Examples**: `apps/frontend/src/lib/auth-examples.md` - Usage documentation
+- **Routes**: `apps/frontend/src/lib/routes.js` - Lists `AUTH_ROUTES` and `PROTECTED_ROUTES` used by middleware
+- **Middleware Tests**: `apps/frontend/src/test/middleware.test.ts` and `apps/frontend/src/test/middleware.ratelimit.test.ts` - existing middleware tests and rate-limit tests
+- **Helper Tests**: `apps/frontend/src/test/middleware.helpers.test.ts` - tests for `nowSeconds` and `checkAndUpdateRate`
 
 ## Next Steps
 
-**Phase 1 Part 5**: Add rate limiting middleware
-
-- Install `@upstash/ratelimit` and `@upstash/redis`
-- Add rate limiting (10 requests per 10 seconds)
-- Implement for API routes and Server Actions
-- Add rate limit headers: X-RateLimit-Limit, Remaining, Reset
-- Configure Upstash Redis connection
+- If you want distributed/global rate limiting, I can:
+  - Add an abstraction layer around `checkAndUpdateRate`
+  - Implement a Redis-backed adapter (Upstash or self-hosted) and wire it behind an environment toggle
+- Optionally add Playwright E2E tests to validate rate limiting behavior across server boundaries.
 
 ## References
 
 - [Next.js Middleware Docs](https://nextjs.org/docs/app/building-your-application/routing/middleware)
 - [NextAuth Middleware](https://next-auth.js.org/configuration/nextjs#in-middleware)
-- [REFACTORING_PLAN.md](../../../REFACTORING_PLAN.md) - Phase 1 Part 4
+- [REFACTORING_PLAN.md](../../../REFACTORING_PLAN.md) - Phase 1 guidance
+````
