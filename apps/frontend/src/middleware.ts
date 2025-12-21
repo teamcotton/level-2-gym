@@ -92,6 +92,27 @@ export function checkAndUpdateRate(key: string) {
 }
 
 /**
+ * Helper function to apply rate-limit headers to a response.
+ *
+ * Takes the result from the rate limiter and attaches the standard
+ * `X-RateLimit-*` headers to the provided response object.
+ *
+ * @param {import('next/server').NextResponse} response - The response to attach headers to.
+ * @param {{ limit: number; remaining: number; resetAfter: number }} rl - Rate limit result.
+ * @returns {import('next/server').NextResponse} The response with headers attached.
+ */
+function attachRateLimitHeaders(
+  response: NextResponse,
+  rl: { limit: number; remaining: number; resetAfter: number }
+) {
+  const reset = Math.floor(nowSeconds() + rl.resetAfter)
+  response.headers.set('X-RateLimit-Limit', String(rl.limit))
+  response.headers.set('X-RateLimit-Remaining', String(rl.remaining))
+  response.headers.set('X-RateLimit-Reset', String(reset))
+  return response
+}
+
+/**
  * Next.js middleware that enforces authentication and rate limiting.
  *
  * Responsibilities:
@@ -108,8 +129,8 @@ export function checkAndUpdateRate(key: string) {
  * Notes:
  * - This middleware uses `NextResponse.next()` so rendering continues when the
  *   request is allowed. When the rate limit is exceeded it returns a 429
- *   response. Rate-limit headers are propagated to redirects by temporarily
- *   storing them on `globalThis`.
+ *   response. Rate-limit headers are attached directly to each response to
+ *   avoid race conditions from shared mutable state.
  *
  * @param {Request} request - The incoming Fetch API Request from Next.js.
  * @returns {Promise<import('next/server').NextResponse>} a NextResponse allowing,
@@ -135,6 +156,9 @@ export async function middleware(request: Request) {
   const isApiRoute = pathname.startsWith('/api')
   const isAction = request.method === 'POST'
 
+  // Store rate limit result to attach headers to all responses
+  let rateLimitResult: { limit: number; remaining: number; resetAfter: number } | null = null
+
   if (isApiRoute || isAction) {
     const xForwardedFor = request.headers.get('x-forwarded-for')
     const ipFromHeader =
@@ -146,19 +170,15 @@ export async function middleware(request: Request) {
     const key = userId ? `user:${String(userId)}:${pathname}` : `ip:${ip}:${pathname}`
 
     const rl = checkAndUpdateRate(key)
-    const limit = rl.limit
-    const remaining = rl.remaining
-    const reset = Math.floor(nowSeconds() + rl.resetAfter)
-    const headers = new Headers()
-    headers.set('X-RateLimit-Limit', String(limit))
-    headers.set('X-RateLimit-Remaining', String(remaining))
-    headers.set('X-RateLimit-Reset', String(reset))
+    rateLimitResult = { limit: rl.limit, remaining: rl.remaining, resetAfter: rl.resetAfter }
 
     if (!rl.success) {
+      const headers = new Headers()
+      headers.set('X-RateLimit-Limit', String(rl.limit))
+      headers.set('X-RateLimit-Remaining', String(rl.remaining))
+      headers.set('X-RateLimit-Reset', String(Math.floor(nowSeconds() + rl.resetAfter)))
       return new NextResponse('Too Many Requests', { status: 429, headers })
     }
-
-    Reflect.set(globalThis, '__lastRateLimitHeaders', headers)
   }
 
   // Redirect unauthenticated users from protected routes to login
@@ -166,10 +186,8 @@ export async function middleware(request: Request) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('callbackUrl', pathname)
     const resp = NextResponse.redirect(loginUrl, 302)
-    const h = Reflect.get(globalThis, '__lastRateLimitHeaders') as Headers | undefined
-    if (h) {
-      h.forEach((v: string, k: string) => resp.headers.set(k, v))
-      Reflect.deleteProperty(globalThis, '__lastRateLimitHeaders')
+    if (rateLimitResult) {
+      attachRateLimitHeaders(resp, rateLimitResult)
     }
     return resp
   }
@@ -177,20 +195,16 @@ export async function middleware(request: Request) {
   // Redirect authenticated users away from auth pages
   if (isAuthRoute && isAuthenticated) {
     const resp = NextResponse.redirect(new URL('/admin', request.url), 302)
-    const h = Reflect.get(globalThis, '__lastRateLimitHeaders') as Headers | undefined
-    if (h) {
-      h.forEach((v: string, k: string) => resp.headers.set(k, v))
-      Reflect.deleteProperty(globalThis, '__lastRateLimitHeaders')
+    if (rateLimitResult) {
+      attachRateLimitHeaders(resp, rateLimitResult)
     }
     return resp
   }
 
   // Allow request to proceed to Next.js
   const resp = NextResponse.next()
-  const h = Reflect.get(globalThis, '__lastRateLimitHeaders') as Headers | undefined
-  if (h) {
-    h.forEach((v: string, k: string) => resp.headers.set(k, v))
-    Reflect.deleteProperty(globalThis, '__lastRateLimitHeaders')
+  if (rateLimitResult) {
+    attachRateLimitHeaders(resp, rateLimitResult)
   }
   return resp
 }
