@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { __resetRateLimiter, checkAndUpdateRate, nowSeconds } from '../middleware.js'
+import {
+  __resetRateLimiter,
+  checkAndUpdateRate,
+  extractClientIp,
+  nowSeconds,
+} from '../middleware.js'
 
 describe('nowSeconds', () => {
   beforeEach(() => {
@@ -14,6 +19,63 @@ describe('nowSeconds', () => {
     const ms = 1670000000123
     vi.setSystemTime(ms)
     expect(nowSeconds()).toBe(Math.floor(ms / 1000))
+  })
+})
+
+describe('extractClientIp', () => {
+  it('returns the rightmost non-trusted IP from X-Forwarded-For', () => {
+    const request = new Request('http://localhost', {
+      headers: { 'x-forwarded-for': '203.0.113.1, 198.51.100.1, 127.0.0.1' },
+    })
+    // Should return 198.51.100.1 (rightmost non-trusted IP)
+    expect(extractClientIp(request)).toBe('198.51.100.1')
+  })
+
+  it('returns the client IP when only one IP in X-Forwarded-For', () => {
+    const request = new Request('http://localhost', {
+      headers: { 'x-forwarded-for': '203.0.113.1' },
+    })
+    expect(extractClientIp(request)).toBe('203.0.113.1')
+  })
+
+  it('falls back to X-Real-IP when X-Forwarded-For contains only trusted proxies', () => {
+    const request = new Request('http://localhost', {
+      headers: { 'x-forwarded-for': '127.0.0.1', 'x-real-ip': '203.0.113.1' },
+    })
+    expect(extractClientIp(request)).toBe('203.0.113.1')
+  })
+
+  it('falls back to X-Real-IP when X-Forwarded-For is empty', () => {
+    const request = new Request('http://localhost', {
+      headers: { 'x-real-ip': '203.0.113.1' },
+    })
+    expect(extractClientIp(request)).toBe('203.0.113.1')
+  })
+
+  it('returns "unknown" when no IP headers are present', () => {
+    const request = new Request('http://localhost', {})
+    expect(extractClientIp(request)).toBe('unknown')
+  })
+
+  it('handles X-Forwarded-For with spaces correctly', () => {
+    const request = new Request('http://localhost', {
+      headers: { 'x-forwarded-for': '203.0.113.1 ,  198.51.100.1  , 127.0.0.1' },
+    })
+    expect(extractClientIp(request)).toBe('198.51.100.1')
+  })
+
+  it('handles IPv6 addresses in X-Forwarded-For', () => {
+    const request = new Request('http://localhost', {
+      headers: { 'x-forwarded-for': '2001:db8::1, ::1' },
+    })
+    expect(extractClientIp(request)).toBe('2001:db8::1')
+  })
+
+  it('returns "unknown" when X-Forwarded-For is empty string', () => {
+    const request = new Request('http://localhost', {
+      headers: { 'x-forwarded-for': '' },
+    })
+    expect(extractClientIp(request)).toBe('unknown')
   })
 })
 

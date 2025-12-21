@@ -17,6 +17,12 @@ const RATE_LIMIT_MAX =
     : DEFAULT_RATE_LIMIT_MAX
 const rateMap = new Map<string, number[]>()
 
+// Trusted proxy IPs for secure X-Forwarded-For validation
+// Parse comma-separated list from environment variable, default to localhost if not set
+const TRUSTED_PROXIES = process.env.TRUSTED_PROXIES
+  ? process.env.TRUSTED_PROXIES.split(',').map((ip) => ip.trim())
+  : ['127.0.0.1', '::1']
+
 // Periodic cleanup to prevent unbounded growth of `rateMap`.
 // This job:
 // - Prunes timestamps older than the current sliding window.
@@ -83,6 +89,46 @@ export function __getRateLimiterSize() {
  */
 export function nowSeconds() {
   return Math.floor(Date.now() / 1000)
+}
+
+/**
+ * Securely extract the client IP address from request headers.
+ *
+ * Security considerations:
+ * - Only trusts X-Forwarded-For header when the request comes from a trusted proxy
+ * - Uses the rightmost IP from X-Forwarded-For that isn't in the trusted proxy list
+ * - Falls back to X-Real-IP, then 'unknown' if no trusted source is available
+ *
+ * This prevents attackers from spoofing the X-Forwarded-For header to bypass
+ * rate limiting when the application is accessed directly (not through a proxy).
+ *
+ * @param {Request} request - The incoming request object
+ * @returns {string} The client IP address or 'unknown'
+ */
+export function extractClientIp(request: Request): string {
+  // Get the X-Forwarded-For header
+  const xForwardedFor = request.headers.get('x-forwarded-for')
+  
+  if (xForwardedFor) {
+    // Parse the X-Forwarded-For header (format: "client, proxy1, proxy2")
+    const ips = xForwardedFor
+      .split(',')
+      .map((ip) => ip.trim())
+      .filter((ip) => ip.length > 0)
+    
+    // Find the rightmost IP that is NOT a trusted proxy
+    // This represents the real client IP when behind trusted proxies
+    // Iterate from right to left
+    for (let i = ips.length - 1; i >= 0; i--) {
+      const ip = ips.at(i)
+      if (ip && !TRUSTED_PROXIES.includes(ip)) {
+        return ip
+      }
+    }
+  }
+  
+  // Fall back to X-Real-IP or 'unknown'
+  return request.headers.get('x-real-ip') || 'unknown'
 }
 
 /**
@@ -205,10 +251,7 @@ export async function middleware(request: Request) {
   let rateLimitResult: { limit: number; remaining: number; resetAfter: number } | null = null
 
   if (isApiRoute || isAction) {
-    const xForwardedFor = request.headers.get('x-forwarded-for')
-    const ipFromHeader =
-      xForwardedFor && xForwardedFor.length > 0 ? xForwardedFor.split(',')[0]?.trim() || '' : ''
-    const ip = ipFromHeader || request.headers.get('x-real-ip') || 'unknown'
+    const ip = extractClientIp(request)
     type TokenLike = { sub?: string; id?: string } | undefined
     const tokenLike = token as TokenLike
     const userId = tokenLike?.sub ?? tokenLike?.id

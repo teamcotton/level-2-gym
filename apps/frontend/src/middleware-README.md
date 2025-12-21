@@ -143,6 +143,23 @@ Note: the code narrows the token shape before accessing `sub`/`id` to satisfy li
 
 Important: This in-memory limiter is process-local and not suitable for multi-instance production deployments. If you require distributed rate limiting, swap the implementation behind an interface (e.g. Redis/Upstash) and provide a backing store.
 
+### Secure IP Extraction
+
+The middleware implements secure IP extraction to prevent rate limit bypass attacks:
+
+- **Trusted Proxy Validation**: Only trusts `X-Forwarded-For` when configured via `TRUSTED_PROXIES` environment variable
+- **Rightmost Non-Proxy IP**: Uses the rightmost IP from `X-Forwarded-For` that isn't in the trusted proxy list
+- **Fallback Chain**: Falls back to `X-Real-IP` header, then `'unknown'` if no trusted source is available
+- **Default Trusted Proxies**: `127.0.0.1,::1` (localhost IPv4 and IPv6)
+
+This prevents attackers from spoofing the `X-Forwarded-For` header to bypass rate limiting when the application is accessed directly (not through a trusted proxy). In production, configure `TRUSTED_PROXIES` with the IP addresses of your load balancers or reverse proxies.
+
+Example production configuration:
+```bash
+# For AWS ALB or similar
+TRUSTED_PROXIES=10.0.0.1,10.0.0.2,172.16.0.0/12
+```
+
 ## Headers Propagation
 
 To ensure rate-limit headers are included on all responses, including redirects (e.g. unauthenticated -> `/login`), the middleware computes the rate-limit result (via a local `rateLimitResult` variable) and attaches the `X-RateLimit-*` headers directly to the `NextResponse` instance before returning it.
