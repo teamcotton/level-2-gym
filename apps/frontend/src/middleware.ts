@@ -1,3 +1,4 @@
+import { NextResponse } from 'next/server.js'
 import { getToken } from 'next-auth/jwt'
 
 /**
@@ -39,10 +40,6 @@ import { getToken } from 'next-auth/jwt'
 export async function middleware(request: Request) {
   const url = new URL(request.url)
   const { pathname } = url
-
-  // Import NextResponse dynamically to avoid TypeScript resolution issues
-  // @ts-expect-error - suppress missing types for 'next/server' in this environment
-  const { NextResponse } = await import('next/server')
 
   // Get token from cookies using next-auth
   const token = await getToken({
