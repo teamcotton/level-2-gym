@@ -73,7 +73,7 @@ Next.js middleware for route protection, authentication checks, and in-process r
 - In-memory sliding-window rate limiter (10 requests per 10 seconds)
 - Hybrid keying for the limiter: uses `user:<id>:<pathname>` when authenticated, otherwise `ip:<addr>:<pathname>`
 - Rate-limit headers attached to responses: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`
-- Rate-limit headers are propagated to redirects by temporarily storing them on `globalThis`
+- Rate-limit results are stored in a local variable and headers are attached to each response (including redirects) via an `attachRateLimitHeaders` helper
 
 ### Exports and Test Helpers
 
