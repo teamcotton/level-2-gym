@@ -1,1 +1,0 @@
-frontend/next-env.d.ts

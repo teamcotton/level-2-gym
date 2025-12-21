@@ -16,6 +16,9 @@ import rootConfig from '../../eslint.config.js'
 const config: Linter.Config[] = [
   ...rootConfig,
   {
+    ignores: ['next-env.d.ts', '.next/**', 'dist/**', 'node_modules/**'],
+  },
+  {
     // Register plugins globally for all files
     plugins: {
       '@next/next': nextPlugin,

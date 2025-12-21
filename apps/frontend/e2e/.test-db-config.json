@@ -1,6 +1,0 @@
-{
-  "databaseUrl": "postgresql://test:test@localhost:55234/level2gym_test",
-  "host": "localhost",
-  "port": 55234,
-  "containerId": "d297a5aefba82cfbdf1f15cf2c33c04ecd6ebe45e5e249e13282da587e378aee"
-}

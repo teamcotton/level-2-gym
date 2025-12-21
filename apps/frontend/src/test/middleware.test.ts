@@ -1,7 +1,7 @@
 import { getToken } from 'next-auth/jwt'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { middleware } from '../middleware.js'
+import { __resetRateLimiter, middleware } from '../middleware.js'
 import { createMockToken } from './helpers/index.js'
 
 // Mock next-auth/jwt
@@ -409,6 +409,31 @@ describe('Middleware', () => {
 
       expect(response).toBeInstanceOf(Response)
       expect(response.status).toBe(200)
+    })
+  })
+
+  describe('Rate Limiting - Authenticated', () => {
+    it('should apply rate limiting to authenticated users using user-scoped keys', async () => {
+      // Arrange: authenticated token and fresh rate limiter
+      vi.mocked(getToken).mockResolvedValue(createMockToken())
+      __resetRateLimiter()
+
+      // Make 10 allowed API requests as the authenticated user
+      for (let i = 0; i < 10; i++) {
+        const req = new Request(`${baseUrl}/api/test`, { method: 'GET' })
+        const res = await middleware(req)
+        expect(res.status).toBe(200)
+        // headers should include rate-limit info
+        expect(res.headers.get('X-RateLimit-Limit')).toBe('10')
+      }
+
+      // The 11th request should be rejected with 429 and proper headers
+      const blockedReq = new Request(`${baseUrl}/api/test`, { method: 'GET' })
+      const blockedRes = await middleware(blockedReq)
+      expect(blockedRes.status).toBe(429)
+      expect(blockedRes.headers.get('X-RateLimit-Limit')).toBe('10')
+      expect(blockedRes.headers.get('X-RateLimit-Remaining')).toBe('0')
+      expect(blockedRes.headers.has('X-RateLimit-Reset')).toBe(true)
     })
   })
 
