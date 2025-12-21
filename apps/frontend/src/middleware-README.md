@@ -155,6 +155,7 @@ The middleware implements secure IP extraction to prevent rate limit bypass atta
 This prevents attackers from spoofing the `X-Forwarded-For` header to bypass rate limiting when the application is accessed directly (not through a trusted proxy). In production, configure `TRUSTED_PROXIES` with the IP addresses of your load balancers or reverse proxies.
 
 Example production configuration:
+
 ```bash
 # For AWS ALB or similar
 TRUSTED_PROXIES=10.0.0.1,10.0.0.2,172.16.0.0/12

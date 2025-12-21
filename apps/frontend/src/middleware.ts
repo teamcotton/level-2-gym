@@ -108,14 +108,14 @@ export function nowSeconds() {
 export function extractClientIp(request: Request): string {
   // Get the X-Forwarded-For header
   const xForwardedFor = request.headers.get('x-forwarded-for')
-  
+
   if (xForwardedFor) {
     // Parse the X-Forwarded-For header (format: "client, proxy1, proxy2")
     const ips = xForwardedFor
       .split(',')
       .map((ip) => ip.trim())
       .filter((ip) => ip.length > 0)
-    
+
     // Find the rightmost IP that is NOT a trusted proxy
     // This represents the real client IP when behind trusted proxies
     // Iterate from right to left
@@ -126,7 +126,7 @@ export function extractClientIp(request: Request): string {
       }
     }
   }
-  
+
   // Fall back to X-Real-IP or 'unknown'
   return request.headers.get('x-real-ip') || 'unknown'
 }
