@@ -3,110 +3,121 @@ import { getToken } from 'next-auth/jwt'
 
 import { AUTH_ROUTES, PROTECTED_ROUTES } from './lib/routes.js'
 
-/**
- * Next.js Middleware for route protection and authentication checks
- *
- * Handles authentication verification for protected routes before they're rendered.
- * Redirects unauthenticated users to the login page and prevents authenticated
- * users from accessing auth pages.
- *
- * Protected Routes:
- * - `/admin/*` - Requires authentication, admin role check handled by page components
- * - `/dashboard/*` - Requires authentication
- * - `/profile/*` - Requires authentication
- *
- * Public Routes:
- * - `/login` - Redirects to `/admin` if already authenticated
- * - `/register` - Redirects to `/admin` if already authenticated
- * - All other routes are public
- *
- * Authentication Flow:
- * 1. Check if route requires protection
- * 2. Verify JWT token from cookies using next-auth
- * 3. Redirect unauthenticated users to `/login`
- * 4. Redirect authenticated users away from auth pages
- * 5. Allow access if authenticated or route is public
- *
- * @param request - The incoming request object
- * @returns Response object (redirect or next)
- *
- * @example
- * ```typescript
- * // This middleware automatically protects routes matching the config.matcher
- * // No explicit usage needed - Next.js invokes it automatically
- * ```
- *
- * @see {@link https://nextjs.org/docs/app/building-your-application/routing/middleware|Next.js Middleware Docs}
- * @see {@link https://next-auth.js.org/configuration/nextjs#in-middleware|NextAuth Middleware}
- */
+// Lazy Upstash imports to avoid dev-time failures when env or packages are missing
+let _ratelimit: unknown | null = null
+async function getRateLimiter() {
+  if (_ratelimit) return _ratelimit
+  try {
+    const { Ratelimit } = await import('@upstash/ratelimit')
+    const { Redis } = await import('@upstash/redis')
+    const url = process.env.UPSTASH_REDIS_REST_URL
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN
+    if (!url || !token) return null
+    const redis = new Redis({ url, token })
+    const ratelimit = new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(10, '10 s'),
+    })
+    _ratelimit = ratelimit
+    return _ratelimit
+  } catch {
+    // ignore - if Upstash import or init fails, we skip rate limiting
+    return null
+  }
+}
+
 export async function middleware(request: Request) {
   const url = new URL(request.url)
   const { pathname } = url
 
-  // Get token from cookies using next-auth
-  // TypeScript workaround: next-auth's getToken expects a NextRequest/NextApiRequest-like type,
-  // but in middleware we receive the native Fetch API Request. We intentionally cast to never here
-  // to bypass this type mismatch, as documented in the middleware README and NextAuth docs.
-  const token = await getToken({
-    req: request as never,
-    secret: process.env.NEXTAUTH_SECRET,
-  })
-
+  // Authenticate using next-auth token in cookies
+  const token = await getToken({ req: request as never, secret: process.env.NEXTAUTH_SECRET })
   const isAuthenticated = !!token
 
   const pathMatchesRoute = (route: string) => pathname === route || pathname.startsWith(`${route}/`)
-  // Check if current path is a protected route
   const isProtectedRoute = PROTECTED_ROUTES.some(pathMatchesRoute)
-  // Check if current path is an auth route
   const isAuthRoute = AUTH_ROUTES.some(pathMatchesRoute)
+
+  // Rate limiting: apply to API routes and POST requests (server actions)
+  const isApiRoute = pathname.startsWith('/api')
+  const isAction = request.method === 'POST'
+
+  if (isApiRoute || isAction) {
+    const rl = (await getRateLimiter()) as {
+      limit: (key: string) => Promise<unknown>
+    } | null
+    if (rl) {
+      const ip =
+        request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
+      const key = `rl:${ip}:${pathname}`
+      let res: unknown | null = null
+      try {
+        // runtime call
+        res = await rl.limit(key)
+      } catch {
+        // ignore runtime limiter errors
+        res = null
+      }
+
+      if (res) {
+        const r = res as {
+          success?: boolean
+          limit?: number
+          remaining?: number
+          resetAfter?: number
+        }
+        const limit = r.limit ?? 10
+        const remaining = Math.max(0, r.remaining ?? 0)
+        const reset = Math.floor(Date.now() / 1000 + (r.resetAfter ?? 0))
+        const headers = new Headers()
+        headers.set('X-RateLimit-Limit', String(limit))
+        headers.set('X-RateLimit-Remaining', String(remaining))
+        headers.set('X-RateLimit-Reset', String(reset))
+
+        if (!r.success) {
+          return new NextResponse('Too Many Requests', { status: 429, headers })
+        }
+
+        // stash headers to attach to any response we return later in this handler
+        Reflect.set(globalThis, '__lastRateLimitHeaders', headers)
+      }
+    }
+  }
 
   // Redirect unauthenticated users from protected routes to login
   if (isProtectedRoute && !isAuthenticated) {
     const loginUrl = new URL('/login', request.url)
-    // Add callback URL to redirect back after login
     loginUrl.searchParams.set('callbackUrl', pathname)
-    return NextResponse.redirect(loginUrl, 302)
+    const resp = NextResponse.redirect(loginUrl, 302)
+    const h = Reflect.get(globalThis, '__lastRateLimitHeaders') as Headers | undefined
+    if (h) {
+      h.forEach((v: string, k: string) => resp.headers.set(k, v))
+      Reflect.deleteProperty(globalThis, '__lastRateLimitHeaders')
+    }
+    return resp
   }
 
   // Redirect authenticated users away from auth pages
   if (isAuthRoute && isAuthenticated) {
-    return NextResponse.redirect(new URL('/admin', request.url), 302)
+    const resp = NextResponse.redirect(new URL('/admin', request.url), 302)
+    const h = Reflect.get(globalThis, '__lastRateLimitHeaders') as Headers | undefined
+    if (h) {
+      h.forEach((v: string, k: string) => resp.headers.set(k, v))
+      Reflect.deleteProperty(globalThis, '__lastRateLimitHeaders')
+    }
+    return resp
   }
 
   // Allow request to proceed to Next.js
-  return NextResponse.next()
+  const resp = NextResponse.next()
+  const h = Reflect.get(globalThis, '__lastRateLimitHeaders') as Headers | undefined
+  if (h) {
+    h.forEach((v: string, k: string) => resp.headers.set(k, v))
+    Reflect.deleteProperty(globalThis, '__lastRateLimitHeaders')
+  }
+  return resp
 }
 
-/**
- * Middleware matcher configuration
- *
- * Specifies which routes should be processed by the middleware.
- * Uses glob patterns to match multiple routes efficiently.
- *
- * Matched Routes:
- * - `/admin/:path*` - All admin pages and sub-routes
- * - `/dashboard/:path*` - All dashboard pages
- * - `/profile/:path*` - All profile pages
- * - `/login` - Login page
- * - `/register` - Registration page
- *
- * Excluded Routes:
- * - Static files (`/_next/static/*`)
- * - Image optimization (`/_next/image/*`)
- * - Favicon and public files (`/favicon.ico`, etc.)
- * - API routes (`/api/*`) - Handled by Server Actions
- *
- * @see {@link https://nextjs.org/docs/app/building-your-application/routing/middleware#matcher|Matcher Config Docs}
- */
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (public folder)
-     */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 }
