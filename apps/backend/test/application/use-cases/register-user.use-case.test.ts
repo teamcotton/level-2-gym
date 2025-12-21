@@ -447,7 +447,7 @@ describe('RegisterUserUseCase', () => {
 
         expect(result).toHaveProperty('userId')
         expect(result).toHaveProperty('access_token')
-        expect(Object.keys(result)).toEqual(['userId', 'access_token'])
+        expect(Object.keys(result)).toEqual(['userId', 'access_token', 'token_type', 'expires_in'])
       })
 
       it('should return userId matching saved user id', async () => {

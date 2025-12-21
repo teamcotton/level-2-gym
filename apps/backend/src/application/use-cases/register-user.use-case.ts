@@ -10,6 +10,7 @@ import { RegisterUserDto } from '../dtos/register-user.dto.js'
 import { ConflictException } from '../../shared/exceptions/conflict.exception.js'
 import { DatabaseUtil } from '../../shared/utils/database.util.js'
 import { uuidv7 } from 'uuidv7'
+import { EnvConfig } from '../../infrastructure/config/env.config.js'
 
 export class RegisterUserUseCase {
   constructor(
@@ -19,7 +20,9 @@ export class RegisterUserUseCase {
     private readonly tokenGenerator: TokenGeneratorPort
   ) {}
 
-  async execute(dto: RegisterUserDto): Promise<{ userId: string; access_token: string }> {
+  async execute(
+    dto: RegisterUserDto
+  ): Promise<{ userId: string; access_token: string; token_type: string; expires_in: number }> {
     this.logger.info('Starting user registration', { email: dto.email })
 
     // Create domain objects
@@ -66,7 +69,12 @@ export class RegisterUserUseCase {
       roles: [dto.role],
     })
 
-    return { userId, access_token: accessToken }
+    return {
+      userId,
+      access_token: accessToken,
+      token_type: 'Bearer',
+      expires_in: Number.parseInt(EnvConfig.JWT_EXPIRATION),
+    }
   }
 
   private generateId(): string {
