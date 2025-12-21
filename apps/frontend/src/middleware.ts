@@ -35,7 +35,7 @@ const RATE_LIMIT_CLEANUP_INTERVAL_SECONDS = RATE_LIMIT_WINDOW * 2
 type TimerWithUnref = { unref?: () => void }
 let rateMapCleanupTimer: TimerWithUnref | undefined
 
-function scheduleRateMapCleanup() {
+export function scheduleRateMapCleanup() {
   const timer = setTimeout(() => {
     const cutoff = nowSeconds() - RATE_LIMIT_WINDOW
     for (const [key, timestamps] of rateMap) {
