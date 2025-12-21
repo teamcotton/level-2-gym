@@ -3,7 +3,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { POST } from '../../../../../src/app/api/register/route.js'
 
 vi.mock('../../../application/services/logger.service.test.js', () => ({
-  PinoLoggerService: vi.fn().mockImplementation(() => ({
+  UnifiedLogger: vi.fn().mockImplementation(() => ({
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
+  })),
+  createLogger: vi.fn(() => ({
     info: vi.fn(),
     error: vi.fn(),
     warn: vi.fn(),
