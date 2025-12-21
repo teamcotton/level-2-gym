@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server.js'
 import { getToken } from 'next-auth/jwt'
 
+import { AUTH_ROUTES, PROTECTED_ROUTES } from './lib/routes.js'
+
 /**
  * Next.js Middleware for route protection and authentication checks
  *
@@ -49,15 +51,11 @@ export async function middleware(request: Request) {
 
   const isAuthenticated = !!token
 
-  // Define protected route patterns
-  const protectedRoutes = ['/admin', '/dashboard', '/profile']
-  const authRoutes = ['/login', '/register']
-
   const pathMatchesRoute = (route: string) => pathname === route || pathname.startsWith(`${route}/`)
   // Check if current path is a protected route
-  const isProtectedRoute = protectedRoutes.some(pathMatchesRoute)
+  const isProtectedRoute = PROTECTED_ROUTES.some(pathMatchesRoute)
   // Check if current path is an auth route
-  const isAuthRoute = authRoutes.some(pathMatchesRoute)
+  const isAuthRoute = AUTH_ROUTES.some(pathMatchesRoute)
 
   // Redirect unauthenticated users from protected routes to login
   if (isProtectedRoute && !isAuthenticated) {
