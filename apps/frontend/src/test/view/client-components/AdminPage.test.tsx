@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { User } from '@/domain/user/user.js'
-import { AdminPage } from '@/view/components/AdminPage.js'
+import { AdminPage } from '@/view/client-components/AdminPage.js'
 
 describe('AdminPage', () => {
   const mockOnSearchChange = vi.fn()

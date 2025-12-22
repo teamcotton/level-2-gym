@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import { Wrapper } from '@/view/components/WrapperComponent.js'
+import { Wrapper } from '@/view/client-components/WrapperComponent.js'
 
 describe('Wrapper Component', () => {
   it('should render children content', () => {

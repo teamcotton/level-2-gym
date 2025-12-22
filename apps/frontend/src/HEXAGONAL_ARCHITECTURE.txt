@@ -51,6 +51,11 @@ frotend/src/
 │   ├── config/          # Environment configuration
 │   ├── security/        # Auth, encryption
 │   └── di/              # Dependency injection
+
+├── view/                # Technical implementation of UI
+│   ├── client-components/      # UI client-side components
+│   ├── server-components/      # UI server-side components
+│   ├── hooks/           # Environment configuration
 │
 └── shared/              # Common utilities across layers
     ├── types/

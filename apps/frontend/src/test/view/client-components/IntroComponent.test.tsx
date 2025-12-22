@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import { IntroComponent } from '@/view/components/IntroComponent.js'
+import { IntroComponent } from '@/view/client-components/IntroComponent.js'
 
 describe('IntroComponent', () => {
   it('should render the heading text', () => {

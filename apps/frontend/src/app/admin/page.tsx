@@ -1,6 +1,6 @@
 'use client'
 
-import { AdminPage } from '@/view/components/AdminPage.js'
+import { AdminPage } from '@/view/client-components/AdminPage.js'
 import { useAdminPage } from '@/view/hooks/useAdminPage.js'
 
 /**

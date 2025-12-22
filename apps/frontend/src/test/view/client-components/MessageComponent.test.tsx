@@ -4,7 +4,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { Message } from '@/view/components/MessageComponent.js'
+import { Message } from '@/view/client-components/MessageComponent.js'
 
 // Mock the streamdown module
 vi.mock('streamdown', () => ({

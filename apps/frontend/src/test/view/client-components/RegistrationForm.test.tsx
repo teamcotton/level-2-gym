@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { useRouter } from 'next/navigation.js'
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 
-import { RegistrationForm } from '../../../view/components/RegistrationForm.js'
+import { RegistrationForm } from '../../../view/client-components/RegistrationForm.js'
 
 // Mock Next.js router
 vi.mock('next/navigation.js', () => ({

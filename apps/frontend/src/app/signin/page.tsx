@@ -1,6 +1,6 @@
 'use client'
 
-import { SignInForm } from '@/view/components/SignInForm.js'
+import { SignInForm } from '@/view/client-components/SignInForm.js'
 import { useSignInForm } from '@/view/hooks/useSignInForm.js'
 
 /**
