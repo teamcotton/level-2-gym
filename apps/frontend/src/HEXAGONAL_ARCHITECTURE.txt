@@ -1,3 +1,9 @@
+AI NOTE: This document is a cut and past from the backend. Not all code will follow this
+architectural pattern yet. Some adaptation may be needed for frontend specifics.
+// ✓ Independence: Domain logic doesn't depend on frameworks or tools
+// ✓ Replaceability: Adapters can be replaced without changing core logic
+// - End-to-End: Full request-response cycle tests  xw
+
 HEXAGONAL ARCHITECTURE OVERVIEW (Ports and Adapters Pattern)
 
 The hexagonal architecture (also known as ports and adapters) organizes code
@@ -19,7 +25,7 @@ CORE PRINCIPLES:
 
 DIRECTORY STRUCTURE:
 
-backend/src/
+frotend/src/
 ├── domain/              # Core business logic (center of hexagon)
 │   ├── entities/        # Business objects with identity
 │   ├── value-objects/   # Immutable domain concepts
@@ -40,8 +46,7 @@ backend/src/
 │       └── external/
 │
 ├── infrastructure/      # Technical implementation details
-│   ├── database/        # Drizzle ORM, migrations
-│   ├── http/            # Fastify setup, middleware
+│   ├── serveractions/   # Fastify setup, middleware
 │   ├── config/          # Environment configuration
 │   ├── security/        # Auth, encryption
 │   └── di/              # Dependency injection

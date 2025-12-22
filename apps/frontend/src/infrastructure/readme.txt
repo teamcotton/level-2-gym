@@ -1,8 +1,11 @@
 External I/O (API, DB, etc.)
 
-This layer handles all input/output interactions with the outside world — like HTTP requests, database calls, or third-party APIs. In our case, it’s mostly about setting up Axios and creating a simple API client for users.
+This layer handles all input/output interactions with the outside world — like HTTP requests,
+database calls, or third-party APIs.
+In our case, it’s mostly about setting up Axios and creating a simple API client for users.
 
-The infrastructure layer should never contain business logic. Instead, it should implement data access behaviors expected by the application layer.
+The infrastructure layer should never contain business logic.
+Instead, it should implement data access behaviors expected by the application layer.
 
 // libs/users/infrastructure/axiosInstance.ts
 //It could be to move to the shared api folder

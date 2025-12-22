@@ -1,4 +1,4 @@
-import { UnifiedLogger } from '@/application/services/logger.service.js'
+import { UnifiedLogger } from '@/adapters/secondary/services/logger.service.js'
 import type { PaginatedUsersResponse, User } from '@/domain/user/user.js'
 
 export interface FindAllUsersParams {
