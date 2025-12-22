@@ -26,13 +26,13 @@ import { useRouter } from 'next/navigation.js'
 import React, { use, useEffect, useRef, useState } from 'react'
 import { uuidv7 } from 'uuidv7'
 
+import { createLogger } from '@/adapters/secondary/services/logger.service.js'
 import { fileToDataURL } from '@/application/services/fileToDataURL.service.js'
-import { createLogger } from '@/application/services/logger.service.js'
-import { ChatInput } from '@/view/components/ChatInputComponent.js'
-import { IntroComponent } from '@/view/components/IntroComponent.js'
-import { Message } from '@/view/components/MessageComponent.js'
-import { MessageIntroComponent } from '@/view/components/MessageIntroComponent.js'
-import { Wrapper } from '@/view/components/WrapperComponent.js'
+import { ChatInput } from '@/view/client-components/ChatInputComponent.js'
+import { IntroComponent } from '@/view/client-components/IntroComponent.js'
+import { Message } from '@/view/client-components/MessageComponent.js'
+import { MessageIntroComponent } from '@/view/client-components/MessageIntroComponent.js'
+import { Wrapper } from '@/view/client-components/WrapperComponent.js'
 
 const logger = createLogger({ prefix: 'AIChatPage' })
 

@@ -1,11 +1,8 @@
+import type { LoginDTO } from '@level-2-gym/shared'
+import { LoginSchema } from '@level-2-gym/shared'
 import { useState } from 'react'
 
-import { EmailSchema } from '@/domain/auth/index.js'
-
-interface FormData {
-  email: string
-  password: string
-}
+type FormData = LoginDTO
 
 interface FormErrors {
   email: string
@@ -35,19 +32,12 @@ export function useSignInForm() {
       password: '',
     }
 
-    // Email validation
-    if (!formData.email) {
-      newErrors.email = 'Email is required'
-    } else {
-      const result = EmailSchema.safeParse(formData.email)
-      if (!result.success) {
-        newErrors.email = 'Please enter a valid email address'
-      }
-    }
-
-    // Password validation
-    if (!formData.password) {
-      newErrors.password = 'Password is required'
+    // Validate entire form using shared LoginSchema
+    const parsed = LoginSchema.safeParse(formData)
+    if (!parsed.success) {
+      const fieldErrors = parsed.error.flatten().fieldErrors as Record<string, string[] | undefined>
+      newErrors.email = fieldErrors.email?.[0] ?? ''
+      newErrors.password = fieldErrors.password?.[0] ?? ''
     }
 
     setErrors(newErrors)

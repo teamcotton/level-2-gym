@@ -1,3 +1,13 @@
+AI NOTE: This document is adapted from the backend hexagonal architecture guide. However,
+for Next.js / React 19 the architecture will never be exactly the same as a backend service.
+The goal is to keep the same principles and ideas but adapt them to the frontend world.
+The main architectural difference is that the frontend introduces a dedicated view layer
+(for UI components and presentation logic) that does not exist in the backend.
+
+Frontend-specific goals:
+- Independence: Domain logic doesn't depend on frameworks or tools
+- Replaceability: Adapters can be replaced without changing core logic
+- End-to-end verification: The architecture still supports full request–response cycle tests
 HEXAGONAL ARCHITECTURE OVERVIEW (Ports and Adapters Pattern)
 
 The hexagonal architecture (also known as ports and adapters) organizes code
@@ -19,7 +29,8 @@ CORE PRINCIPLES:
 
 DIRECTORY STRUCTURE:
 
-backend/src/
+frontend/src/
+├── app/                 # This is Next.js specific code mostly for pages
 ├── domain/              # Core business logic (center of hexagon)
 │   ├── entities/        # Business objects with identity
 │   ├── value-objects/   # Immutable domain concepts
@@ -40,11 +51,15 @@ backend/src/
 │       └── external/
 │
 ├── infrastructure/      # Technical implementation details
-│   ├── database/        # Drizzle ORM, migrations
-│   ├── http/            # Fastify setup, middleware
+│   ├── serveractions/   # Calling APIs from the backend
 │   ├── config/          # Environment configuration
 │   ├── security/        # Auth, encryption
 │   └── di/              # Dependency injection
+│
+├── view/                # Technical implementation of UI
+│   ├── client-components/      # UI client-side components
+│   ├── server-components/      # UI server-side components
+│   ├── hooks/           # Hooks for data fetching and state management
 │
 └── shared/              # Common utilities across layers
     ├── types/

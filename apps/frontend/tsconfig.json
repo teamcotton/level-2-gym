@@ -13,7 +13,9 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@level-2-gym/shared": ["../../packages/shared/src/index.ts"],
+      "@level-2-gym/shared/*": ["../../packages/shared/src/*"]
     },
     "target": "ES2017"
   },

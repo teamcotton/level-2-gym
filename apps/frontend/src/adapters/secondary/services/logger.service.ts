@@ -1,3 +1,5 @@
+import type { LoggerPort } from '@/application/ports/logger.port.js'
+
 const LogLevel = {
   TRACE: 'trace',
   DEBUG: 'debug',
@@ -82,7 +84,7 @@ export interface FormattedLogMessage {
  * logger.getMinLevel() // Returns 'warn'
  * ```
  */
-export class UnifiedLogger {
+export class UnifiedLogger implements LoggerPort {
   private static readonly LOG_LEVELS = [
     LogLevel.TRACE,
     LogLevel.DEBUG,

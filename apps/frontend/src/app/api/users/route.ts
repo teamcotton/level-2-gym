@@ -1,4 +1,4 @@
-import { createLogger } from '@/application/services/logger.service.js'
+import { createLogger } from '@/adapters/secondary/services/logger.service.js'
 import type { PaginatedUsersResponse } from '@/domain/user/user.js'
 
 const logger = createLogger({ prefix: 'UsersAPI' })

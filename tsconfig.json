@@ -11,6 +11,11 @@
     "allowJs": true,
     "moduleDetection": "force",
     "verbatimModuleSyntax": true,
+    "baseUrl": ".",
+    "paths": {
+      "@level-2-gym/shared": ["packages/shared/src/index.ts"],
+      "@level-2-gym/shared/*": ["packages/shared/src/*"]
+    },
 
     // Emit
     "declaration": true,

@@ -172,6 +172,71 @@ Backend Fastify API (direct call from server)
 
 ---
 
+## Backend Hexagonal Alignment (Ports & Adapters)
+
+The backend lives in this monorepo and follows a Hexagonal (Ports & Adapters) architecture. To keep the frontend refactor robust and maintainable, align the Next.js server actions, DTOs and hooks with the backend's ports and adapters. This improves testability, reduces coupling and provides a clear contract between frontend and backend.
+
+High-level goals:
+
+- Establish a single source of truth for DTOs and validation (Zod schemas) used by both frontend and backend.
+- Define application-level ports (interfaces) in the backend that describe the available use-cases (register, login, list users, etc.).
+- Implement HTTP controllers (primary adapters) in the backend that delegate to application use-cases via the defined ports.
+- Keep infrastructure concerns (Drizzle, Fastify, config, DI) isolated under `backend/src/infrastructure/`.
+
+Monorepo action items (practical steps):
+
+1. Create a shared package for types and schemas
+
+- Add `packages/shared` (or `libs/shared`) containing:
+  - Zod schemas and inferred TS types for `Auth`, `User`, request/response DTOs and common error shapes.
+  - Exported interfaces for ports where useful (e.g. `IUserRepository`, `IAuthService`).
+- Purpose: let frontend server actions and backend use-cases import the same types to stay in sync.
+
+2. Backend: organize code to match hexagonal structure
+
+- Directory layout (follow `apps/backend/src/HEXAGONAL_ARCHITECTURE.txt`):
+  - `domain/` (entities, value-objects, domain services)
+  - `application/` (use-cases, ports, dtos)
+  - `adapters/` (primary/http controllers, secondary repositories)
+  - `infrastructure/` (database, http server setup, di container, config)
+  - `shared/` (internal utilities)
+- Implement application ports to express the capabilities the application provides (e.g. `registerUser`, `loginUser`, `findUsers`).
+
+3. Backend adapters and DI
+
+- Implement primary adapters as Fastify controllers under `adapters/primary/http` that map HTTP requests to application use-cases.
+- Implement secondary adapters for data access under `adapters/secondary/repositories` using Drizzle ORM.
+- Wire concrete adapters into a DI container in `infrastructure/di/` and inject them into use-cases, so tests can swap implementations easily.
+
+4. Frontend integration points
+
+- Server actions should call backend HTTP controllers that are thin adapters around application use-cases (single network hop).
+- Prefer importing DTOs/types from `packages/shared` and validate responses using the same Zod schemas.
+- Optionally define a client-side `BackendApi` port interface (in `packages/shared`) and implement an HTTP adapter in `apps/frontend/src/infrastructure/` so server actions call an adapter rather than raw `fetch` directly. This improves testability and makes mocking easier in hooks/tests.
+
+5. Testing strategy (aligned with hexagonal principles)
+
+- Domain: unit tests (pure, no mocks) in `backend/src/domain`.
+- Application: unit tests for use-cases that mock ports (interfaces) in `backend/src/application`.
+- Adapters: integration tests for repositories and controllers using real infra (Drizzle, Fastify) in `backend/tests` or `backend/src/adapters/*/test`.
+- End-to-end: full request-response tests that run Fastify server and hit the HTTP controllers.
+
+6. Migration sequencing (minimal disruption)
+
+- Step A: Add `packages/shared` and move/create Zod schemas and DTOs for auth and user flows.
+- Step B: Introduce backend `application/ports` interfaces for the flows being migrated (register, login, list users).
+- Step C: Implement or adapt Fastify controllers to call use-cases using DI.
+- Step D: Update frontend server actions to import DTOs from `packages/shared` and call the HTTP endpoints.
+- Step E: Replace frontend API routes (those that acted as simple proxies) with direct server-action → backend HTTP calls, or call shared adapter if introduced.
+- Step F: Add tests at each layer, starting with application unit tests and adapter integration tests.
+
+Benefits to the refactor plan
+
+- Strongly-typed contracts between frontend and backend (less runtime mapping).
+- Easier testing (swap adapters for mocks/stubs).
+- Clear separation of concerns: backend authors can refactor internals without changing the public contract.
+- Safer migration: can incrementally migrate endpoints and validate with type-checked DTOs.
+
 ## Recommended Refactoring Steps
 
 ### Phase 0: Install and Configure TanStack Query

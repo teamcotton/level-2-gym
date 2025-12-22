@@ -1,6 +1,6 @@
 'use client'
 
-import { RegistrationForm } from '@/view/components/RegistrationForm.js'
+import { RegistrationForm } from '@/view/client-components/RegistrationForm.js'
 import { useRegistrationForm } from '@/view/hooks/useRegistrationForm.js'
 
 /**

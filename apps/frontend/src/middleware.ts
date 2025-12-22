@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server.js'
 import { getToken } from 'next-auth/jwt'
 
-import { AUTH_ROUTES, PROTECTED_ROUTES } from './lib/routes.js'
+import { AUTH_ROUTES, PROTECTED_ROUTES } from './shared/constants/routes.js'
 
 // In-memory sliding-window rate limiter (hybrid keying: user-id when available, else IP)
 const DEFAULT_RATE_LIMIT_WINDOW = 10 // seconds

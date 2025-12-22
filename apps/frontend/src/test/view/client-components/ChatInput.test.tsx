@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { ChatInput } from '@/view/components/ChatInputComponent.js'
+import { ChatInput } from '@/view/client-components/ChatInputComponent.js'
 
 describe('ChatInput Component', () => {
   const defaultProps = {
