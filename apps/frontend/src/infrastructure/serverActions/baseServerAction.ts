@@ -4,10 +4,6 @@ import { createLogger } from '@/adapters/secondary/services/logger.service.js'
 
 const logger = createLogger({ prefix: 'backendRequest' })
 
-// Upper bound for timeout values accepted from callers
-const MIN_TIMEOUT_MS = 100
-const MAX_TIMEOUT_MS = 120000
-
 export interface BackendRequestOptions {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE'
   endpoint: string // e.g. '/users/register' or 'users/register'
