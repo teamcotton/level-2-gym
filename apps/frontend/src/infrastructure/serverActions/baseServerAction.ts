@@ -74,14 +74,17 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
   const url = normalizeUrl(apiUrl, options.endpoint)
   const headers = { 'Content-Type': 'application/json', ...(options.headers ?? {}) }
 
+  const DEFAULT_TIMEOUT_MS = 15000
+
+  function getTimeoutMs(timeoutMs?: number) {
+    // Only allow known-safe values to prevent resource exhaustion
+    const allowed = new Set([5000, 10000, 15000, 30000])
+    const v = Number(timeoutMs ?? DEFAULT_TIMEOUT_MS)
+    return allowed.has(v) ? v : DEFAULT_TIMEOUT_MS
+  }
+
   // Validate and clamp timeout to acceptable range
-  const effectiveTimeoutMs = (() => {
-    const value = Number(options.timeoutMs ?? 15000)
-    if (!Number.isFinite(value) || value < 0) {
-      return 15000
-    }
-    return Math.min(Math.max(value, MIN_TIMEOUT_MS), MAX_TIMEOUT_MS)
-  })()
+  const effectiveTimeoutMs = getTimeoutMs(options.timeoutMs)
 
   // Check for local https with a self-signed cert (localhost / 127.0.0.1 / ::1)
   const isLocalHttps = (() => {

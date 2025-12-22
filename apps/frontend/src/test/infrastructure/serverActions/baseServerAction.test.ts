@@ -35,7 +35,7 @@ describe('backendRequest effectiveTimeoutMs', () => {
     // first arg is the callback, second is the delay
     expect(setTimeoutSpy).toHaveBeenCalled()
     const delay = setTimeoutSpy.mock.calls[0][1]
-    expect(delay).toBe(2000)
+    expect(delay).toBe(15000)
   })
 
   it('falls back to default when timeoutMs is negative or non-finite', async () => {
