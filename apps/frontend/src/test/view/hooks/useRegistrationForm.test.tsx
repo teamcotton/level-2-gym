@@ -10,7 +10,8 @@ import { useRegistrationForm } from '@/view/hooks/useRegistrationForm.js'
 vi.mock('@/application/actions/registerUser.js', () => ({
   registerUser: vi.fn(),
 }))
-
+//TODO: enable these tests again after fixing the issues with useRegistrationForm hook
+// must effectively mock registerUser and QueryClientProvider for the tests to work properly
 describe.todo('useRegistrationForm', () => {
   beforeEach(() => {
     vi.mocked(registerUser).mockReset()

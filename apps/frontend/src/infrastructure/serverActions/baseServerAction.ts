@@ -119,7 +119,7 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
   } else {
     const controller = new AbortController()
     const combinedSignal = options.signal ?? controller.signal
-    const timeout = setTimeout(() => controller.abort(), timeoutMs)
+    const timeout = setTimeout(() => controller.abort(), effectiveTimeoutMs)
 
     try {
       const res = await fetch(url, {
