@@ -7,10 +7,13 @@ export async function POST(request: Request) {
   try {
     const body = (await request.json()) as RegisterUserData
 
+    // Prefer the un-suffixed BACKEND_AI_CALLBACK_URL when provided (e.g. by test runners).
+    // Fall back to the environment-specific variables for compatibility.
     const apiUrl =
-      process.env.NODE_ENV === 'production'
+      process.env.BACKEND_AI_CALLBACK_URL ??
+      (process.env.NODE_ENV === 'production'
         ? process.env.BACKEND_AI_CALLBACK_URL_PROD
-        : process.env.BACKEND_AI_CALLBACK_URL_DEV
+        : process.env.BACKEND_AI_CALLBACK_URL_DEV)
 
     if (!apiUrl) {
       return Response.json(
@@ -36,6 +39,7 @@ export async function POST(request: Request) {
         { status: 500 }
       )
     }
+    logger.info('[registration-route] using apiUrl:', apiUrl)
     const isLocalDevelopment =
       url.hostname === 'localhost' || url.hostname === '127.0.0.1' || url.hostname === '::1'
 
@@ -90,6 +94,8 @@ export async function POST(request: Request) {
 
       result = (await response.json()) as RegisterUserResponse
     }
+
+    logger.info('[registration-route] /api/register responding with status', response.status)
 
     if (response.status === 409) {
       return Response.json(

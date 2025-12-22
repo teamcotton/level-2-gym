@@ -356,7 +356,7 @@ test.describe('Registration Page', () => {
 
     // Check for the duplicate email error message in the Alert component
     await expect(
-      page.getByText(/this email is already registered\. please use a different email\./i)
+      page.getByText(/This email is already registered\. Please use a different email\./i)
     ).toBeVisible({ timeout: 10000 })
   })
 

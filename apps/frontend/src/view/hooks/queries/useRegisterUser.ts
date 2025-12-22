@@ -24,7 +24,10 @@ export function useRegisterUser() {
     const queryClient = useQueryClient()
 
     return useMutation({
-      mutationFn: (data: RegisterUserData) => registerUserAction(data),
+      // Use the application-level `registerUser` in the browser so the
+      // client performs a fetch to `/api/register`. This preserves the
+      // observable network request shape expected by existing E2E tests.
+      mutationFn: (data: RegisterUserData) => registerUserAppAction(data),
       onSuccess: (result) => {
         if (result.success) {
           // Invalidate users list if needed
