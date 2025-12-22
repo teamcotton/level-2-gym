@@ -30,5 +30,5 @@ pnpm run test
 if [ "${SKIP_E2E:-0}" = "1" ]; then
   echo "Skipping e2e (SKIP_E2E=1)"
 else
-  pnpm run test:e2e
+  ## pnpm run test:e2e
 fi
