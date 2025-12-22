@@ -75,9 +75,8 @@ export async function backendRequest<T>(options: BackendRequestOptions): Promise
   const headers = { 'Content-Type': 'application/json', ...(options.headers ?? {}) }
 
   // Validate and clamp timeout to acceptable range
-  const timeoutMs = options.timeoutMs ?? 15000
   const effectiveTimeoutMs = (() => {
-    const value = Number(timeoutMs)
+    const value = Number(options.timeoutMs ?? 15000)
     if (!Number.isFinite(value) || value < 0) {
       return 15000
     }
