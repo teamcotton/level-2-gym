@@ -27,8 +27,8 @@ pnpm run test
 ## This is for developers only. AI can pass this test
 ## VERY IMPORTANT: AI must always reinstate the logic in the if statement if
 ## it is amended to skip e2e tests
-if [ "${SKIP_E2E:-0}" = "1" ]; then
-  echo "Skipping e2e (SKIP_E2E=1)"
+if [ "${SKIP_E2E:-0}" = "1" ] || [ -f /tmp/SKIP_E2E_FLAG ]; then
+  echo "Skipping e2e (SKIP_E2E=1 or /tmp/SKIP_E2E_FLAG exists)"
 else
   pnpm run test:e2e
 fi

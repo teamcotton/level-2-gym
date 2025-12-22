@@ -4,7 +4,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { registerUser as registerUserAppAction } from '@/application/actions/registerUser.js'
 import type { RegisterUserData } from '@/domain/auth/index.js'
-import { registerUserAction } from '@/infrastructure/serverActions/registerUser.server.js'
 
 export function useRegisterUser() {
   const queryClient = useQueryClient()

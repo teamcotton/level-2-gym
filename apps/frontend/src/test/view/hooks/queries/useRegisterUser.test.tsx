@@ -129,54 +129,6 @@ describe('useRegisterUser', () => {
     })
   })
 
-  describe('Mutation without QueryClientProvider', () => {
-    it('calls registerUser action successfully', async () => {
-      const sampleData = { email: 'x@y.com', name: 'X Y', password: 'pw123456' }
-
-      vi.mocked(registerUser).mockResolvedValue({
-        success: true,
-        status: 201,
-        data: { userId: '2', access_token: 'token456', token_type: 'Bearer', expires_in: 3600 },
-      })
-
-      const { result } = renderHook(() => useRegisterUser())
-
-      await act(async () => {
-        const res = await result.current.mutateAsync(sampleData)
-        expect(res).toEqual({
-          success: true,
-          status: 201,
-          data: { userId: '2', access_token: 'token456', token_type: 'Bearer', expires_in: 3600 },
-        })
-      })
-
-      // ensure the application action was called (tests mock this function)
-      expect(vi.mocked(registerUser)).toHaveBeenCalledWith(sampleData)
-      // fallback exposes isSuccess flag after successful mutate
-      expect(result.current.isSuccess).toBe(true)
-    })
-
-    it('handles error without throwing', async () => {
-      const sampleData = { email: 'error@test.com', name: 'Error User', password: 'error123' }
-
-      vi.mocked(registerUser).mockResolvedValue({
-        success: false,
-        status: 500,
-        error: 'Internal server error',
-      })
-
-      const { result } = renderHook(() => useRegisterUser())
-
-      const response = await act(async () => {
-        return await result.current.mutateAsync(sampleData)
-      })
-
-      expect(response.success).toBe(false)
-      expect(response.error).toBe('Internal server error')
-      expect(result.current.isError).toBe(false) // mutation doesn't throw, so isError stays false
-    })
-  })
-
   describe('Mutation states', () => {
     it('should expose correct mutation states', async () => {
       const qc = new QueryClient()
@@ -232,14 +184,18 @@ describe('useRegisterUser', () => {
         await result.current.mutateAsync(sampleData)
       })
 
-      expect(result.current.isSuccess).toBe(true)
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true)
+      })
 
       act(() => {
         result.current.reset()
       })
 
-      expect(result.current.isSuccess).toBe(false)
-      expect(result.current.data).toBeUndefined()
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(false)
+        expect(result.current.data).toBeUndefined()
+      })
     })
   })
 
