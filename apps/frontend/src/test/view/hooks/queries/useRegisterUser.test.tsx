@@ -6,10 +6,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { registerUser } from '@/application/actions/registerUser.js'
 import { useRegisterUser } from '@/view/hooks/queries/useRegisterUser.js'
 
-vi.mock('@/infrastructure/serverActions/registerUser.server.js', () => ({
-  registerUserAction: vi.fn(),
-}))
-
 vi.mock('@/application/actions/registerUser.js', () => ({
   registerUser: vi.fn(),
 }))
