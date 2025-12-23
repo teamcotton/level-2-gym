@@ -1,7 +1,4 @@
 import type { FastifyRequest, FastifyReply, preHandlerAsyncHookHandler } from 'fastify'
-import { UnauthorizedException } from '../../../shared/exceptions/unauthorized.exception.js'
-import { ErrorCode } from '../../../shared/constants/error-codes.js'
-
 /**
  * Creates a Fastify middleware that requires the authenticated user to have one of the specified roles.
  *
