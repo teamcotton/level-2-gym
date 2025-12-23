@@ -226,18 +226,17 @@ describe('requireRole middleware', () => {
   })
 
   describe('Edge cases', () => {
-    it('should handle empty required roles array', async () => {
-      mockRequest.user = {
-        sub: 'user-empty',
-        email: 'user@example.com',
-        roles: ['user'],
-      } as JwtUserClaims
+    it('should throw error when requiredRoles is an empty array', () => {
+      expect(() => requireRole([])).toThrow(
+        'requireRole: requiredRoles must be a non-empty array. ' +
+          'Empty arrays are not allowed as they would deny all access. ' +
+          'If you need to allow all authenticated users, do not use this middleware.'
+      )
+    })
 
-      const middleware = requireRole([])
-      await middleware.call(null as any, mockRequest as FastifyRequest, mockReply as FastifyReply)
-
-      // Empty required roles means no role matches, should deny
-      expect(codeSpy).toHaveBeenCalledWith(403)
+    it('should throw error when requiredRoles is null or undefined', () => {
+      expect(() => requireRole(null as any)).toThrow('requireRole: requiredRoles must be a non-empty array')
+      expect(() => requireRole(undefined as any)).toThrow('requireRole: requiredRoles must be a non-empty array')
     })
 
     it('should handle very long role names', async () => {
