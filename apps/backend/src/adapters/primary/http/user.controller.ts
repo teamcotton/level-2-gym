@@ -55,7 +55,13 @@ export class UserController {
       },
       this.getAllUsers.bind(this)
     )
-    app.get('/users/:id', this.getUser.bind(this))
+    app.get(
+      '/users/:id',
+      {
+        preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
+      },
+      this.getUser.bind(this)
+    )
   }
 
   /**
@@ -183,7 +189,7 @@ export class UserController {
    * **Note:** This endpoint is currently incomplete and returns a minimal stub response.
    * Full implementation is pending.
    *
-   * @param {FastifyRequest<{ Params: { id: string } }>} request - Fastify request with user ID in params
+   * @param {FastifyRequest} request - Fastify request with user ID in params
    * @param {FastifyReply} reply - Fastify reply object
    * @returns {Promise<void>} Currently returns only the user ID as a stub response
    * @todo Implement full user retrieval logic with complete user data
@@ -193,11 +199,41 @@ export class UserController {
    * Current Response: { id: 'abc123' }  // Stub response only
    * ```
    */
-  async getUser(
-    request: FastifyRequest<{ Params: { id: string } }>,
-    reply: FastifyReply
-  ): Promise<void> {
-    // Implementation here
-    reply.send({ id: request.params.id })
+  async getUser(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    try {
+      // Extract and validate params with runtime type checking
+      const params = request.params as Record<string, unknown>
+
+      if (typeof params.id !== 'string') {
+        reply.code(400).send({
+          success: false,
+          error: 'Invalid user ID parameter',
+        })
+        return
+      }
+
+      const trimmedId = params.id.trim()
+
+      if (trimmedId === '') {
+        reply.code(400).send({
+          success: false,
+          error: 'Invalid user ID parameter',
+        })
+        return
+      }
+
+      reply.code(200).send({
+        success: true,
+        data: { id: trimmedId },
+      })
+    } catch (error) {
+      const err = error as Error
+      const statusCode = err instanceof BaseException ? err.statusCode : 500
+      const errorMessage = err?.message || 'An unexpected error occurred'
+      reply.code(statusCode).send({
+        success: false,
+        error: errorMessage,
+      })
+    }
   }
 }

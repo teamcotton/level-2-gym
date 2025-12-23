@@ -76,10 +76,16 @@ describe('UserController', () => {
       controller.registerRoutes(mockApp)
 
       expect(mockApp.get).toHaveBeenCalledTimes(2)
-      expect(mockApp.get).toHaveBeenCalledWith('/users/:id', expect.any(Function))
-      // GET /users now uses route options with middleware
+      // Both GET /users and GET /users/:id now use route options with middleware
       expect(mockApp.get).toHaveBeenCalledWith(
         '/users',
+        expect.objectContaining({
+          preHandler: expect.any(Array),
+        }),
+        expect.any(Function)
+      )
+      expect(mockApp.get).toHaveBeenCalledWith(
+        '/users/:id',
         expect.objectContaining({
           preHandler: expect.any(Array),
         }),
@@ -97,10 +103,10 @@ describe('UserController', () => {
 
       // Verify handlers are bound functions
       const registerHandler = vi.mocked(mockApp.post).mock.calls[0]?.[1]
-      // GET /users is now registered with options, so handler is at index 2
+      // GET /users is registered with options, so handler is at index 2
       const getAllUsersHandler = (vi.mocked(mockApp.get).mock.calls[0] as any)?.[2]
-      // GET /users/:id handler remains at index 1
-      const getUserByIdHandler = vi.mocked(mockApp.get).mock.calls[1]?.[1]
+      // GET /users/:id is also registered with options, so handler is at index 2
+      const getUserByIdHandler = (vi.mocked(mockApp.get).mock.calls[1] as any)?.[2]
 
       expect(registerHandler).toBeTypeOf('function')
       expect(getAllUsersHandler).toBeTypeOf('function')
@@ -1048,7 +1054,7 @@ describe('UserController', () => {
 
       await controller.getUser(mockRequestWithParams, mockReply)
 
-      expect(mockReply.send).toHaveBeenCalledWith({ id: 'user-123' })
+      expect(mockReply.send).toHaveBeenCalledWith({ data: { id: 'user-123' }, success: true })
     })
 
     it('should handle different user ids', async () => {
@@ -1058,7 +1064,7 @@ describe('UserController', () => {
 
       await controller.getUser(mockRequestWithParams, mockReply)
 
-      expect(mockReply.send).toHaveBeenCalledWith({ id: 'user-456-xyz' })
+      expect(mockReply.send).toHaveBeenCalledWith({ data: { id: 'user-456-xyz' }, success: true })
     })
 
     it('should extract id from request params', async () => {
@@ -1069,7 +1075,7 @@ describe('UserController', () => {
       await controller.getUser(mockRequestWithParams, mockReply)
 
       const sentResponse = vi.mocked(mockReply.send).mock.calls?.[0]?.[0]
-      expect(sentResponse).toEqual({ id: 'test-id-789' })
+      expect(sentResponse).toEqual({ data: { id: 'test-id-789' }, success: true })
     })
 
     it('should call reply.send once', async () => {
