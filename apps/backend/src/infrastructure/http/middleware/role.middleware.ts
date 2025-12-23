@@ -6,10 +6,7 @@ import type { FastifyRequest, FastifyReply, preHandlerAsyncHookHandler } from 'f
  * It checks if the authenticated user's roles include at least one of the required roles.
  *
  * @param requiredRoles - Array of roles that are allowed to access the route (e.g., ['admin', 'moderator'])
- * @returns Fastify preHandler hook that validates user roles
- *
- * @throws {UnauthorizedException} When user is not authenticated (request.user is undefined)
- * @throws {ForbiddenException} When user doesn't have any of the required roles
+ * @returns Fastify preHandler hook that validates user roles and returns error responses for unauthorized access
  *
  * @example
  * ```typescript
@@ -43,7 +40,7 @@ import type { FastifyRequest, FastifyReply, preHandlerAsyncHookHandler } from 'f
  * 1. Checks if user is authenticated (request.user exists)
  * 2. Checks if user has roles array
  * 3. Verifies at least one user role matches required roles
- * 4. Allows request to proceed if authorized, throws ForbiddenException otherwise
+ * 4. Allows request to proceed if authorized, returns 403 Forbidden response otherwise
  *
  * **Error Responses:**
  * - 401 Unauthorized: User not authenticated (missing request.user)
