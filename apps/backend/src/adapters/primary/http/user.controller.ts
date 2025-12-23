@@ -212,7 +212,12 @@ export class UserController {
         return
       }
       
-      reply.send({ id: params.id })
+      const trimmedId = params.id.trim()
+      
+      reply.send({
+        success: true,
+        data: { id: trimmedId },
+      })
     } catch (error) {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
