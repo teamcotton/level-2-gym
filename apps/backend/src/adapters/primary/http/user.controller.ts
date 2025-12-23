@@ -204,7 +204,7 @@ export class UserController {
       // Extract and validate params with runtime type checking
       const params = request.params as Record<string, unknown>
       
-      if (typeof params.id !== 'string' || params.id.trim() === '') {
+      if (typeof params.id !== 'string') {
         reply.code(400).send({
           success: false,
           error: 'Invalid user ID parameter',
@@ -213,6 +213,14 @@ export class UserController {
       }
       
       const trimmedId = params.id.trim()
+      
+      if (trimmedId === '') {
+        reply.code(400).send({
+          success: false,
+          error: 'Invalid user ID parameter',
+        })
+        return
+      }
       
       reply.code(200).send({
         success: true,
