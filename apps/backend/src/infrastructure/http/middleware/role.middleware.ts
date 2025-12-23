@@ -5,8 +5,10 @@ import type { FastifyRequest, FastifyReply, preHandlerAsyncHookHandler } from 'f
  * This middleware should be chained after `authMiddleware` to ensure `request.user` is populated.
  * It checks if the authenticated user's roles include at least one of the required roles.
  *
- * @param requiredRoles - Array of roles that are allowed to access the route (e.g., ['admin', 'moderator'])
+ * @param requiredRoles - Array of roles that are allowed to access the route (e.g., ['admin', 'moderator']).
+ *                        Must be a non-empty array. Empty arrays will throw an error at function creation time.
  * @returns Fastify preHandler hook that validates user roles and returns error responses for unauthorized access
+ * @throws {Error} If requiredRoles is an empty array
  *
  * @example
  * ```typescript
@@ -54,6 +56,15 @@ import type { FastifyRequest, FastifyReply, preHandlerAsyncHookHandler } from 'f
  * @see {@link authMiddleware} for authentication middleware that must be used first
  */
 export function requireRole(requiredRoles: string[]): preHandlerAsyncHookHandler {
+  // Validate that requiredRoles is not empty
+  if (!requiredRoles || requiredRoles.length === 0) {
+    throw new Error(
+      'requireRole: requiredRoles must be a non-empty array. ' +
+        'Empty arrays are not allowed as they would deny all access. ' +
+        'If you need to allow all authenticated users, do not use this middleware.'
+    )
+  }
+
   return async (request: FastifyRequest, reply: FastifyReply): Promise<void | FastifyReply> => {
     const route = (request as any).routerPath ?? request.url
     const method = request.method
