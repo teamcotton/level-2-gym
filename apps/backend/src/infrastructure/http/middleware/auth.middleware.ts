@@ -120,7 +120,7 @@ export async function authMiddleware(
         },
         'Authentication failed: missing bearer token'
       )
-      return reply.code(401).send({ error: 'No token provided' })
+      return reply.code(401).send({ success: false, error: 'No token provided' })
     }
 
     // Validate token format before expensive verification
@@ -149,10 +149,10 @@ export async function authMiddleware(
       ])
 
       if (lowLevelErrorMessages.has(error.message)) {
-        return reply.code(401).send({ error: 'Invalid or expired token' })
+        return reply.code(401).send({ success: false, error: 'Invalid or expired token' })
       }
 
-      return reply.code(error.statusCode).send({ error: error.message })
+      return reply.code(error.statusCode).send({ success: false, error: error.message })
     }
     request.log.warn(
       {
@@ -162,6 +162,6 @@ export async function authMiddleware(
       },
       'Authentication failed: invalid or expired token'
     )
-    return reply.code(401).send({ error: 'Invalid or expired token' })
+    return reply.code(401).send({ success: false, error: 'Invalid or expired token' })
   }
 }

@@ -121,7 +121,7 @@ describe('authMiddleware', () => {
 
       // Should fail because of extra space
       expect(codeSpy).toHaveBeenCalledWith(401)
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'Invalid or expired token' })
+      expect(sendSpy).toHaveBeenCalledWith({ success: false, error: 'Invalid or expired token' })
     })
   })
 
@@ -218,7 +218,7 @@ describe('authMiddleware', () => {
       await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply)
 
       expect(codeSpy).toHaveBeenCalledWith(401)
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'No token provided' })
+      expect(sendSpy).toHaveBeenCalledWith({ success: false, error: 'No token provided' })
       expect(mockRequest.user).toBeUndefined()
     })
 
@@ -228,7 +228,7 @@ describe('authMiddleware', () => {
       await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply)
 
       expect(codeSpy).toHaveBeenCalledWith(401)
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'No token provided' })
+      expect(sendSpy).toHaveBeenCalledWith({ success: false, error: 'No token provided' })
     })
 
     it('should return 401 when authorization header is empty string', async () => {
@@ -237,7 +237,7 @@ describe('authMiddleware', () => {
       await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply)
 
       expect(codeSpy).toHaveBeenCalledWith(401)
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'No token provided' })
+      expect(sendSpy).toHaveBeenCalledWith({ success: false, error: 'No token provided' })
     })
 
     it('should return 401 when Bearer prefix is missing', async () => {
@@ -247,7 +247,7 @@ describe('authMiddleware', () => {
       await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply)
 
       expect(codeSpy).toHaveBeenCalledWith(401)
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'No token provided' })
+      expect(sendSpy).toHaveBeenCalledWith({ success: false, error: 'No token provided' })
     })
 
     it('should return 401 when Bearer prefix has wrong case', async () => {
@@ -257,7 +257,7 @@ describe('authMiddleware', () => {
       await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply)
 
       expect(codeSpy).toHaveBeenCalledWith(401)
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'No token provided' })
+      expect(sendSpy).toHaveBeenCalledWith({ success: false, error: 'No token provided' })
     })
 
     it('should return 401 when only "Bearer" is provided', async () => {
@@ -266,7 +266,7 @@ describe('authMiddleware', () => {
       await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply)
 
       expect(codeSpy).toHaveBeenCalledWith(401)
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'No token provided' })
+      expect(sendSpy).toHaveBeenCalledWith({ success: false, error: 'No token provided' })
     })
 
     it('should return 401 when "Bearer " is provided with empty token', async () => {
@@ -275,7 +275,7 @@ describe('authMiddleware', () => {
       await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply)
 
       expect(codeSpy).toHaveBeenCalledWith(401)
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'No token provided' })
+      expect(sendSpy).toHaveBeenCalledWith({ success: false, error: 'No token provided' })
     })
   })
 
@@ -287,7 +287,7 @@ describe('authMiddleware', () => {
       await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply)
 
       expect(codeSpy).toHaveBeenCalledWith(401)
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'Invalid or expired token' })
+      expect(sendSpy).toHaveBeenCalledWith({ success: false, error: 'Invalid or expired token' })
       expect(logWarnSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           errorCode: 'UNAUTHORIZED',
@@ -302,7 +302,7 @@ describe('authMiddleware', () => {
       await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply)
 
       expect(codeSpy).toHaveBeenCalledWith(401)
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'Invalid or expired token' })
+      expect(sendSpy).toHaveBeenCalledWith({ success: false, error: 'Invalid or expired token' })
       expect(logWarnSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           errorCode: 'UNAUTHORIZED',
@@ -317,7 +317,7 @@ describe('authMiddleware', () => {
       await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply)
 
       expect(codeSpy).toHaveBeenCalledWith(401)
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'Invalid or expired token' })
+      expect(sendSpy).toHaveBeenCalledWith({ success: false, error: 'Invalid or expired token' })
       expect(logWarnSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           errorCode: 'UNAUTHORIZED',
@@ -332,7 +332,7 @@ describe('authMiddleware', () => {
       await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply)
 
       expect(codeSpy).toHaveBeenCalledWith(401)
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'Invalid or expired token' })
+      expect(sendSpy).toHaveBeenCalledWith({ success: false, error: 'Invalid or expired token' })
       expect(logWarnSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           errorCode: 'UNAUTHORIZED',
@@ -347,7 +347,7 @@ describe('authMiddleware', () => {
       await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply)
 
       expect(codeSpy).toHaveBeenCalledWith(401)
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'Invalid or expired token' })
+      expect(sendSpy).toHaveBeenCalledWith({ success: false, error: 'Invalid or expired token' })
       expect(logWarnSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           errorCode: 'UNAUTHORIZED',
@@ -375,7 +375,7 @@ describe('authMiddleware', () => {
       await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply)
 
       expect(codeSpy).toHaveBeenCalledWith(401)
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'Invalid or expired token' })
+      expect(sendSpy).toHaveBeenCalledWith({ success: false, error: 'Invalid or expired token' })
       expect(mockRequest.user).toBeUndefined()
     })
 
@@ -387,7 +387,7 @@ describe('authMiddleware', () => {
       await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply)
 
       expect(codeSpy).toHaveBeenCalledWith(401)
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'Invalid or expired token' })
+      expect(sendSpy).toHaveBeenCalledWith({ success: false, error: 'Invalid or expired token' })
     })
 
     it('should return 401 for expired token', async () => {
@@ -398,7 +398,7 @@ describe('authMiddleware', () => {
       await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply)
 
       expect(codeSpy).toHaveBeenCalledWith(401)
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'Invalid or expired token' })
+      expect(sendSpy).toHaveBeenCalledWith({ success: false, error: 'Invalid or expired token' })
     })
 
     it('should return 401 for token with missing claims', async () => {
@@ -409,7 +409,7 @@ describe('authMiddleware', () => {
       await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply)
 
       expect(codeSpy).toHaveBeenCalledWith(401)
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'Invalid or expired token' })
+      expect(sendSpy).toHaveBeenCalledWith({ success: false, error: 'Invalid or expired token' })
     })
 
     it('should return 401 for completely random string', async () => {
@@ -418,7 +418,7 @@ describe('authMiddleware', () => {
       await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply)
 
       expect(codeSpy).toHaveBeenCalledWith(401)
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'Invalid or expired token' })
+      expect(sendSpy).toHaveBeenCalledWith({ success: false, error: 'Invalid or expired token' })
     })
   })
 
@@ -434,7 +434,7 @@ describe('authMiddleware', () => {
       await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply)
 
       expect(codeSpy).toHaveBeenCalledWith(401)
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'Token verification failed' })
+      expect(sendSpy).toHaveBeenCalledWith({ success: false, error: 'Token verification failed' })
       expect(mockRequest.user).toBeUndefined()
     })
 
@@ -449,7 +449,7 @@ describe('authMiddleware', () => {
       await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply)
 
       expect(codeSpy).toHaveBeenCalledWith(401)
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'Invalid or expired token' })
+      expect(sendSpy).toHaveBeenCalledWith({ success: false, error: 'Invalid or expired token' })
     })
 
     it('should not expose error details to client for non-UnauthorizedException errors', async () => {
@@ -462,7 +462,7 @@ describe('authMiddleware', () => {
 
       await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply)
 
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'Invalid or expired token' })
+      expect(sendSpy).toHaveBeenCalledWith({ success: false, error: 'Invalid or expired token' })
       expect(sendSpy).not.toHaveBeenCalledWith(
         expect.objectContaining({
           error: expect.stringContaining('Detailed internal error'),
@@ -480,7 +480,7 @@ describe('authMiddleware', () => {
 
       await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply)
 
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'Custom error message' })
+      expect(sendSpy).toHaveBeenCalledWith({ success: false, error: 'Custom error message' })
     })
 
     it('should use TOKEN_EXPIRED code when token is expired', async () => {
@@ -494,7 +494,7 @@ describe('authMiddleware', () => {
       await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply)
 
       expect(codeSpy).toHaveBeenCalledWith(401)
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'Token has expired' })
+      expect(sendSpy).toHaveBeenCalledWith({ success: false, error: 'Token has expired' })
       expect(logWarnSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           errorCode: ErrorCode.TOKEN_EXPIRED,
@@ -513,7 +513,7 @@ describe('authMiddleware', () => {
 
       // Should fail because authorization header is not trimmed
       expect(codeSpy).toHaveBeenCalledWith(401)
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'No token provided' })
+      expect(sendSpy).toHaveBeenCalledWith({ success: false, error: 'No token provided' })
     })
 
     it('should not modify request if token is invalid', async () => {
@@ -550,7 +550,7 @@ describe('authMiddleware', () => {
 
       // FastifyRequest.headers uses lowercase keys
       expect(codeSpy).toHaveBeenCalledWith(401)
-      expect(sendSpy).toHaveBeenCalledWith({ error: 'No token provided' })
+      expect(sendSpy).toHaveBeenCalledWith({ success: false, error: 'No token provided' })
     })
   })
 
