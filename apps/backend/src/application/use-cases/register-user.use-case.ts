@@ -68,7 +68,8 @@ export class RegisterUserUseCase {
    * @returns {Promise<{userId: string, access_token: string, token_type: string, expires_in: number}>}
    *          Registration result with user ID and authentication token
    * @throws {ConflictException} If a user with the same email already exists
-   * @throws {Error} If password validation, database operation, or token generation fails
+   * @throws {Error} If password validation, database operation, or token generation fails.
+   *                 Note: Email service failures are logged but do not throw errors or prevent registration.
    * @example
    * ```typescript
    * try {
