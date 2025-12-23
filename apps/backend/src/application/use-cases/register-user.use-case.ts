@@ -12,7 +12,41 @@ import { DatabaseUtil } from '../../shared/utils/database.util.js'
 import { uuidv7 } from 'uuidv7'
 import { EnvConfig } from '../../infrastructure/config/env.config.js'
 
+/**
+ * Use case for registering a new user in the system
+ *
+ * This use case handles the complete user registration process including:
+ * - Creating domain entities from DTO
+ * - Validating and hashing passwords
+ * - Persisting user to repository with duplicate email detection
+ * - Sending welcome email (non-blocking)
+ * - Generating JWT access token
+ *
+ * @class RegisterUserUseCase
+ * @example
+ * ```typescript
+ * const useCase = new RegisterUserUseCase(
+ *   userRepository,
+ *   emailService,
+ *   logger,
+ *   tokenGenerator
+ * )
+ * const result = await useCase.execute({
+ *   email: 'user@example.com',
+ *   password: 'SecurePass123',
+ *   name: 'John Doe',
+ *   role: 'member'
+ * })
+ * ```
+ */
 export class RegisterUserUseCase {
+  /**
+   * Creates an instance of RegisterUserUseCase
+   * @param {UserRepositoryPort} userRepository - Repository for persisting user data
+   * @param {EmailServicePort} emailService - Service for sending welcome emails
+   * @param {LoggerPort} logger - Logger for tracking operations
+   * @param {TokenGeneratorPort} tokenGenerator - Service for generating JWT tokens
+   */
   constructor(
     private readonly userRepository: UserRepositoryPort,
     private readonly emailService: EmailServicePort,
@@ -20,6 +54,38 @@ export class RegisterUserUseCase {
     private readonly tokenGenerator: TokenGeneratorPort
   ) {}
 
+  /**
+   * Executes the user registration use case
+   *
+   * Creates a new user account with the provided information. The process includes:
+   * 1. Validating email format and password strength through value objects
+   * 2. Hashing the password securely
+   * 3. Saving the user to the database (with duplicate email detection)
+   * 4. Sending a welcome email (failure doesn't block registration)
+   * 5. Generating a JWT access token for immediate login
+   *
+   * @param {RegisterUserDto} dto - User registration data (email, password, name, role)
+   * @returns {Promise<{userId: string, access_token: string, token_type: string, expires_in: number}>}
+   *          Registration result with user ID and authentication token
+   * @throws {ConflictException} If a user with the same email already exists
+   * @throws {Error} If password validation, database operation, or token generation fails
+   * @example
+   * ```typescript
+   * try {
+   *   const result = await useCase.execute({
+   *     email: 'newuser@example.com',
+   *     password: 'StrongPass123!',
+   *     name: 'Jane Smith',
+   *     role: 'member'
+   *   })
+   *   console.log(`User ${result.userId} registered successfully`)
+   * } catch (error) {
+   *   if (error instanceof ConflictException) {
+   *     console.error('Email already in use')
+   *   }
+   * }
+   * ```
+   */
   async execute(
     dto: RegisterUserDto
   ): Promise<{ userId: string; access_token: string; token_type: string; expires_in: number }> {
@@ -80,6 +146,15 @@ export class RegisterUserUseCase {
     }
   }
 
+  /**
+   * Generates a unique identifier for a new user
+   *
+   * Uses UUIDv7 which provides time-ordered, globally unique identifiers
+   * suitable for distributed systems and database indexing.
+   *
+   * @private
+   * @returns {string} A UUIDv7 string identifier
+   */
   private generateId(): string {
     return uuidv7()
   }

@@ -1,6 +1,10 @@
 import type { UserRepositoryPort, PaginationParams } from '../ports/user.repository.port.js'
 import type { LoggerPort } from '../ports/logger.port.js'
 
+/**
+ * Data Transfer Object for user information
+ * @interface UserDto
+ */
 export interface UserDto {
   userId: string
   email: string
@@ -9,6 +13,10 @@ export interface UserDto {
   createdAt: Date
 }
 
+/**
+ * Data Transfer Object for paginated users response
+ * @interface PaginatedUsersDto
+ */
 export interface PaginatedUsersDto {
   data: UserDto[]
   total: number
@@ -16,12 +24,48 @@ export interface PaginatedUsersDto {
   offset: number
 }
 
+/**
+ * Use case for retrieving all users with pagination support
+ *
+ * This use case handles the business logic for fetching users from the repository,
+ * transforming domain entities into DTOs, and returning paginated results.
+ *
+ * @class GetAllUsersUseCase
+ * @example
+ * ```typescript
+ * const useCase = new GetAllUsersUseCase(userRepository, logger)
+ * const result = await useCase.execute({ limit: 10, offset: 0 })
+ * ```
+ */
 export class GetAllUsersUseCase {
+  /**
+   * Creates an instance of GetAllUsersUseCase
+   * @param {UserRepositoryPort} userRepository - Repository for accessing user data
+   * @param {LoggerPort} logger - Logger for tracking operations
+   */
   constructor(
     private readonly userRepository: UserRepositoryPort,
     private readonly logger: LoggerPort
   ) {}
 
+  /**
+   * Executes the get all users use case
+   *
+   * Retrieves all users from the repository with optional pagination parameters,
+   * transforms them into DTOs, and returns a paginated response.
+   *
+   * @param {PaginationParams} [params] - Optional pagination parameters (limit, offset)
+   * @returns {Promise<PaginatedUsersDto>} Paginated list of users with metadata
+   * @throws {Error} If the repository operation fails
+   * @example
+   * ```typescript
+   * // Get first 20 users
+   * const result = await useCase.execute({ limit: 20, offset: 0 })
+   *
+   * // Get all users (default pagination)
+   * const allUsers = await useCase.execute()
+   * ```
+   */
   async execute(params?: PaginationParams): Promise<PaginatedUsersDto> {
     this.logger.info('Fetching all users', { params })
 
