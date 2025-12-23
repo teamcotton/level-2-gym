@@ -301,7 +301,7 @@ export async function middleware(request: Request) {
 
   // Redirect unauthenticated users from protected routes to login
   if (isProtectedRoute && !isAuthenticated) {
-    const loginUrl = new URL('/login', request.url)
+    const loginUrl = new URL('/signin', request.url)
     loginUrl.searchParams.set('callbackUrl', pathname)
     const resp = NextResponse.redirect(loginUrl, 302)
     if (rateLimitResult) {

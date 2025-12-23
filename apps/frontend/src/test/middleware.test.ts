@@ -34,55 +34,57 @@ describe('Middleware', () => {
       vi.mocked(getToken).mockResolvedValue(null)
     })
 
-    it('should redirect unauthenticated user from /admin to /login with callbackUrl', async () => {
+    it('should redirect unauthenticated user from /admin to /signin with callbackUrl', async () => {
       const request = createRequest('/admin')
       const response = await middleware(request)
 
       expect(response.status).toBe(302)
-      expect(response.headers.get('location')).toBe(`${baseUrl}/login?callbackUrl=%2Fadmin`)
+      expect(response.headers.get('location')).toBe(`${baseUrl}/signin?callbackUrl=%2Fadmin`)
     })
 
-    it('should redirect unauthenticated user from /admin/users to /login with callbackUrl', async () => {
+    it('should redirect unauthenticated user from /admin/users to /signin with callbackUrl', async () => {
       const request = createRequest('/admin/users')
       const response = await middleware(request)
 
       expect(response.status).toBe(302)
-      expect(response.headers.get('location')).toBe(`${baseUrl}/login?callbackUrl=%2Fadmin%2Fusers`)
+      expect(response.headers.get('location')).toBe(
+        `${baseUrl}/signin?callbackUrl=%2Fadmin%2Fusers`
+      )
     })
 
-    it('should redirect unauthenticated user from /dashboard to /login with callbackUrl', async () => {
+    it('should redirect unauthenticated user from /dashboard to /signin with callbackUrl', async () => {
       const request = createRequest('/dashboard')
       const response = await middleware(request)
 
       expect(response.status).toBe(302)
-      expect(response.headers.get('location')).toBe(`${baseUrl}/login?callbackUrl=%2Fdashboard`)
+      expect(response.headers.get('location')).toBe(`${baseUrl}/signin?callbackUrl=%2Fdashboard`)
     })
 
-    it('should redirect unauthenticated user from /dashboard/settings to /login with callbackUrl', async () => {
+    it('should redirect unauthenticated user from /dashboard/settings to /signin with callbackUrl', async () => {
       const request = createRequest('/dashboard/settings')
       const response = await middleware(request)
 
       expect(response.status).toBe(302)
       expect(response.headers.get('location')).toBe(
-        `${baseUrl}/login?callbackUrl=%2Fdashboard%2Fsettings`
+        `${baseUrl}/signin?callbackUrl=%2Fdashboard%2Fsettings`
       )
     })
 
-    it('should redirect unauthenticated user from /profile to /login with callbackUrl', async () => {
+    it('should redirect unauthenticated user from /profile to /signin with callbackUrl', async () => {
       const request = createRequest('/profile')
       const response = await middleware(request)
 
       expect(response.status).toBe(302)
-      expect(response.headers.get('location')).toBe(`${baseUrl}/login?callbackUrl=%2Fprofile`)
+      expect(response.headers.get('location')).toBe(`${baseUrl}/signin?callbackUrl=%2Fprofile`)
     })
 
-    it('should redirect unauthenticated user from /profile/edit to /login with callbackUrl', async () => {
+    it('should redirect unauthenticated user from /profile/edit to /signin with callbackUrl', async () => {
       const request = createRequest('/profile/edit')
       const response = await middleware(request)
 
       expect(response.status).toBe(302)
       expect(response.headers.get('location')).toBe(
-        `${baseUrl}/login?callbackUrl=%2Fprofile%2Fedit`
+        `${baseUrl}/signin?callbackUrl=%2Fprofile%2Fedit`
       )
     })
 
@@ -148,8 +150,8 @@ describe('Middleware', () => {
       vi.mocked(getToken).mockResolvedValue(null)
     })
 
-    it('should allow unauthenticated user to access /login', async () => {
-      const request = createRequest('/login')
+    it('should allow unauthenticated user to access /sigin', async () => {
+      const request = createRequest('/signin')
       const response = await middleware(request)
 
       expect(response.status).toBe(200)
@@ -168,8 +170,8 @@ describe('Middleware', () => {
       vi.mocked(getToken).mockResolvedValue(createMockToken())
     })
 
-    it('should redirect authenticated user from /login to /admin', async () => {
-      const request = createRequest('/login')
+    it('should redirect authenticated user from /signin to /admin', async () => {
+      const request = createRequest('/signin')
       const response = await middleware(request)
 
       expect(response.status).toBe(302)
@@ -184,8 +186,8 @@ describe('Middleware', () => {
       expect(response.headers.get('location')).toBe(`${baseUrl}/admin`)
     })
 
-    it('should ignore query parameters when redirecting from /login', async () => {
-      const request = createRequest('/login?callbackUrl=%2Fadmin')
+    it('should ignore query parameters when redirecting from /signin', async () => {
+      const request = createRequest('/signin?callbackUrl=%2Fadmin')
       const response = await middleware(request)
 
       expect(response.status).toBe(302)
@@ -285,7 +287,7 @@ describe('Middleware', () => {
       const response = await middleware(request)
 
       expect(response.status).toBe(302)
-      expect(response.headers.get('location')).toBe(`${baseUrl}/login?callbackUrl=%2Fadmin%2F`)
+      expect(response.headers.get('location')).toBe(`${baseUrl}/signin?callbackUrl=%2Fadmin%2F`)
     })
 
     it('should handle case-sensitive paths correctly', async () => {
@@ -338,7 +340,7 @@ describe('Middleware', () => {
       const response = await middleware(request)
 
       expect(response.status).toBe(302)
-      expect(response.headers.get('location')).toContain('login')
+      expect(response.headers.get('location')).toContain('signin')
       expect(response.headers.get('location')).toContain('callbackUrl')
     })
 
@@ -350,7 +352,7 @@ describe('Middleware', () => {
       const response = await middleware(request)
 
       expect(response.status).toBe(302)
-      expect(response.headers.get('location')).toBe(`${customBaseUrl}/login?callbackUrl=%2Fadmin`)
+      expect(response.headers.get('location')).toBe(`${customBaseUrl}/signin?callbackUrl=%2Fadmin`)
     })
   })
 
@@ -392,7 +394,7 @@ describe('Middleware', () => {
 
     it('should return proper redirect response for authenticated user on auth route', async () => {
       vi.mocked(getToken).mockResolvedValue(createMockToken())
-      const request = createRequest('/login')
+      const request = createRequest('/signin')
 
       const response = await middleware(request)
 
@@ -465,9 +467,9 @@ describe('Middleware', () => {
       expect(response.status).toBe(302) // Redirected because not authenticated
     })
 
-    it('should correctly identify /login as auth route', async () => {
+    it('should correctly identify /signin as auth route', async () => {
       vi.mocked(getToken).mockResolvedValue(createMockToken())
-      const request = createRequest('/login')
+      const request = createRequest('/signin')
 
       const response = await middleware(request)
 
