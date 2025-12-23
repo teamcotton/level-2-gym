@@ -3,6 +3,8 @@ import { RegisterUserUseCase } from '../../../application/use-cases/register-use
 import { GetAllUsersUseCase } from '../../../application/use-cases/get-all-users.use-case.js'
 import { RegisterUserDto } from '../../../application/dtos/register-user.dto.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
+import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
+import { requireRole } from '../../../infrastructure/http/middleware/role.middleware.js'
 
 /**
  * HTTP controller for user-related endpoints
@@ -46,7 +48,13 @@ export class UserController {
    */
   registerRoutes(app: FastifyInstance): void {
     app.post('/users/register', this.register.bind(this))
-    app.get('/users', this.getAllUsers.bind(this))
+    app.get(
+      '/users',
+      {
+        preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
+      },
+      this.getAllUsers.bind(this)
+    )
     app.get('/users/:id', this.getUser.bind(this))
   }
 

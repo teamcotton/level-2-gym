@@ -77,7 +77,14 @@ describe('UserController', () => {
 
       expect(mockApp.get).toHaveBeenCalledTimes(2)
       expect(mockApp.get).toHaveBeenCalledWith('/users/:id', expect.any(Function))
-      expect(mockApp.get).toHaveBeenCalledWith('/users', expect.any(Function))
+      // GET /users now uses route options with middleware
+      expect(mockApp.get).toHaveBeenCalledWith(
+        '/users',
+        expect.objectContaining({
+          preHandler: expect.any(Array),
+        }),
+        expect.any(Function)
+      )
     })
 
     it('should bind controller context to route handlers', () => {
@@ -90,10 +97,14 @@ describe('UserController', () => {
 
       // Verify handlers are bound functions
       const registerHandler = vi.mocked(mockApp.post).mock.calls[0]?.[1]
-      const getUserHandler = vi.mocked(mockApp.get).mock.calls[0]?.[1]
+      // GET /users is now registered with options, so handler is at index 2
+      const getAllUsersHandler = (vi.mocked(mockApp.get).mock.calls[0] as any)?.[2]
+      // GET /users/:id handler remains at index 1
+      const getUserByIdHandler = vi.mocked(mockApp.get).mock.calls[1]?.[1]
 
       expect(registerHandler).toBeTypeOf('function')
-      expect(getUserHandler).toBeTypeOf('function')
+      expect(getAllUsersHandler).toBeTypeOf('function')
+      expect(getUserByIdHandler).toBeTypeOf('function')
     })
 
     it('should register routes in correct order', () => {
@@ -471,7 +482,8 @@ describe('UserController', () => {
 
         controller.registerRoutes(mockApp)
 
-        const getAllUsersHandler = vi.mocked(mockApp.get).mock.calls[0]?.[1] as unknown as (
+        // GET /users is now registered with options, so handler is at index 2
+        const getAllUsersHandler = (vi.mocked(mockApp.get).mock.calls[0] as any)?.[2] as (
           req: FastifyRequest,
           reply: FastifyReply
         ) => Promise<void>
@@ -513,7 +525,8 @@ describe('UserController', () => {
 
         controller.registerRoutes(mockApp)
 
-        const getAllUsersHandler = vi.mocked(mockApp.get).mock.calls[0]?.[1] as unknown as (
+        // GET /users is now registered with options, so handler is at index 2
+        const getAllUsersHandler = (vi.mocked(mockApp.get).mock.calls[0] as any)?.[2] as (
           req: FastifyRequest,
           reply: FastifyReply
         ) => Promise<void>

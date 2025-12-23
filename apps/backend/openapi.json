@@ -191,7 +191,7 @@
     "/users": {
       "get": {
         "summary": "Get all users",
-        "description": "Retrieves all users in date order",
+        "description": "Retrieves all users in date order. Requires authentication with admin or moderator role.",
         "operationId": "getAllUsers",
         "tags": ["users"],
         "security": [{ "bearerAuth": [] }],
@@ -205,6 +205,26 @@
                   "items": {
                     "$ref": "#/components/schemas/User"
                   }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Missing or invalid authentication token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - User does not have required role (admin or moderator)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }

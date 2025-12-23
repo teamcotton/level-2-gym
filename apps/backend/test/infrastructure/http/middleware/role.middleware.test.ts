@@ -1,0 +1,323 @@
+import type { FastifyReply, FastifyRequest } from 'fastify'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { requireRole } from '../../../../src/infrastructure/http/middleware/role.middleware.js'
+import type { JwtUserClaims } from '../../../../src/shared/types/index.js'
+
+describe('requireRole middleware', () => {
+  let mockRequest: Partial<FastifyRequest>
+  let mockReply: Partial<FastifyReply>
+  let sendSpy: ReturnType<typeof vi.fn>
+  let codeSpy: ReturnType<typeof vi.fn>
+  let logInfoSpy: ReturnType<typeof vi.fn>
+  let logWarnSpy: ReturnType<typeof vi.fn>
+
+  beforeEach(() => {
+    sendSpy = vi.fn().mockReturnThis()
+    codeSpy = vi.fn().mockReturnValue({ send: sendSpy })
+    logInfoSpy = vi.fn()
+    logWarnSpy = vi.fn()
+
+    mockRequest = {
+      headers: {},
+      method: 'GET',
+      url: '/users',
+      log: {
+        info: logInfoSpy,
+        warn: logWarnSpy,
+        error: vi.fn(),
+        debug: vi.fn(),
+        trace: vi.fn(),
+        fatal: vi.fn(),
+        child: vi.fn(),
+        silent: vi.fn(),
+      } as any,
+    }
+
+    mockReply = {
+      code: codeSpy as any,
+      send: sendSpy as any,
+    }
+  })
+
+  describe('Authentication checks', () => {
+    it('should return 401 when user is not authenticated', async () => {
+      const middleware = requireRole(['admin', 'moderator'])
+      await middleware.call(null as any, mockRequest as FastifyRequest, mockReply as FastifyReply)
+
+      expect(codeSpy).toHaveBeenCalledWith(401)
+      expect(sendSpy).toHaveBeenCalledWith({
+        success: false,
+        error: 'Authentication required',
+      })
+      expect(logWarnSpy).toHaveBeenCalled()
+    })
+
+    it('should log appropriate context when authentication is missing', async () => {
+      const middleware = requireRole(['admin'])
+      await middleware.call(null as any, mockRequest as FastifyRequest, mockReply as FastifyReply)
+
+      expect(logWarnSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          route: '/users',
+          requiredRoles: ['admin'],
+        }),
+        'Role check failed: User not authenticated'
+      )
+    })
+  })
+
+  describe('Role authorization', () => {
+    it('should allow access when user has required role', async () => {
+      mockRequest.user = {
+        sub: 'user-123',
+        email: 'admin@example.com',
+        roles: ['admin'],
+      } as JwtUserClaims
+
+      const middleware = requireRole(['admin'])
+      await middleware.call(null as any, mockRequest as FastifyRequest, mockReply as FastifyReply)
+
+      expect(codeSpy).not.toHaveBeenCalled()
+      expect(sendSpy).not.toHaveBeenCalled()
+      expect(logInfoSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          userId: 'user-123',
+          userRoles: ['admin'],
+        }),
+        'Role check passed'
+      )
+    })
+
+    it('should allow access when user has one of multiple required roles', async () => {
+      mockRequest.user = {
+        sub: 'user-456',
+        email: 'moderator@example.com',
+        roles: ['moderator', 'user'],
+      } as JwtUserClaims
+
+      const middleware = requireRole(['admin', 'moderator'])
+      await middleware.call(null as any, mockRequest as FastifyRequest, mockReply as FastifyReply)
+
+      expect(codeSpy).not.toHaveBeenCalled()
+      expect(sendSpy).not.toHaveBeenCalled()
+      expect(logInfoSpy).toHaveBeenCalled()
+    })
+
+    it('should allow access when user has admin role and moderator is required', async () => {
+      mockRequest.user = {
+        sub: 'user-789',
+        email: 'admin@example.com',
+        roles: ['admin'],
+      } as JwtUserClaims
+
+      const middleware = requireRole(['admin', 'moderator'])
+      await middleware.call(null as any, mockRequest as FastifyRequest, mockReply as FastifyReply)
+
+      expect(codeSpy).not.toHaveBeenCalled()
+      expect(sendSpy).not.toHaveBeenCalled()
+    })
+
+    it('should deny access when user lacks required role', async () => {
+      mockRequest.user = {
+        sub: 'user-999',
+        email: 'user@example.com',
+        roles: ['user'],
+      } as JwtUserClaims
+
+      const middleware = requireRole(['admin', 'moderator'])
+      await middleware.call(null as any, mockRequest as FastifyRequest, mockReply as FastifyReply)
+
+      expect(codeSpy).toHaveBeenCalledWith(403)
+      expect(sendSpy).toHaveBeenCalledWith({
+        success: false,
+        error: 'Access denied. Required roles: admin, moderator',
+      })
+      expect(logWarnSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'user-999',
+          userRoles: ['user'],
+          requiredRoles: ['admin', 'moderator'],
+        }),
+        'Role check failed: Insufficient permissions'
+      )
+    })
+
+    it('should deny access when user has no roles', async () => {
+      mockRequest.user = {
+        sub: 'user-000',
+        email: 'noroles@example.com',
+        roles: [],
+      } as JwtUserClaims
+
+      const middleware = requireRole(['admin'])
+      await middleware.call(null as any, mockRequest as FastifyRequest, mockReply as FastifyReply)
+
+      expect(codeSpy).toHaveBeenCalledWith(403)
+      expect(sendSpy).toHaveBeenCalledWith({
+        success: false,
+        error: 'Access denied. Required roles: admin',
+      })
+    })
+
+    it('should deny access when user roles property is undefined', async () => {
+      mockRequest.user = {
+        sub: 'user-111',
+        email: 'noroles@example.com',
+      } as JwtUserClaims
+
+      const middleware = requireRole(['admin'])
+      await middleware.call(null as any, mockRequest as FastifyRequest, mockReply as FastifyReply)
+
+      expect(codeSpy).toHaveBeenCalledWith(403)
+      expect(sendSpy).toHaveBeenCalledWith({
+        success: false,
+        error: 'Access denied. Required roles: admin',
+      })
+    })
+  })
+
+  describe('Multiple roles scenarios', () => {
+    it('should handle single role requirement', async () => {
+      mockRequest.user = {
+        sub: 'user-single',
+        email: 'admin@example.com',
+        roles: ['admin', 'user', 'moderator'],
+      } as JwtUserClaims
+
+      const middleware = requireRole(['admin'])
+      await middleware.call(null as any, mockRequest as FastifyRequest, mockReply as FastifyReply)
+
+      expect(codeSpy).not.toHaveBeenCalled()
+      expect(logInfoSpy).toHaveBeenCalled()
+    })
+
+    it('should handle multiple required roles with user having multiple roles', async () => {
+      mockRequest.user = {
+        sub: 'user-multi',
+        email: 'superuser@example.com',
+        roles: ['admin', 'moderator', 'user'],
+      } as JwtUserClaims
+
+      const middleware = requireRole(['admin', 'moderator', 'editor'])
+      await middleware.call(null as any, mockRequest as FastifyRequest, mockReply as FastifyReply)
+
+      expect(codeSpy).not.toHaveBeenCalled()
+    })
+
+    it('should correctly identify when none of multiple roles match', async () => {
+      mockRequest.user = {
+        sub: 'user-nomatch',
+        email: 'guest@example.com',
+        roles: ['guest', 'viewer'],
+      } as JwtUserClaims
+
+      const middleware = requireRole(['admin', 'moderator', 'editor'])
+      await middleware.call(null as any, mockRequest as FastifyRequest, mockReply as FastifyReply)
+
+      expect(codeSpy).toHaveBeenCalledWith(403)
+      expect(sendSpy).toHaveBeenCalledWith({
+        success: false,
+        error: 'Access denied. Required roles: admin, moderator, editor',
+      })
+    })
+  })
+
+  describe('Edge cases', () => {
+    it('should handle empty required roles array', async () => {
+      mockRequest.user = {
+        sub: 'user-empty',
+        email: 'user@example.com',
+        roles: ['user'],
+      } as JwtUserClaims
+
+      const middleware = requireRole([])
+      await middleware.call(null as any, mockRequest as FastifyRequest, mockReply as FastifyReply)
+
+      // Empty required roles means no role matches, should deny
+      expect(codeSpy).toHaveBeenCalledWith(403)
+    })
+
+    it('should handle very long role names', async () => {
+      const longRole = 'a'.repeat(200)
+      mockRequest.user = {
+        sub: 'user-long',
+        email: 'user@example.com',
+        roles: [longRole],
+      } as JwtUserClaims
+
+      const middleware = requireRole([longRole])
+      await middleware.call(null as any, mockRequest as FastifyRequest, mockReply as FastifyReply)
+
+      expect(codeSpy).not.toHaveBeenCalled()
+      expect(logInfoSpy).toHaveBeenCalled()
+    })
+
+    it('should handle case-sensitive role matching', async () => {
+      mockRequest.user = {
+        sub: 'user-case',
+        email: 'user@example.com',
+        roles: ['Admin'], // Capital A
+      } as JwtUserClaims
+
+      const middleware = requireRole(['admin']) // lowercase a
+      await middleware.call(null as any, mockRequest as FastifyRequest, mockReply as FastifyReply)
+
+      // Should not match due to case sensitivity
+      expect(codeSpy).toHaveBeenCalledWith(403)
+    })
+
+    it('should preserve request context through middleware chain', async () => {
+      mockRequest.user = {
+        sub: 'user-preserve',
+        email: 'user@example.com',
+        roles: ['admin'],
+      } as JwtUserClaims
+
+      const originalUser = mockRequest.user
+
+      const middleware = requireRole(['admin'])
+      await middleware.call(null as any, mockRequest as FastifyRequest, mockReply as FastifyReply)
+
+      // User object should remain unchanged
+      expect(mockRequest.user).toBe(originalUser)
+    })
+  })
+
+  describe('Logging behavior', () => {
+    it('should log route information from routerPath when available', async () => {
+      const requestWithRouterPath = {
+        ...mockRequest,
+        routerPath: '/users',
+      } as any as FastifyRequest
+
+      const middleware = requireRole(['admin'])
+      await middleware.call(null as any, requestWithRouterPath, mockReply as FastifyReply)
+
+      expect(logWarnSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          route: '/users',
+        }),
+        expect.any(String)
+      )
+    })
+
+    it('should fall back to url when routerPath is not available', async () => {
+      const requestWithUrl = {
+        ...mockRequest,
+      } as any as FastifyRequest
+
+      const middleware = requireRole(['admin'])
+      await middleware.call(null as any, requestWithUrl, mockReply as FastifyReply)
+
+      expect(logWarnSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          route: '/users',
+        }),
+        expect.any(String)
+      )
+    })
+  })
+})
