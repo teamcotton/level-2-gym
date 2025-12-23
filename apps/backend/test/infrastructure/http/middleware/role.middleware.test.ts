@@ -235,8 +235,12 @@ describe('requireRole middleware', () => {
     })
 
     it('should throw error when requiredRoles is null or undefined', () => {
-      expect(() => requireRole(null as any)).toThrow('requireRole: requiredRoles must be a non-empty array')
-      expect(() => requireRole(undefined as any)).toThrow('requireRole: requiredRoles must be a non-empty array')
+      expect(() => requireRole(null as any)).toThrow(
+        'requireRole: requiredRoles must be a non-empty array'
+      )
+      expect(() => requireRole(undefined as any)).toThrow(
+        'requireRole: requiredRoles must be a non-empty array'
+      )
     })
 
     it('should handle very long role names', async () => {
