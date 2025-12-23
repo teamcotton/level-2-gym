@@ -150,7 +150,7 @@ describe('Middleware', () => {
       vi.mocked(getToken).mockResolvedValue(null)
     })
 
-    it('should allow unauthenticated user to access /sigin', async () => {
+    it('should allow unauthenticated user to access /signin', async () => {
       const request = createRequest('/signin')
       const response = await middleware(request)
 
