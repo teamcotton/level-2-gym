@@ -60,7 +60,7 @@ export class UserController {
       {
         preHandler: [authMiddleware, requireRole(['admin', 'moderator'])],
       },
-      this.getUser.bind(this) as any
+      this.getUser.bind(this)
     )
   }
 
@@ -189,7 +189,7 @@ export class UserController {
    * **Note:** This endpoint is currently incomplete and returns a minimal stub response.
    * Full implementation is pending.
    *
-   * @param {FastifyRequest<{ Params: { id: string } }>} request - Fastify request with user ID in params
+   * @param {FastifyRequest} request - Fastify request with user ID in params
    * @param {FastifyReply} reply - Fastify reply object
    * @returns {Promise<void>} Currently returns only the user ID as a stub response
    * @todo Implement full user retrieval logic with complete user data
@@ -199,11 +199,9 @@ export class UserController {
    * Current Response: { id: 'abc123' }  // Stub response only
    * ```
    */
-  async getUser(
-    request: FastifyRequest<{ Params: { id: string } }>,
-    reply: FastifyReply
-  ): Promise<void> {
-    // Implementation here
-    reply.send({ id: request.params.id })
+  async getUser(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    // Extract and validate params with type guard
+    const params = request.params as { id: string }
+    reply.send({ id: params.id })
   }
 }
