@@ -214,7 +214,7 @@ export class UserController {
       
       const trimmedId = params.id.trim()
       
-      reply.send({
+      reply.code(200).send({
         success: true,
         data: { id: trimmedId },
       })
