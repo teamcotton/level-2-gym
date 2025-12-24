@@ -157,4 +157,4 @@ level-2-gym/
 
 ## License
 
-MIT
+AGPLv3
