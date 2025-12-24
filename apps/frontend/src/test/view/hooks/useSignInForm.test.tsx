@@ -1,12 +1,52 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, renderHook } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { useRouter } from 'next/navigation.js'
+import React, { type ReactNode } from 'react'
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 
 import { useSignInForm } from '@/view/hooks/useSignInForm.js'
 
+// Mock next/navigation
+vi.mock('next/navigation.js', () => ({
+  useRouter: vi.fn(),
+}))
+
+// Mock login Server Action
+vi.mock('@/infrastructure/serverActions/loginUser.server.js', () => ({
+  loginUserAction: vi.fn(),
+}))
+
 describe('useSignInForm', () => {
+  const mockPush = vi.fn()
+  const mockRouter = {
+    push: mockPush,
+    replace: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    refresh: vi.fn(),
+    prefetch: vi.fn(),
+  }
+
+  let queryClient: QueryClient
+  let wrapper: ({ children }: { children: ReactNode }) => React.JSX.Element
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    ;(useRouter as Mock).mockReturnValue(mockRouter)
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    })
+    wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    )
+  })
+
   describe('Initial State', () => {
     it('should initialize with empty form data', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       expect(result.current.formData).toEqual({
         email: '',
@@ -15,7 +55,7 @@ describe('useSignInForm', () => {
     })
 
     it('should initialize with empty errors', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       expect(result.current.errors).toEqual({
         email: '',
@@ -24,7 +64,7 @@ describe('useSignInForm', () => {
     })
 
     it('should provide all required handlers', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       expect(result.current.handleChange).toBeDefined()
       expect(result.current.handleSubmit).toBeDefined()
@@ -39,7 +79,7 @@ describe('useSignInForm', () => {
 
   describe('handleChange', () => {
     it('should update email field', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       act(() => {
         const handler = result.current.handleChange('email')
@@ -50,7 +90,7 @@ describe('useSignInForm', () => {
     })
 
     it('should update password field', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       act(() => {
         const handler = result.current.handleChange('password')
@@ -61,7 +101,7 @@ describe('useSignInForm', () => {
     })
 
     it('should clear error for the field being changed', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       // First, trigger validation to create errors
       act(() => {
@@ -82,7 +122,7 @@ describe('useSignInForm', () => {
     })
 
     it('should not clear errors for other fields', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       // Trigger validation
       act(() => {
@@ -105,7 +145,7 @@ describe('useSignInForm', () => {
 
   describe('Form Validation - Email', () => {
     it('should show error when email is empty', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       act(() => {
         result.current.handleSubmit({
@@ -117,7 +157,7 @@ describe('useSignInForm', () => {
     })
 
     it('should show error for invalid email format', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       act(() => {
         const handler = result.current.handleChange('email')
@@ -134,7 +174,7 @@ describe('useSignInForm', () => {
     })
 
     it('should accept valid email', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       act(() => {
         const emailHandler = result.current.handleChange('email')
@@ -158,7 +198,7 @@ describe('useSignInForm', () => {
     })
 
     it('should accept email with special characters', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       act(() => {
         const emailHandler = result.current.handleChange('email')
@@ -184,7 +224,7 @@ describe('useSignInForm', () => {
 
   describe('Form Validation - Password', () => {
     it('should show error when password is empty', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       act(() => {
         result.current.handleSubmit({
@@ -196,7 +236,7 @@ describe('useSignInForm', () => {
     })
 
     it('should accept any non-empty password', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       act(() => {
         const emailHandler = result.current.handleChange('email')
@@ -220,7 +260,7 @@ describe('useSignInForm', () => {
     })
 
     it('should accept long passwords', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       act(() => {
         const emailHandler = result.current.handleChange('email')
@@ -248,7 +288,7 @@ describe('useSignInForm', () => {
 
   describe('handleSubmit', () => {
     it('should prevent default form submission', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
       let defaultPrevented = false
 
       act(() => {
@@ -263,7 +303,7 @@ describe('useSignInForm', () => {
     })
 
     it('should validate form on submission', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       act(() => {
         result.current.handleSubmit({
@@ -276,7 +316,7 @@ describe('useSignInForm', () => {
     })
 
     it('should not submit when validation fails', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       act(() => {
         result.current.handleSubmit({
@@ -289,7 +329,7 @@ describe('useSignInForm', () => {
     })
 
     it('should clear all errors when form is valid', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       act(() => {
         const emailHandler = result.current.handleChange('email')
@@ -314,7 +354,7 @@ describe('useSignInForm', () => {
     })
 
     it('should only require email and password for sign in', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       act(() => {
         const emailHandler = result.current.handleChange('email')
@@ -342,7 +382,7 @@ describe('useSignInForm', () => {
 
   describe('OAuth Handlers', () => {
     it('should provide handleGoogleSignIn without errors', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       expect(() => {
         act(() => {
@@ -352,7 +392,7 @@ describe('useSignInForm', () => {
     })
 
     it('should provide handleGitHubSignIn without errors', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       expect(() => {
         act(() => {
@@ -364,7 +404,7 @@ describe('useSignInForm', () => {
 
   describe('Complex Scenarios', () => {
     it('should handle multiple field updates in sequence', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       act(() => {
         const emailHandler = result.current.handleChange('email')
@@ -386,7 +426,7 @@ describe('useSignInForm', () => {
     })
 
     it('should maintain other field values when updating one field', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       act(() => {
         const emailHandler = result.current.handleChange('email')
@@ -405,7 +445,7 @@ describe('useSignInForm', () => {
     })
 
     it('should handle validation -> correction -> revalidation flow', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       // First submission with errors
       act(() => {
@@ -442,7 +482,7 @@ describe('useSignInForm', () => {
     })
 
     it('should clear specific field error independently', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       // Create errors
       act(() => {
@@ -467,7 +507,7 @@ describe('useSignInForm', () => {
     })
 
     it('should handle empty string inputs', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       act(() => {
         const emailHandler = result.current.handleChange('email')
@@ -496,7 +536,7 @@ describe('useSignInForm', () => {
 
   describe('Edge Cases', () => {
     it('should handle whitespace-only email', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       act(() => {
         const emailHandler = result.current.handleChange('email')
@@ -514,7 +554,7 @@ describe('useSignInForm', () => {
     })
 
     it('should handle email with leading/trailing spaces', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       act(() => {
         const emailHandler = result.current.handleChange('email')
@@ -540,7 +580,7 @@ describe('useSignInForm', () => {
     })
 
     it('should handle very long email addresses', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       const longEmail = 'a'.repeat(50) + '@' + 'b'.repeat(50) + '.com'
 
@@ -553,7 +593,7 @@ describe('useSignInForm', () => {
     })
 
     it('should handle special characters in password', () => {
-      const { result } = renderHook(() => useSignInForm())
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
 
       const specialPassword = '!@#$%^&*()_+-=[]{}|;:,.<>?'
 

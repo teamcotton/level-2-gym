@@ -1,6 +1,10 @@
 import type { LoginDTO } from '@level-2-gym/shared'
 import { LoginSchema } from '@level-2-gym/shared'
+import { useMutation } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation.js'
 import { useState } from 'react'
+
+import { loginUserAction } from '@/infrastructure/serverActions/loginUser.server.js'
 
 type FormData = LoginDTO
 
@@ -10,6 +14,7 @@ interface FormErrors {
 }
 
 export function useSignInForm() {
+  const router = useRouter()
   const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
@@ -18,6 +23,30 @@ export function useSignInForm() {
   const [errors, setErrors] = useState<FormErrors>({
     email: '',
     password: '',
+  })
+
+  // TanStack Query mutation wrapping Server Action
+  const loginMutation = useMutation({
+    mutationFn: loginUserAction,
+    onSuccess: (response) => {
+      if (response.success) {
+        // Redirect to dashboard on successful login
+        router.push('/dashboard')
+      } else {
+        // Handle backend error response
+        setErrors({
+          ...errors,
+          password: response.error || 'Invalid email or password',
+        })
+      }
+    },
+    onError: (error: Error) => {
+      // Handle unexpected errors
+      setErrors({
+        ...errors,
+        password: error.message || 'An unexpected error occurred',
+      })
+    },
   })
 
   const handleChange = (field: keyof FormData) => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,8 +76,8 @@ export function useSignInForm() {
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault()
     if (validateForm()) {
-      // Handle sign in
-      // TODO: Implement sign in API call
+      // Call login API using TanStack Query mutation
+      loginMutation.mutate(formData)
     }
   }
 
@@ -69,5 +98,7 @@ export function useSignInForm() {
     handleSubmit,
     handleGoogleSignIn,
     handleGitHubSignIn,
+    isLoading: loginMutation.isPending,
+    isError: loginMutation.isError,
   }
 }

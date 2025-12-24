@@ -29,11 +29,13 @@ interface SignInFormProps {
   readonly onSubmit: (event: React.FormEvent) => void
   readonly onGoogleSignIn: () => void
   readonly onGitHubSignIn: () => void
+  readonly isLoading?: boolean
 }
 
 export function SignInForm({
   errors,
   formData,
+  isLoading = false,
   onFieldChange,
   onGitHubSignIn,
   onGoogleSignIn,
@@ -158,6 +160,7 @@ export function SignInForm({
               fullWidth
               variant="contained"
               size="large"
+              disabled={isLoading}
               sx={{
                 py: 1.5,
                 textTransform: 'none',
@@ -165,7 +168,7 @@ export function SignInForm({
                 fontWeight: 600,
               }}
             >
-              Sign in
+              {isLoading ? 'Signing in...' : 'Sign in'}
             </Button>
           </Box>
 

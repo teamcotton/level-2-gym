@@ -9,8 +9,15 @@ import { useSignInForm } from '@/view/hooks/useSignInForm.js'
  * Business logic is in the hook, presentation is in the component.
  */
 export default function SignInPage() {
-  const { errors, formData, handleChange, handleGitHubSignIn, handleGoogleSignIn, handleSubmit } =
-    useSignInForm()
+  const {
+    errors,
+    formData,
+    handleChange,
+    handleGitHubSignIn,
+    handleGoogleSignIn,
+    handleSubmit,
+    isLoading,
+  } = useSignInForm()
 
   return (
     <SignInForm
@@ -20,6 +27,7 @@ export default function SignInPage() {
       onSubmit={handleSubmit}
       onGoogleSignIn={handleGoogleSignIn}
       onGitHubSignIn={handleGitHubSignIn}
+      isLoading={isLoading}
     />
   )
 }
