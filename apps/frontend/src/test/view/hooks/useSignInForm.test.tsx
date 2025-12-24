@@ -11,9 +11,9 @@ vi.mock('next/navigation.js', () => ({
   useRouter: vi.fn(),
 }))
 
-// Mock login Server Action
-vi.mock('@/infrastructure/serverActions/loginUser.server.js', () => ({
-  loginUserAction: vi.fn(),
+// Mock NextAuth signIn
+vi.mock('next-auth/react', () => ({
+  signIn: vi.fn(),
 }))
 
 describe('useSignInForm', () => {

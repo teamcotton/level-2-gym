@@ -2,9 +2,8 @@ import type { LoginDTO } from '@level-2-gym/shared'
 import { LoginSchema } from '@level-2-gym/shared'
 import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation.js'
+import { signIn } from 'next-auth/react'
 import { useState } from 'react'
-
-import { loginUserAction } from '@/infrastructure/serverActions/loginUser.server.js'
 
 type FormData = LoginDTO
 
@@ -25,18 +24,26 @@ export function useSignInForm() {
     password: '',
   })
 
-  // TanStack Query mutation wrapping Server Action
+  // TanStack Query mutation wrapping NextAuth signIn
   const loginMutation = useMutation({
-    mutationFn: loginUserAction,
-    onSuccess: (response) => {
-      if (response.success) {
+    mutationFn: async (credentials: LoginDTO) => {
+      const result = await signIn('credentials', {
+        email: credentials.email,
+        password: credentials.password,
+        redirect: false,
+      })
+      return result
+    },
+    onSuccess: (result) => {
+      if (result?.ok) {
+        // Token is automatically stored in NextAuth session
         // Redirect to dashboard on successful login
         router.push('/dashboard')
       } else {
-        // Handle backend error response
+        // Handle authentication error
         setErrors((prev) => ({
           ...prev,
-          password: response.error || 'Invalid email or password',
+          password: result?.error || 'Invalid email or password',
         }))
       }
     },
