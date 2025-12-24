@@ -1,3 +1,4 @@
+import { useRouter } from 'next/navigation.js'
 import { obscured } from 'obscured'
 import { useState } from 'react'
 
@@ -35,6 +36,7 @@ export function useRegistrationForm() {
 
   const [generalError, setGeneralError] = useState<string>('')
   const mutation = useRegisterUser()
+  const router = useRouter()
 
   const handleChange = (field: keyof FormData) => (event: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [field]: event.target.value })
@@ -107,9 +109,8 @@ export function useRegistrationForm() {
         const result = await mutation.mutateAsync(formData)
 
         if (result.success) {
-          // Handle successful registration
-          // TODO: Redirect to admin
-          console.warn('Registration successful:', result.data)
+          // Handle successful registration - redirect to admin page
+          router.push('/dashboard')
         } else {
           // Handle registration error
 

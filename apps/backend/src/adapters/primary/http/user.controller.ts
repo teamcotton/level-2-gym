@@ -63,7 +63,6 @@ export class UserController {
       this.getUser.bind(this)
     )
   }
-
   /**
    * Handles GET /users endpoint to retrieve all users with pagination
    *

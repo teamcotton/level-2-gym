@@ -13,11 +13,11 @@ export default function RegistrationPage() {
     errors,
     formData,
     generalError,
-    isSubmitting,
     handleChange,
     handleGitHubSignUp,
     handleGoogleSignUp,
     handleSubmit,
+    isSubmitting,
   } = useRegistrationForm()
 
   return (

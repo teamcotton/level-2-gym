@@ -1,37 +1,23 @@
-'use client'
+import { redirect } from 'next/navigation.js'
 
-import { AdminPage } from '@/view/client-components/AdminPage.js'
-import { useAdminPage } from '@/view/hooks/useAdminPage.js'
+import { hasAnyRole } from '@/lib/auth.js'
+
+import { AdminPageClient } from './AdminPageClient.js'
 
 /**
- * Admin page following DDD architecture.
- * This page is minimal and declarative - it only orchestrates the hook and component.
- * Business logic is in the hook, presentation is in the component.
+ * Admin page with role-based access control.
+ * Only users with 'admin' or 'moderator' roles can access this page.
+ * Server Component that checks authentication before rendering.
  */
-export default function AdminPageContainer() {
-  const {
-    currentUserRole,
-    error,
-    handlePaginationChange,
-    handleSearchChange,
-    loading,
-    paginationModel,
-    rowCount,
-    searchQuery,
-    users,
-  } = useAdminPage()
+export default async function AdminPage() {
+  // Check if user has required role (admin or moderator)
+  const hasAccess = await hasAnyRole(['admin', 'moderator'])
 
-  return (
-    <AdminPage
-      users={users}
-      error={error}
-      loading={loading}
-      searchQuery={searchQuery}
-      paginationModel={paginationModel}
-      rowCount={rowCount}
-      currentUserRole={currentUserRole}
-      onSearchChange={handleSearchChange}
-      onPaginationChange={handlePaginationChange}
-    />
-  )
+  // Redirect to signin if user doesn't have required role
+  if (!hasAccess) {
+    redirect('/signin?callbackUrl=/admin&error=unauthorized')
+  }
+
+  // Render the client component for authenticated users with proper roles
+  return <AdminPageClient />
 }

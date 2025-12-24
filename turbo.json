@@ -29,6 +29,9 @@
     },
     "typecheck": {
       "dependsOn": ["^typecheck"]
+    },
+    "lint:api": {
+      "dependsOn": ["^lint:api"]
     }
   }
 }

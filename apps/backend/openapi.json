@@ -29,6 +29,10 @@
       "description": "Health check endpoints"
     },
     {
+      "name": "auth",
+      "description": "Authentication operations"
+    },
+    {
       "name": "users",
       "description": "User management operations"
     }
@@ -231,10 +235,139 @@
           }
         }
       }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Authenticate a user",
+        "description": "Authenticates a user and returns a JWT access token",
+        "operationId": "loginUser",
+        "tags": ["auth"],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserLoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User successfully authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserLoginResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Invalid email or password"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "UserLoginRequest": {
+        "type": "object",
+        "description": "Request payload for user authentication",
+        "required": ["email", "password"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john.doe@example.com",
+            "description": "User's email address"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "minLength": 12,
+            "example": "SecurePass123!",
+            "description": "User's password"
+          }
+        }
+      },
+      "UserLoginResponse": {
+        "type": "object",
+        "description": "Response returned after successful user authentication",
+        "required": ["success", "data"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "data": {
+            "type": "object",
+            "description": "Authentication result data",
+            "required": ["userId", "email", "access_token", "roles"],
+            "properties": {
+              "userId": {
+                "type": "string",
+                "format": "uuid",
+                "example": "550e8400-e29b-41d4-a716-446655440000",
+                "description": "The authenticated user's unique identifier"
+              },
+              "email": {
+                "type": "string",
+                "format": "email",
+                "example": "john.doe@example.com",
+                "description": "The authenticated user's email address"
+              },
+              "access_token": {
+                "type": "string",
+                "description": "JWT access token for authenticated requests",
+                "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              },
+              "roles": {
+                "type": "array",
+                "description": "User's assigned roles",
+                "items": {
+                  "type": "string",
+                  "enum": ["user", "admin", "moderator"]
+                },
+                "example": ["user"]
+              }
+            }
+          }
+        }
+      },
       "RegisterUserRequest": {
         "type": "object",
         "description": "Request payload for registering a new user",

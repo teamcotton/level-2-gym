@@ -49,11 +49,11 @@ export function RegistrationForm({
   errors,
   formData,
   generalError,
+  isSubmitting,
   onFieldChange,
   onGitHubSignUp,
   onGoogleSignUp,
   onSubmit,
-  isSubmitting,
 }: RegistrationFormProps) {
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
