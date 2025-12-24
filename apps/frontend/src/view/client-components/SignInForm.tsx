@@ -1,18 +1,24 @@
 'use client'
 
-import { GitHub as GitHubIcon, Google as GoogleIcon } from '@mui/icons-material'
+import {
+  GitHub as GitHubIcon,
+  Google as GoogleIcon,
+  Visibility,
+  VisibilityOff,
+} from '@mui/icons-material'
 import {
   Alert,
   Box,
   Button,
   Container,
   Divider,
+  IconButton,
+  InputAdornment,
   Link as MuiLink,
   Paper,
   TextField,
   Typography,
 } from '@mui/material'
-import { useRouter } from 'next/navigation.js'
 import React from 'react'
 
 interface SignInFormProps {
@@ -31,6 +37,10 @@ interface SignInFormProps {
   readonly onSubmit: (event: React.FormEvent) => void
   readonly onGoogleSignIn: () => void
   readonly onGitHubSignIn: () => void
+  readonly onForgotPassword: () => void
+  readonly onSignUp: () => void
+  readonly showPassword: boolean
+  readonly togglePasswordVisibility: () => void
   readonly isLoading?: boolean
 }
 
@@ -39,12 +49,14 @@ export function SignInForm({
   formData,
   isLoading = false,
   onFieldChange,
+  onForgotPassword,
   onGitHubSignIn,
   onGoogleSignIn,
+  onSignUp,
   onSubmit,
+  showPassword,
+  togglePasswordVisibility,
 }: SignInFormProps) {
-  const router = useRouter()
-
   return (
     <Container maxWidth="sm">
       <Box
@@ -132,7 +144,7 @@ export function SignInForm({
             <TextField
               fullWidth
               label="Password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={formData.password}
               onChange={onFieldChange('password')}
               error={!!errors.password}
@@ -141,6 +153,21 @@ export function SignInForm({
               required
               autoComplete="current-password"
               sx={{ mb: 1 }}
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={togglePasswordVisibility}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                },
+              }}
             />
 
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
@@ -148,7 +175,7 @@ export function SignInForm({
                 type="button"
                 component="button"
                 variant="body2"
-                onClick={() => router.push('/forgot-password')}
+                onClick={onForgotPassword}
                 sx={{
                   color: 'primary.main',
                   textDecoration: 'none',
@@ -187,7 +214,7 @@ export function SignInForm({
                 type="button"
                 component="button"
                 variant="body2"
-                onClick={() => router.push('/registration')}
+                onClick={onSignUp}
                 sx={{
                   color: 'primary.main',
                   textDecoration: 'none',

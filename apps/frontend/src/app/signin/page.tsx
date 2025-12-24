@@ -13,10 +13,14 @@ export default function SignInPage() {
     errors,
     formData,
     handleChange,
+    handleForgotPassword,
     handleGitHubSignIn,
     handleGoogleSignIn,
+    handleSignUp,
     handleSubmit,
     isLoading,
+    showPassword,
+    togglePasswordVisibility,
   } = useSignInForm()
 
   return (
@@ -27,6 +31,10 @@ export default function SignInPage() {
       onSubmit={handleSubmit}
       onGoogleSignIn={handleGoogleSignIn}
       onGitHubSignIn={handleGitHubSignIn}
+      onForgotPassword={handleForgotPassword}
+      onSignUp={handleSignUp}
+      showPassword={showPassword}
+      togglePasswordVisibility={togglePasswordVisibility}
       isLoading={isLoading}
     />
   )

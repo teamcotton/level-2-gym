@@ -35,8 +35,22 @@ export function useRegistrationForm() {
   })
 
   const [generalError, setGeneralError] = useState<string>('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const mutation = useRegisterUser()
   const router = useRouter()
+
+  const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev)
+  }
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword((prev) => !prev)
+  }
+
+  const handleSignIn = () => {
+    router.push('/signin')
+  }
 
   const handleChange = (field: keyof FormData) => (event: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [field]: event.target.value })
@@ -160,5 +174,10 @@ export function useRegistrationForm() {
     handleSubmit,
     handleGoogleSignUp,
     handleGitHubSignUp,
+    handleSignIn,
+    showPassword,
+    showConfirmPassword,
+    togglePasswordVisibility,
+    toggleConfirmPasswordVisibility,
   }
 }

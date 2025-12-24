@@ -19,8 +19,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { useRouter } from 'next/navigation.js'
-import React, { useState } from 'react'
+import React from 'react'
 
 interface RegistrationFormProps {
   readonly formData: {
@@ -42,6 +41,11 @@ interface RegistrationFormProps {
   readonly onSubmit: (event: React.FormEvent) => void
   readonly onGoogleSignUp: () => void
   readonly onGitHubSignUp: () => void
+  readonly onSignIn: () => void
+  readonly showPassword: boolean
+  readonly showConfirmPassword: boolean
+  readonly togglePasswordVisibility: () => void
+  readonly toggleConfirmPasswordVisibility: () => void
   readonly isSubmitting?: boolean
 }
 
@@ -53,20 +57,13 @@ export function RegistrationForm({
   onFieldChange,
   onGitHubSignUp,
   onGoogleSignUp,
+  onSignIn,
   onSubmit,
+  showConfirmPassword,
+  showPassword,
+  toggleConfirmPasswordVisibility,
+  togglePasswordVisibility,
 }: RegistrationFormProps) {
-  const router = useRouter()
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-
-  const handleTogglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev)
-  }
-
-  const handleToggleConfirmPasswordVisibility = () => {
-    setShowConfirmPassword((prev) => !prev)
-  }
-
   // Error messages that should be displayed at alert level
   const ALERT_LEVEL_ERROR_MESSAGES = [
     'already registered',
@@ -200,7 +197,7 @@ export function RegistrationForm({
                     <InputAdornment position="end">
                       <IconButton
                         aria-label="toggle password visibility"
-                        onClick={handleTogglePasswordVisibility}
+                        onClick={togglePasswordVisibility}
                         edge="end"
                       >
                         {showPassword ? <VisibilityOff /> : <Visibility />}
@@ -229,7 +226,7 @@ export function RegistrationForm({
                     <InputAdornment position="end">
                       <IconButton
                         aria-label="toggle confirm password visibility"
-                        onClick={handleToggleConfirmPasswordVisibility}
+                        onClick={toggleConfirmPasswordVisibility}
                         edge="end"
                       >
                         {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
@@ -265,7 +262,7 @@ export function RegistrationForm({
                 type="button"
                 component="button"
                 variant="body2"
-                onClick={() => router.push('/signin')}
+                onClick={onSignIn}
                 sx={{
                   color: 'primary.main',
                   textDecoration: 'none',

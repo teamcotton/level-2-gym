@@ -2,8 +2,9 @@ import type { LoginDTO } from '@level-2-gym/shared'
 import { LoginSchema } from '@level-2-gym/shared'
 import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation.js'
-import { signIn } from 'next-auth/react'
 import { useState } from 'react'
+
+import { loginUserAction } from '@/infrastructure/serverActions/loginUser.server.js'
 
 type FormData = LoginDTO
 
@@ -26,31 +27,29 @@ export function useSignInForm() {
     general: '',
   })
 
-  // TanStack Query mutation wrapping NextAuth signIn
+  const [showPassword, setShowPassword] = useState(false)
+
+  const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev)
+  }
+
+  // TanStack Query mutation wrapping Server Action
   const loginMutation = useMutation({
-    mutationFn: async (credentials: LoginDTO) => {
-      const result = await signIn('credentials', {
-        email: credentials.email,
-        password: credentials.password,
-        redirect: false,
-      })
-      return result
-    },
-    onSuccess: (result) => {
-      if (result?.ok) {
+    mutationFn: loginUserAction,
+    onSuccess: (response) => {
+      if (response.success && response.data) {
         // Clear any previous general error on successful login
         setErrors((prev) => ({
           ...prev,
           general: '',
         }))
-        // Token is automatically stored in NextAuth session
         // Redirect to dashboard on successful login
         router.push('/dashboard')
       } else {
         // Handle authentication error - show as general error
         setErrors((prev) => ({
           ...prev,
-          general: result?.error || 'Invalid email or password',
+          general: response.error || 'Invalid email or password',
         }))
       }
     },
@@ -107,6 +106,14 @@ export function useSignInForm() {
     // TODO: Implement GitHub OAuth
   }
 
+  const handleForgotPassword = () => {
+    router.push('/forgot-password')
+  }
+
+  const handleSignUp = () => {
+    router.push('/registration')
+  }
+
   return {
     formData,
     errors,
@@ -114,6 +121,10 @@ export function useSignInForm() {
     handleSubmit,
     handleGoogleSignIn,
     handleGitHubSignIn,
+    handleForgotPassword,
+    handleSignUp,
+    showPassword,
+    togglePasswordVisibility,
     isLoading: loginMutation.isPending,
     isError: loginMutation.isError,
   }
