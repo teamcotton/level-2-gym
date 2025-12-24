@@ -53,5 +53,5 @@ export interface LoginResponse {
     roles: string[]
   }
   error?: string
-  status?: number
+  status: number
 }
