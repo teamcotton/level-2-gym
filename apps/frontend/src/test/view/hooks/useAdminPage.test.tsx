@@ -8,6 +8,17 @@ import { findAllUsers } from '@/application/actions/findAllUsers.js'
 import type { User } from '@/domain/user/user.js'
 import { useAdminPage } from '@/view/hooks/useAdminPage.js'
 
+/**
+ * Tests for useAdminPage hook
+ *
+ * Note: This hook uses TanStack Query's useUsers hook internally for data fetching.
+ * AbortController/request cancellation tests are not included here because:
+ * 1. TanStack Query manages request cancellation automatically (library-tested)
+ * 2. Signal passing verification is covered in useUsers.test.tsx
+ * 3. These tests focus on useAdminPage's specific responsibilities:
+ *    pagination state, search state, and data orchestration
+ */
+
 // Mock the findAllUsers action
 vi.mock('@/application/actions/findAllUsers.js')
 
