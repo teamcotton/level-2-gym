@@ -76,6 +76,19 @@ describe('useSignInForm', () => {
       expect(typeof result.current.handleGoogleSignIn).toBe('function')
       expect(typeof result.current.handleGitHubSignIn).toBe('function')
     })
+
+    it('should initialize showPassword to false', () => {
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+
+      expect(result.current.showPassword).toBe(false)
+    })
+
+    it('should provide password visibility handlers', () => {
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+
+      expect(result.current.togglePasswordVisibility).toBeDefined()
+      expect(typeof result.current.togglePasswordVisibility).toBe('function')
+    })
   })
 
   describe('handleChange', () => {
@@ -378,6 +391,83 @@ describe('useSignInForm', () => {
       // Should pass validation with just email and password
       expect(result.current.errors.email).toBe('')
       expect(result.current.errors.password).toBe('')
+    })
+  })
+
+  describe('Password Visibility', () => {
+    it('should toggle password visibility from false to true', () => {
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+
+      expect(result.current.showPassword).toBe(false)
+
+      act(() => {
+        result.current.togglePasswordVisibility()
+      })
+
+      expect(result.current.showPassword).toBe(true)
+    })
+
+    it('should toggle password visibility from true to false', () => {
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+
+      // Toggle to true
+      act(() => {
+        result.current.togglePasswordVisibility()
+      })
+
+      expect(result.current.showPassword).toBe(true)
+
+      // Toggle back to false
+      act(() => {
+        result.current.togglePasswordVisibility()
+      })
+
+      expect(result.current.showPassword).toBe(false)
+    })
+
+    it('should toggle password visibility multiple times correctly', () => {
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+
+      expect(result.current.showPassword).toBe(false)
+
+      act(() => {
+        result.current.togglePasswordVisibility()
+      })
+      expect(result.current.showPassword).toBe(true)
+
+      act(() => {
+        result.current.togglePasswordVisibility()
+      })
+      expect(result.current.showPassword).toBe(false)
+
+      act(() => {
+        result.current.togglePasswordVisibility()
+      })
+      expect(result.current.showPassword).toBe(true)
+    })
+  })
+
+  describe('Navigation Handlers', () => {
+    it('should navigate to forgot password page when handleForgotPassword is called', () => {
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+
+      act(() => {
+        result.current.handleForgotPassword()
+      })
+
+      expect(mockPush).toHaveBeenCalledWith('/forgot-password')
+      expect(mockPush).toHaveBeenCalledTimes(1)
+    })
+
+    it('should navigate to registration page when handleSignUp is called', () => {
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+
+      act(() => {
+        result.current.handleSignUp()
+      })
+
+      expect(mockPush).toHaveBeenCalledWith('/registration')
+      expect(mockPush).toHaveBeenCalledTimes(1)
     })
   })
 

@@ -5,10 +5,7 @@ import { createLogger } from '@/adapters/secondary/services/logger.service.js'
 
 const logger = createLogger({ prefix: '[auth-config]' })
 
-const backendUrl =
-  process.env.NODE_ENV === 'production'
-    ? process.env.BACKEND_AI_CALLBACK_URL_PROD
-    : process.env.BACKEND_AI_CALLBACK_URL_DEV
+const backendUrl = process.env.BACKEND_AI_CALLBACK_URL
 
 interface BackendLoginResponse {
   success: boolean
@@ -74,6 +71,7 @@ export const authOptions: NextAuthOptions = {
 
         try {
           // Call backend login endpoint
+          console.log(`${backendUrl}/auth/login`)
           const response = await fetch(`${backendUrl}/auth/login`, {
             method: 'POST',
             headers: {

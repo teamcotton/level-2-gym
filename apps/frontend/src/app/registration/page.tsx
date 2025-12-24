@@ -16,8 +16,13 @@ export default function RegistrationPage() {
     handleChange,
     handleGitHubSignUp,
     handleGoogleSignUp,
+    handleSignIn,
     handleSubmit,
     isSubmitting,
+    showConfirmPassword,
+    showPassword,
+    toggleConfirmPasswordVisibility,
+    togglePasswordVisibility,
   } = useRegistrationForm()
 
   return (
@@ -29,6 +34,11 @@ export default function RegistrationPage() {
       onSubmit={handleSubmit}
       onGoogleSignUp={handleGoogleSignUp}
       onGitHubSignUp={handleGitHubSignUp}
+      onSignIn={handleSignIn}
+      showPassword={showPassword}
+      showConfirmPassword={showConfirmPassword}
+      togglePasswordVisibility={togglePasswordVisibility}
+      toggleConfirmPasswordVisibility={toggleConfirmPasswordVisibility}
       isSubmitting={isSubmitting}
     />
   )
