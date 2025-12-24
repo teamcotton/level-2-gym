@@ -1,8 +1,8 @@
 import type { GridPaginationModel } from '@mui/x-data-grid'
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 
-import { findAllUsers } from '@/application/actions/findAllUsers.js'
 import type { User } from '@/domain/user/user.js'
+import { useUsers } from '@/view/hooks/queries/useUsers.js'
 
 interface UseAdminPageReturn {
   currentUserRole: 'admin' | 'moderator' | 'user'
@@ -19,58 +19,23 @@ interface UseAdminPageReturn {
 /**
  * Custom hook for admin page logic following DDD architecture.
  * Handles user data fetching, pagination, search, and error states.
+ * Uses TanStack Query for automatic caching, refetching, and state management.
  */
 export function useAdminPage(): UseAdminPageReturn {
-  const [users, setUsers] = useState<readonly User[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
     page: 0,
     pageSize: 10,
   })
-  const [rowCount, setRowCount] = useState(0)
 
   // TODO: Replace with actual user role from authentication
   const currentUserRole = 'admin' as 'admin' | 'moderator' | 'user'
 
-  const abortControllerRef = useRef<AbortController | null>(null)
-
-  useEffect(() => {
-    async function fetchUsers() {
-      setLoading(true)
-
-      abortControllerRef.current?.abort()
-      abortControllerRef.current = new AbortController()
-
-      const limit = paginationModel.pageSize
-      const offset = paginationModel.page * paginationModel.pageSize
-
-      const result = await findAllUsers({
-        limit,
-        offset,
-        signal: abortControllerRef.current.signal,
-      })
-
-      if (result.success) {
-        setUsers(result.users)
-        setRowCount(result.total)
-        setError(null)
-      } else {
-        setUsers([])
-        setRowCount(0)
-        setError(result.error || 'Failed to load users')
-      }
-
-      setLoading(false)
-    }
-
-    fetchUsers().catch(console.error)
-
-    return () => {
-      abortControllerRef.current?.abort()
-    }
-  }, [paginationModel])
+  // Use TanStack Query hook for data fetching with automatic caching
+  const { error, isLoading, total, users } = useUsers({
+    limit: paginationModel.pageSize,
+    offset: paginationModel.page * paginationModel.pageSize,
+  })
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query)
@@ -85,9 +50,9 @@ export function useAdminPage(): UseAdminPageReturn {
     error,
     handlePaginationChange,
     handleSearchChange,
-    loading,
+    loading: isLoading,
     paginationModel,
-    rowCount,
+    rowCount: total,
     searchQuery,
     users,
   }

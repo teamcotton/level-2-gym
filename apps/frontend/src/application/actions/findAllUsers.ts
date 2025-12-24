@@ -9,7 +9,7 @@ export interface FindAllUsersParams {
 
 export interface FindAllUsersResult {
   success: boolean
-  users: User[]
+  users: readonly User[]
   total: number
   error?: string
 }

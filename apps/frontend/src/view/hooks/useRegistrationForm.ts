@@ -110,7 +110,7 @@ export function useRegistrationForm() {
 
         if (result.success) {
           // Handle successful registration
-          // TODO: Redirect to success page or show success message
+          // TODO: Redirect to admin
           console.warn('Registration successful:', result.data)
         } else {
           // Handle registration error
