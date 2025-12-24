@@ -35,7 +35,6 @@ export function useRegistrationForm() {
 
   const [generalError, setGeneralError] = useState<string>('')
   const mutation = useRegisterUser()
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleChange = (field: keyof FormData) => (event: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [field]: event.target.value })
@@ -103,7 +102,6 @@ export function useRegistrationForm() {
     event.preventDefault()
     if (validateForm()) {
       setGeneralError('')
-      setIsSubmitting(true)
 
       try {
         const result = await mutation.mutateAsync(formData)
@@ -138,8 +136,6 @@ export function useRegistrationForm() {
         setGeneralError(
           e instanceof Error ? e.message : 'An unexpected error occurred. Please try again.'
         )
-      } finally {
-        setIsSubmitting(false)
       }
     }
   }
@@ -158,7 +154,7 @@ export function useRegistrationForm() {
     formData,
     errors,
     generalError,
-    isSubmitting,
+    isSubmitting: mutation.isPending,
     handleChange,
     handleSubmit,
     handleGoogleSignUp,
