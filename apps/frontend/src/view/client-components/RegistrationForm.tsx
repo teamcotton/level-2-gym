@@ -42,6 +42,7 @@ interface RegistrationFormProps {
   readonly onSubmit: (event: React.FormEvent) => void
   readonly onGoogleSignUp: () => void
   readonly onGitHubSignUp: () => void
+  readonly isSubmitting?: boolean
 }
 
 export function RegistrationForm({
@@ -52,6 +53,7 @@ export function RegistrationForm({
   onGitHubSignUp,
   onGoogleSignUp,
   onSubmit,
+  isSubmitting,
 }: RegistrationFormProps) {
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
@@ -244,6 +246,7 @@ export function RegistrationForm({
               fullWidth
               variant="contained"
               size="large"
+              disabled={isSubmitting}
               sx={{
                 py: 1.5,
                 textTransform: 'none',

@@ -13,6 +13,7 @@ export default function RegistrationPage() {
     errors,
     formData,
     generalError,
+    isSubmitting,
     handleChange,
     handleGitHubSignUp,
     handleGoogleSignUp,
@@ -28,6 +29,7 @@ export default function RegistrationPage() {
       onSubmit={handleSubmit}
       onGoogleSignUp={handleGoogleSignUp}
       onGitHubSignUp={handleGitHubSignUp}
+      isSubmitting={isSubmitting}
     />
   )
 }
