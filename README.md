@@ -1,4 +1,4 @@
-# Level 2 Gym - Monorepo
+# Norbert's Spark - an AI tools CRM
 
 A modern full-stack monorepo built with PNPM and Turborepo.
 
