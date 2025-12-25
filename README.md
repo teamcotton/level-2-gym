@@ -169,4 +169,4 @@ You must:
 - Release any modified versions under GPLv3 (the "copyleft" principle).
 - Provide the complete source code (Corresponding Source) for any distributed work.
 - Indicate changes made to the code.
-- Display appropriate legal notices on interactive interfaces. 
+- Display appropriate legal notices on interactive interfaces.
