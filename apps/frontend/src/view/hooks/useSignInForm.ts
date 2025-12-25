@@ -1,10 +1,13 @@
 import type { LoginDTO } from '@level-2-gym/shared'
 import { LoginSchema } from '@level-2-gym/shared'
-import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation.js'
+import { signIn } from 'next-auth/react'
 import { useState } from 'react'
 
+import { createLogger } from '@/adapters/secondary/services/logger.service.js'
 import { loginUserAction } from '@/infrastructure/serverActions/loginUser.server.js'
+
+const logger = createLogger({ prefix: '[useSignInForm]' })
 
 type FormData = LoginDTO
 
@@ -33,39 +36,10 @@ export function useSignInForm() {
     setShowPassword((prev) => !prev)
   }
 
-  // TanStack Query mutation wrapping Server Action
-  const loginMutation = useMutation({
-    mutationFn: loginUserAction,
-    onSuccess: (response) => {
-      if (response.success && response.data) {
-        // Clear any previous general error on successful login
-        setErrors((prev) => ({
-          ...prev,
-          general: '',
-        }))
-        // Redirect to dashboard on successful login
-        router.push('/dashboard')
-      } else {
-        // Handle authentication error - show as general error
-        setErrors((prev) => ({
-          ...prev,
-          general: response.error || 'Invalid email or password',
-        }))
-      }
-    },
-    onError: (error: Error) => {
-      // Handle unexpected errors (network, server unavailable, etc.) - show as general error
-      setErrors((prev) => ({
-        ...prev,
-        general: error.message || 'An unexpected error occurred. Please try again.',
-      }))
-    },
-  })
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleChange = (field: keyof FormData) => (event: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [field]: event.target.value }))
-    // Clear field-specific error when user starts typing
-    // Note: general errors are preserved during field changes and are reset by validateForm on submit
     setErrors((prev) => ({ ...prev, [field]: '' }))
   }
 
@@ -76,7 +50,6 @@ export function useSignInForm() {
       general: '',
     }
 
-    // Validate entire form using shared LoginSchema
     const parsed = LoginSchema.safeParse(formData)
     if (!parsed.success) {
       const fieldErrors = parsed.error.flatten().fieldErrors as Record<string, string[] | undefined>
@@ -88,21 +61,87 @@ export function useSignInForm() {
     return Object.values(newErrors).every((error) => error === '')
   }
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
-    if (validateForm()) {
-      // Call login API using TanStack Query mutation
-      loginMutation.mutate(formData)
+
+    // Prevent race condition: return early if already processing
+    if (isLoading) {
+      return
+    }
+
+    if (!validateForm()) {
+      return
+    }
+
+    setIsLoading(true)
+    setErrors((prev) => ({ ...prev, general: '' }))
+
+    try {
+      logger.info('[useSignInForm] Calling Server Action for authentication')
+
+      // Step 1: Authenticate via Server Action (secure server-side call to backend)
+      const authResult = await loginUserAction({
+        email: formData.email,
+        password: formData.password,
+      })
+
+      logger.info('[useSignInForm] Server Action result:', {
+        success: authResult.success,
+        status: authResult.status,
+      })
+
+      if (!authResult.success) {
+        logger.error('[useSignInForm] Authentication failed:', authResult.error)
+        setErrors((prev) => ({
+          ...prev,
+          general: authResult.error || 'Invalid email or password',
+        }))
+        return
+      }
+
+      // Step 2: Establish NextAuth session after successful authentication
+      // Note: This makes a second call to the backend through NextAuth's authorize function.
+      // This is a known trade-off to maintain NextAuth's session management while keeping
+      // authentication logic explicit in the infrastructure layer (Server Action).
+      // Alternative approaches (custom session management or modifying NextAuth's flow)
+      // would be more complex and outside the scope of this security architecture improvement.
+      logger.info('[useSignInForm] Authentication successful, establishing session')
+      const sessionResult = await signIn('credentials', {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      })
+
+      if (sessionResult?.error) {
+        logger.error('[useSignInForm] Session establishment failed:', sessionResult.error)
+        setErrors((prev) => ({
+          ...prev,
+          general: 'Authentication succeeded but session creation failed. Please try again.',
+        }))
+        return
+      }
+
+      if (sessionResult?.ok) {
+        logger.info('[useSignInForm] Success - redirecting to dashboard')
+        router.push('/dashboard')
+        router.refresh()
+      }
+    } catch (error) {
+      logger.error('[useSignInForm] Exception:', error)
+      setErrors((prev) => ({
+        ...prev,
+        general: 'An unexpected error occurred. Please try again.',
+      }))
+    } finally {
+      setIsLoading(false)
     }
   }
 
   const handleGoogleSignIn = () => {
-    // Handle Google OAuth
     // TODO: Implement Google OAuth
   }
 
   const handleGitHubSignIn = () => {
-    // Handle GitHub OAuth
     // TODO: Implement GitHub OAuth
   }
 
@@ -125,7 +164,6 @@ export function useSignInForm() {
     handleSignUp,
     showPassword,
     togglePasswordVisibility,
-    isLoading: loginMutation.isPending,
-    isError: loginMutation.isError,
+    isLoading,
   }
 }

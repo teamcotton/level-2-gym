@@ -53,6 +53,31 @@ async function globalSetup() {
     await migrationClient.end()
     console.warn('✅ Migrations completed')
 
+    // Seed test users
+    console.warn('🌱 Seeding test users...')
+    const backendSeedPath = path.join(process.cwd(), '..', 'backend')
+    const seedProcess = spawn('pnpm', ['seed:users', '3'], {
+      cwd: backendSeedPath,
+      env: {
+        ...process.env,
+        DATABASE_URL: connectionString,
+        SEED_PASSWORD: 'Admin123!', // Test password for all seeded users
+      },
+      stdio: 'inherit',
+    })
+
+    await new Promise<void>((resolve, reject) => {
+      seedProcess.on('close', (code) => {
+        if (code === 0) {
+          console.warn('✅ Test users seeded')
+          resolve()
+        } else {
+          reject(new Error(`Seed process exited with code ${code}`))
+        }
+      })
+      seedProcess.on('error', reject)
+    })
+
     // Save connection info to a file that tests can read
     const testConfig = {
       databaseUrl: connectionString,
