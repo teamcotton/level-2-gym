@@ -192,6 +192,10 @@ describe('useUsers', () => {
 })
 
 describe('Loading states', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+  })
+
   it('should show isLoading true initially', async () => {
     const qc = new QueryClient({
       defaultOptions: {
@@ -262,6 +266,10 @@ describe('Loading states', () => {
 })
 
 describe('Query key generation', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+  })
+
   it('should generate unique query keys for different pagination parameters', async () => {
     const qc = new QueryClient({
       defaultOptions: {
@@ -350,6 +358,10 @@ describe('Query key generation', () => {
 })
 
 describe('Retry behavior', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+  })
+
   it('should retry failed requests up to 2 times', async () => {
     const qc = new QueryClient({
       defaultOptions: {
@@ -419,6 +431,10 @@ describe('Retry behavior', () => {
 })
 
 describe('Caching behavior', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+  })
+
   it('should consider data fresh within staleTime', async () => {
     const qc = new QueryClient({
       defaultOptions: {
@@ -521,6 +537,10 @@ describe('Caching behavior', () => {
 })
 
 describe('Refetch on window focus', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+  })
+
   it('should have refetchOnWindowFocus enabled', async () => {
     const qc = new QueryClient({
       defaultOptions: {
