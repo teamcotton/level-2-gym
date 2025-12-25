@@ -1,5 +1,3 @@
-import { isNumber } from '@norberts-spark/shared'
-
 import {
   ConflictError,
   ForbiddenError,
@@ -10,9 +8,6 @@ import {
 } from './apiErrors.js'
 
 export function mapBackendError(status: number, message: string) {
-  if (!isNumber(status)) {
-    return new Error(message)
-  }
   switch (status) {
     case 409:
       return new ConflictError(message)
