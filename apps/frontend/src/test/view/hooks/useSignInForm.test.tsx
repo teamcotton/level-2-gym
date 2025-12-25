@@ -974,8 +974,14 @@ describe('useSignInForm', () => {
       const { signIn } = await import('next-auth/react')
 
       // Create a promise we can control
-      let resolveAuth: ((value: { success: boolean; status: number; data?: { userId: string } }) => void) | undefined
-      const authPromise = new Promise<{ success: boolean; status: number; data?: { userId: string } }>((resolve) => {
+      let resolveAuth:
+        | ((value: { success: boolean; status: number; data?: { userId: string } }) => void)
+        | undefined
+      const authPromise = new Promise<{
+        success: boolean
+        status: number
+        data?: { userId: string }
+      }>((resolve) => {
         resolveAuth = resolve
       })
 
@@ -1211,8 +1217,14 @@ describe('useSignInForm', () => {
       const { signIn } = await import('next-auth/react')
 
       // Create a slow authentication
-      let resolveAuth: ((value: { success: boolean; status: number; data?: { userId: string } }) => void) | undefined
-      const authPromise = new Promise<{ success: boolean; status: number; data?: { userId: string } }>((resolve) => {
+      let resolveAuth:
+        | ((value: { success: boolean; status: number; data?: { userId: string } }) => void)
+        | undefined
+      const authPromise = new Promise<{
+        success: boolean
+        status: number
+        data?: { userId: string }
+      }>((resolve) => {
         resolveAuth = resolve
       })
 
