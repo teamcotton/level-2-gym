@@ -11,12 +11,11 @@
     "lint": "turbo lint",
     "lint:fix": "turbo lint:fix",
     "test": "turbo test:unit",
-    "test:unit": "turbo test:unit",
     "test:unit:coverage": "turbo test:unit:coverage",
     "test:e2e": "turbo test:e2e",
     "lint:api": "pnpm --filter @norberts-spark/shared lint:api",
     "typecheck": "turbo typecheck",
-    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\" --check --cache",
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepare": "husky"
   },

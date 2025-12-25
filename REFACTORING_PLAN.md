@@ -571,8 +571,6 @@ export function useAdminPage(params?: { limit?: number; offset?: number }) {
 
 #### Step 4: Update Components to Use TanStack Query States
 
-#### Step 4: Update Components to Use TanStack Query States
-
 **Files to Modify:**
 
 - `apps/frontend/src/view/components/RegistrationForm.tsx`
@@ -594,7 +592,7 @@ export function RegistrationForm({
 }: RegistrationFormProps) {
   return (
     <form onSubmit={onSubmit}>
-      {/* Show general error from TanStack Query */}
+      {/* Show general error from TanStack Q==]]]]]]]]]]]]\\\\\\uery */}
       {generalError && <Alert severity="error">{generalError}</Alert>}
 
       {/* Form fields */}
