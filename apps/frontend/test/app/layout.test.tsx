@@ -4,19 +4,19 @@ import { describe, expect, it, vi } from 'vitest'
 import RootLayout from '@/app/layout.js'
 
 // Mock the providers to avoid dependencies
-vi.mock('../../app/providers/SessionProvider.js', () => ({
+vi.mock('../../src/app/providers/SessionProvider.js', () => ({
   SessionProvider: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="session-provider">{children}</div>
   ),
 }))
 
-vi.mock('../../app/providers/QueryProvider.js', () => ({
+vi.mock('../../src/app/providers/QueryProvider.js', () => ({
   QueryProvider: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="query-provider">{children}</div>
   ),
 }))
 
-vi.mock('../../app/ThemeRegistry.js', () => ({
+vi.mock('../../src/app/ThemeRegistry.js', () => ({
   default: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="theme-registry">{children}</div>
   ),

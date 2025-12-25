@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { POST } from '@/app/api/register/route.js'
 
-vi.mock('../../../application/services/logger.service.test.js', () => ({
+vi.mock('../../../../src/application/services/logger.service.test.js', () => ({
   UnifiedLogger: vi.fn().mockImplementation(() => ({
     info: vi.fn(),
     error: vi.fn(),

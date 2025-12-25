@@ -20,7 +20,7 @@ vi.mock('next-auth', () => ({
 }))
 
 // Mock auth-config
-vi.mock('../../lib/auth-config.js', () => ({
+vi.mock('../../src/lib/auth-config.js', () => ({
   authOptions: {},
 }))
 
