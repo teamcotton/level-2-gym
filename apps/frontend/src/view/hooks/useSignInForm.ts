@@ -63,12 +63,12 @@ export function useSignInForm() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
-    
+
     // Prevent race condition: return early if already processing
     if (isLoading) {
       return
     }
-    
+
     if (!validateForm()) {
       return
     }
@@ -85,9 +85,9 @@ export function useSignInForm() {
         password: formData.password,
       })
 
-      logger.info('[useSignInForm] Server Action result:', { 
-        success: authResult.success, 
-        status: authResult.status 
+      logger.info('[useSignInForm] Server Action result:', {
+        success: authResult.success,
+        status: authResult.status,
       })
 
       if (!authResult.success) {

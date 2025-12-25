@@ -801,7 +801,9 @@ describe('useSignInForm', () => {
 
       act(() => {
         const passwordHandler = result.current.handleChange('password')
-        passwordHandler({ target: { value: 'wrongpassword' } } as React.ChangeEvent<HTMLInputElement>)
+        passwordHandler({
+          target: { value: 'wrongpassword' },
+        } as React.ChangeEvent<HTMLInputElement>)
       })
 
       // Submit the form
@@ -878,6 +880,535 @@ describe('useSignInForm', () => {
 
       // Verify no redirect
       expect(mockPush).not.toHaveBeenCalled()
+    })
+
+    it('should verify signIn is called with redirect:false', async () => {
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+      const { loginUserAction } = await import('@/infrastructure/serverActions/loginUser.server.js')
+      const { signIn } = await import('next-auth/react')
+
+      // Mock successful responses
+      ;(loginUserAction as Mock).mockResolvedValue({
+        success: true,
+        status: 200,
+        data: { userId: '123', email: 'test@example.com' },
+      })
+      ;(signIn as Mock).mockResolvedValue({
+        ok: true,
+        error: null,
+      })
+
+      // Set up form data
+      act(() => {
+        const emailHandler = result.current.handleChange('email')
+        emailHandler({
+          target: { value: 'test@example.com' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const passwordHandler = result.current.handleChange('password')
+        passwordHandler({ target: { value: 'mypassword' } } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      // Submit
+      await act(async () => {
+        await result.current.handleSubmit({
+          preventDefault: () => {},
+        } as React.FormEvent)
+      })
+
+      // Verify signIn called with redirect:false
+      expect(signIn).toHaveBeenCalledWith('credentials', {
+        email: 'test@example.com',
+        password: 'mypassword',
+        redirect: false,
+      })
+      expect(signIn).toHaveBeenCalledTimes(1)
+    })
+
+    it('should call router.refresh() on successful authentication', async () => {
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+      const { loginUserAction } = await import('@/infrastructure/serverActions/loginUser.server.js')
+      const { signIn } = await import('next-auth/react')
+
+      // Mock successful responses
+      ;(loginUserAction as Mock).mockResolvedValue({
+        success: true,
+        status: 200,
+        data: { userId: '123', email: 'test@example.com' },
+      })
+      ;(signIn as Mock).mockResolvedValue({
+        ok: true,
+        error: null,
+      })
+
+      // Set up form data
+      act(() => {
+        const emailHandler = result.current.handleChange('email')
+        emailHandler({
+          target: { value: 'test@example.com' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const passwordHandler = result.current.handleChange('password')
+        passwordHandler({ target: { value: 'mypassword' } } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      // Submit
+      await act(async () => {
+        await result.current.handleSubmit({
+          preventDefault: () => {},
+        } as React.FormEvent)
+      })
+
+      // Verify both push and refresh were called
+      expect(mockPush).toHaveBeenCalledWith('/dashboard')
+      expect(mockRouter.refresh).toHaveBeenCalled()
+    })
+
+    it('should set isLoading to true during submission', async () => {
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+      const { loginUserAction } = await import('@/infrastructure/serverActions/loginUser.server.js')
+      const { signIn } = await import('next-auth/react')
+
+      // Create a promise we can control
+      let resolveAuth:
+        | ((value: { success: boolean; status: number; data?: { userId: string } }) => void)
+        | undefined
+      const authPromise = new Promise<{
+        success: boolean
+        status: number
+        data?: { userId: string }
+      }>((resolve) => {
+        resolveAuth = resolve
+      })
+
+      ;(loginUserAction as Mock).mockReturnValue(authPromise)
+
+      // Set up form data
+      act(() => {
+        const emailHandler = result.current.handleChange('email')
+        emailHandler({
+          target: { value: 'test@example.com' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const passwordHandler = result.current.handleChange('password')
+        passwordHandler({ target: { value: 'mypassword' } } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      // Initial state
+      expect(result.current.isLoading).toBe(false)
+
+      // Submit (don't await)
+      act(() => {
+        result.current.handleSubmit({
+          preventDefault: () => {},
+        } as React.FormEvent)
+      })
+
+      // Should be loading now
+      expect(result.current.isLoading).toBe(true)
+
+      // Resolve the auth promise
+      await act(async () => {
+        resolveAuth!({
+          success: true,
+          status: 200,
+          data: { userId: '123' },
+        })
+        ;(signIn as Mock).mockResolvedValue({ ok: true })
+        await authPromise
+      })
+
+      // Should no longer be loading
+      expect(result.current.isLoading).toBe(false)
+    })
+
+    it('should set isLoading to false after authentication error', async () => {
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+      const { loginUserAction } = await import('@/infrastructure/serverActions/loginUser.server.js')
+
+      // Mock failed authentication
+      ;(loginUserAction as Mock).mockResolvedValue({
+        success: false,
+        status: 401,
+        error: 'Invalid credentials',
+      })
+
+      // Set up form data
+      act(() => {
+        const emailHandler = result.current.handleChange('email')
+        emailHandler({
+          target: { value: 'test@example.com' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const passwordHandler = result.current.handleChange('password')
+        passwordHandler({
+          target: { value: 'wrongpassword' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      // Submit
+      await act(async () => {
+        await result.current.handleSubmit({
+          preventDefault: () => {},
+        } as React.FormEvent)
+      })
+
+      // Should no longer be loading
+      expect(result.current.isLoading).toBe(false)
+      expect(result.current.errors.general).toBe('Invalid credentials')
+    })
+
+    it('should set isLoading to false after session establishment error', async () => {
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+      const { loginUserAction } = await import('@/infrastructure/serverActions/loginUser.server.js')
+      const { signIn } = await import('next-auth/react')
+
+      // Mock successful auth but failed session
+      ;(loginUserAction as Mock).mockResolvedValue({
+        success: true,
+        status: 200,
+        data: { userId: '123' },
+      })
+      ;(signIn as Mock).mockResolvedValue({
+        ok: false,
+        error: 'Session error',
+      })
+
+      // Set up form data
+      act(() => {
+        const emailHandler = result.current.handleChange('email')
+        emailHandler({
+          target: { value: 'test@example.com' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const passwordHandler = result.current.handleChange('password')
+        passwordHandler({ target: { value: 'mypassword' } } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      // Submit
+      await act(async () => {
+        await result.current.handleSubmit({
+          preventDefault: () => {},
+        } as React.FormEvent)
+      })
+
+      // Should no longer be loading
+      expect(result.current.isLoading).toBe(false)
+      expect(result.current.errors.general).toBe(
+        'Authentication succeeded but session creation failed. Please try again.'
+      )
+    })
+
+    it('should set isLoading to false after exception', async () => {
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+      const { loginUserAction } = await import('@/infrastructure/serverActions/loginUser.server.js')
+
+      // Mock exception
+      ;(loginUserAction as Mock).mockRejectedValue(new Error('Network error'))
+
+      // Set up form data
+      act(() => {
+        const emailHandler = result.current.handleChange('email')
+        emailHandler({
+          target: { value: 'test@example.com' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const passwordHandler = result.current.handleChange('password')
+        passwordHandler({ target: { value: 'mypassword' } } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      // Submit
+      await act(async () => {
+        await result.current.handleSubmit({
+          preventDefault: () => {},
+        } as React.FormEvent)
+      })
+
+      // Should no longer be loading
+      expect(result.current.isLoading).toBe(false)
+      expect(result.current.errors.general).toBe('An unexpected error occurred. Please try again.')
+    })
+
+    it('should handle exception in loginUserAction', async () => {
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+      const { loginUserAction } = await import('@/infrastructure/serverActions/loginUser.server.js')
+
+      // Mock network error
+      ;(loginUserAction as Mock).mockRejectedValue(new Error('Network timeout'))
+
+      // Set up form data
+      act(() => {
+        const emailHandler = result.current.handleChange('email')
+        emailHandler({
+          target: { value: 'test@example.com' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const passwordHandler = result.current.handleChange('password')
+        passwordHandler({ target: { value: 'mypassword' } } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      // Submit
+      await act(async () => {
+        await result.current.handleSubmit({
+          preventDefault: () => {},
+        } as React.FormEvent)
+      })
+
+      // Verify error handling
+      expect(result.current.errors.general).toBe('An unexpected error occurred. Please try again.')
+      expect(mockPush).not.toHaveBeenCalled()
+    })
+
+    it('should handle exception in signIn (session establishment)', async () => {
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+      const { loginUserAction } = await import('@/infrastructure/serverActions/loginUser.server.js')
+      const { signIn } = await import('next-auth/react')
+
+      // Mock successful auth but exception in signIn
+      ;(loginUserAction as Mock).mockResolvedValue({
+        success: true,
+        status: 200,
+        data: { userId: '123' },
+      })
+      ;(signIn as Mock).mockRejectedValue(new Error('Session service unavailable'))
+
+      // Set up form data
+      act(() => {
+        const emailHandler = result.current.handleChange('email')
+        emailHandler({
+          target: { value: 'test@example.com' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const passwordHandler = result.current.handleChange('password')
+        passwordHandler({ target: { value: 'mypassword' } } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      // Submit
+      await act(async () => {
+        await result.current.handleSubmit({
+          preventDefault: () => {},
+        } as React.FormEvent)
+      })
+
+      // Verify error handling
+      expect(result.current.errors.general).toBe('An unexpected error occurred. Please try again.')
+      expect(mockPush).not.toHaveBeenCalled()
+    })
+
+    it('should prevent race condition by returning early if already loading', async () => {
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+      const { loginUserAction } = await import('@/infrastructure/serverActions/loginUser.server.js')
+      const { signIn } = await import('next-auth/react')
+
+      // Create a slow authentication
+      let resolveAuth:
+        | ((value: { success: boolean; status: number; data?: { userId: string } }) => void)
+        | undefined
+      const authPromise = new Promise<{
+        success: boolean
+        status: number
+        data?: { userId: string }
+      }>((resolve) => {
+        resolveAuth = resolve
+      })
+
+      ;(loginUserAction as Mock).mockReturnValue(authPromise)
+
+      // Set up form data
+      act(() => {
+        const emailHandler = result.current.handleChange('email')
+        emailHandler({
+          target: { value: 'test@example.com' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const passwordHandler = result.current.handleChange('password')
+        passwordHandler({ target: { value: 'mypassword' } } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      // Submit first time
+      act(() => {
+        result.current.handleSubmit({
+          preventDefault: () => {},
+        } as React.FormEvent)
+      })
+
+      // Should be loading
+      expect(result.current.isLoading).toBe(true)
+
+      // Try to submit again while loading
+      act(() => {
+        result.current.handleSubmit({
+          preventDefault: () => {},
+        } as React.FormEvent)
+      })
+
+      // loginUserAction should only be called once (race condition prevented)
+      expect(loginUserAction).toHaveBeenCalledTimes(1)
+
+      // Resolve the auth
+      await act(async () => {
+        resolveAuth!({
+          success: true,
+          status: 200,
+          data: { userId: '123' },
+        })
+        ;(signIn as Mock).mockResolvedValue({ ok: true })
+        await authPromise
+      })
+    })
+
+    it('should handle Server Action with custom error message', async () => {
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+      const { loginUserAction } = await import('@/infrastructure/serverActions/loginUser.server.js')
+
+      // Mock failed auth with custom error
+      ;(loginUserAction as Mock).mockResolvedValue({
+        success: false,
+        status: 403,
+        error: 'Account is locked due to multiple failed attempts',
+      })
+
+      // Set up form data
+      act(() => {
+        const emailHandler = result.current.handleChange('email')
+        emailHandler({
+          target: { value: 'test@example.com' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const passwordHandler = result.current.handleChange('password')
+        passwordHandler({ target: { value: 'mypassword' } } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      // Submit
+      await act(async () => {
+        await result.current.handleSubmit({
+          preventDefault: () => {},
+        } as React.FormEvent)
+      })
+
+      // Verify custom error message is displayed
+      expect(result.current.errors.general).toBe(
+        'Account is locked due to multiple failed attempts'
+      )
+    })
+
+    it('should handle Server Action failure with no error message', async () => {
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+      const { loginUserAction } = await import('@/infrastructure/serverActions/loginUser.server.js')
+
+      // Mock failed auth without error message
+      ;(loginUserAction as Mock).mockResolvedValue({
+        success: false,
+        status: 401,
+        error: null,
+      })
+
+      // Set up form data
+      act(() => {
+        const emailHandler = result.current.handleChange('email')
+        emailHandler({
+          target: { value: 'test@example.com' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const passwordHandler = result.current.handleChange('password')
+        passwordHandler({ target: { value: 'mypassword' } } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      // Submit
+      await act(async () => {
+        await result.current.handleSubmit({
+          preventDefault: () => {},
+        } as React.FormEvent)
+      })
+
+      // Verify default error message is used
+      expect(result.current.errors.general).toBe('Invalid email or password')
+    })
+
+    it('should clear general error before new submission attempt', async () => {
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+      const { loginUserAction } = await import('@/infrastructure/serverActions/loginUser.server.js')
+
+      // First failed attempt
+      ;(loginUserAction as Mock).mockResolvedValue({
+        success: false,
+        status: 401,
+        error: 'First error',
+      })
+
+      // Set up form data
+      act(() => {
+        const emailHandler = result.current.handleChange('email')
+        emailHandler({
+          target: { value: 'test@example.com' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const passwordHandler = result.current.handleChange('password')
+        passwordHandler({
+          target: { value: 'wrongpassword' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      // First submit
+      await act(async () => {
+        await result.current.handleSubmit({
+          preventDefault: () => {},
+        } as React.FormEvent)
+      })
+
+      expect(result.current.errors.general).toBe('First error')
+
+      // Second attempt - should succeed
+      ;(loginUserAction as Mock).mockResolvedValue({
+        success: true,
+        status: 200,
+        data: { userId: '123' },
+      })
+
+      const { signIn } = await import('next-auth/react')
+      ;(signIn as Mock).mockResolvedValue({ ok: true })
+
+      // Update password
+      act(() => {
+        const passwordHandler = result.current.handleChange('password')
+        passwordHandler({
+          target: { value: 'correctpassword' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      // Second submit
+      await act(async () => {
+        await result.current.handleSubmit({
+          preventDefault: () => {},
+        } as React.FormEvent)
+      })
+
+      // General error should be cleared (empty string, not the old error)
+      expect(result.current.errors.general).toBe('')
     })
   })
 })
