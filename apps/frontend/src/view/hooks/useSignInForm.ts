@@ -4,6 +4,10 @@ import { useRouter } from 'next/navigation.js'
 import { signIn } from 'next-auth/react'
 import { useState } from 'react'
 
+import { createLogger } from '@/adapters/secondary/services/logger.service.js'
+
+const logger = createLogger({ prefix: '[useSignInForm]' })
+
 type FormData = LoginDTO
 
 interface FormErrors {
@@ -66,7 +70,7 @@ export function useSignInForm() {
     setErrors((prev) => ({ ...prev, general: '' }))
 
     try {
-      console.log('[useSignInForm] Calling NextAuth signIn')
+      logger.info('[useSignInForm] Calling NextAuth signIn')
 
       const result = await signIn('credentials', {
         email: formData.email,
@@ -74,21 +78,21 @@ export function useSignInForm() {
         redirect: false,
       })
 
-      console.log('[useSignInForm] Result:', result)
+      logger.info('[useSignInForm] Result:', result)
 
       if (result?.error) {
-        console.error('[useSignInForm] Error:', result.error)
+        logger.error('[useSignInForm] Error:', result.error)
         setErrors((prev) => ({
           ...prev,
           general: result.error || 'Invalid email or password',
         }))
       } else if (result?.ok) {
-        console.log('[useSignInForm] Success - redirecting')
+        logger.info('[useSignInForm] Success - redirecting')
         router.push('/dashboard')
         router.refresh()
       }
     } catch (error) {
-      console.error('[useSignInForm] Exception:', error)
+      logger.error('[useSignInForm] Exception:', error)
       setErrors((prev) => ({
         ...prev,
         general: 'An unexpected error occurred. Please try again.',
