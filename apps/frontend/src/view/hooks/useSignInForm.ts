@@ -100,6 +100,11 @@ export function useSignInForm() {
       }
 
       // Step 2: Establish NextAuth session after successful authentication
+      // Note: This makes a second call to the backend through NextAuth's authorize function.
+      // This is a known trade-off to maintain NextAuth's session management while keeping
+      // authentication logic explicit in the infrastructure layer (Server Action).
+      // Alternative approaches (custom session management or modifying NextAuth's flow)
+      // would be more complex and outside the scope of this security architecture improvement.
       logger.info('[useSignInForm] Authentication successful, establishing session')
       const sessionResult = await signIn('credentials', {
         email: formData.email,
