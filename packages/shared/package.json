@@ -10,7 +10,10 @@
     "src"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json"
+    "build": "tsc -p tsconfig.build.json",
+    "lint:api": "spectral lint --verbose ./src/openapi.json --ruleset ./src/.spectral.yaml",
+    "lint:api:json": "spectral lint ./src/openapi.json --ruleset ./src/.spectral.yaml --format json",
+    "docs:api": "redoc-cli serve ./src/openapi.json --watch --port 8080"
   },
   "dependencies": {
     "zod": "^4.2.1"
@@ -20,5 +23,10 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     }
+  },
+  "devDependencies": {
+    "@redocly/cli": "^2.14.1",
+    "@stoplight/spectral-cli": "^6.15.0",
+    "redoc-cli": "^0.13.21"
   }
 }

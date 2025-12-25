@@ -157,4 +157,16 @@ norberts-spark/
 
 ## License
 
-AGPLv3
+### AGPLv3
+
+GPLv3 (GNU General Public License version 3) is a strong copyleft open-source license ensuring software freedom by requiring that any modified versions or derivative works are also released under GPLv3, keeping the code perpetually open and free for everyone to use, modify, and share. Key features include protections against patent abuses (anti-Tivoization), compatibility with other licenses, and explicit patent grants, making it more robust than GPLv2 for modern software.
+Key Permissions & Obligations:
+
+**You can**: Copy, modify, use (privately or commercially), and distribute the software.
+You must:
+
+- Include the license and copyright notices with any distribution.
+- Release any modified versions under GPLv3 (the "copyleft" principle).
+- Provide the complete source code (Corresponding Source) for any distributed work.
+- Indicate changes made to the code.
+- Display appropriate legal notices on interactive interfaces.

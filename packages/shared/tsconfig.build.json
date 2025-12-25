@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
-    "moduleResolution": "Node",
+    "moduleResolution": "bundler",
     "declaration": true,
     "declarationMap": false,
     "outDir": "dist",
@@ -12,7 +12,8 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "resolvePackageJsonExports": true
   },
   "include": ["src/**/*"]
 }

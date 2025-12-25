@@ -2,8 +2,7 @@ import Fastify, { type FastifyInstance, type FastifyServerOptions } from 'fastif
 import cors from '@fastify/cors'
 import swagger from '@fastify/swagger'
 import swaggerUI from '@fastify/swagger-ui'
-import { readFileSync } from 'fs'
-import { join } from 'path'
+import { OpenAPI } from '@norberts-spark/shared'
 
 export function buildApp(options?: FastifyServerOptions): FastifyInstance {
   const fastify = Fastify({
@@ -20,15 +19,11 @@ export function buildApp(options?: FastifyServerOptions): FastifyInstance {
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 
-  // Load OpenAPI specification
-  const openapiPath = join(import.meta.dirname, '..', 'openapi.json')
-  const openapiSpec = JSON.parse(readFileSync(openapiPath, 'utf8'))
-
   // Register Swagger
   fastify.register(swagger, {
     mode: 'static',
     specification: {
-      document: openapiSpec,
+      document: OpenAPI as any,
     },
   })
 

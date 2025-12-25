@@ -1,16 +1,16 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Level 2 Gym API",
-    "description": "API for managing gym members, workouts, and training programs",
+    "title": "Norbert's Spark API",
+    "description": "API for Norbert's Spark AI CRM application",
     "version": "0.0.1",
     "contact": {
-      "name": "Level 2 Gym",
-      "email": "api@level2gym.com"
+      "name": "Norbert's Spark API",
+      "email": "api@example.com"
     },
     "license": {
-      "name": "MIT",
-      "url": "https://opensource.org/licenses/MIT"
+      "name": "AGPLv3",
+      "url": "https://www.gnu.org/licenses/agpl-3.0.en.html"
     }
   },
   "servers": [
@@ -54,7 +54,7 @@
                   "properties": {
                     "message": {
                       "type": "string",
-                      "example": "Level 2 Gym API"
+                      "example": "Norbert's Spark API"
                     }
                   },
                   "required": ["message"]
