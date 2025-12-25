@@ -56,7 +56,7 @@ export function createFastifyApp(options?: FastifyServerOptions): FastifyInstanc
   const __dirname = dirname(__filename)
 
   // Load OpenAPI specification
-  const openapiPath = join(__dirname, '../../..', 'openapi.json')
+  const openapiPath = join(__dirname, '../../../../..', 'packages/shared/src/openapi.json')
   const openapiSpec = JSON.parse(readFileSync(openapiPath, 'utf8'))
 
   // Register Swagger
