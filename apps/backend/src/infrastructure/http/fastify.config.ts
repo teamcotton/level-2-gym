@@ -1,13 +1,9 @@
 import type { FastifyInstance, FastifyServerOptions } from 'fastify'
 import Fastify from 'fastify'
-import { readFileSync } from 'fs'
-import { join } from 'path'
 import cors from '@fastify/cors'
 
 import swagger from '@fastify/swagger'
 import swaggerUI from '@fastify/swagger-ui'
-import { fileURLToPath } from 'node:url'
-import { dirname } from 'node:path'
 import { OpenAPI } from '@norberts-spark/shared'
 /**
  * Creates and configures a Fastify server instance with CORS, Swagger, and OpenAPI support.
