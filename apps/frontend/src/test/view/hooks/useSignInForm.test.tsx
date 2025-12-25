@@ -16,6 +16,11 @@ vi.mock('next-auth/react', () => ({
   signIn: vi.fn(),
 }))
 
+// Mock loginUserAction Server Action
+vi.mock('@/infrastructure/serverActions/loginUser.server.js', () => ({
+  loginUserAction: vi.fn(),
+}))
+
 describe('useSignInForm', () => {
   const mockPush = vi.fn()
   const mockRouter = {
@@ -710,6 +715,169 @@ describe('useSignInForm', () => {
 
       expect(result.current.errors.password).toBe('')
       expect(result.current.formData.password).toBe(specialPassword)
+    })
+  })
+
+  describe('Authentication Flow Integration', () => {
+    it('should call loginUserAction before establishing NextAuth session on submit', async () => {
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+      const { loginUserAction } = await import('@/infrastructure/serverActions/loginUser.server.js')
+      const { signIn } = await import('next-auth/react')
+
+      // Mock successful Server Action response
+      ;(loginUserAction as Mock).mockResolvedValue({
+        success: true,
+        status: 200,
+        data: {
+          userId: '123',
+          email: 'test@example.com',
+          access_token: 'mock-token',
+          roles: ['user'],
+        },
+      })
+
+      // Mock successful NextAuth signIn
+      ;(signIn as Mock).mockResolvedValue({
+        ok: true,
+        error: null,
+      })
+
+      // Set up valid form data
+      act(() => {
+        const emailHandler = result.current.handleChange('email')
+        emailHandler({
+          target: { value: 'test@example.com' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const passwordHandler = result.current.handleChange('password')
+        passwordHandler({ target: { value: 'mypassword' } } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      // Submit the form
+      await act(async () => {
+        await result.current.handleSubmit({
+          preventDefault: () => {},
+        } as React.FormEvent)
+      })
+
+      // Verify loginUserAction was called first
+      expect(loginUserAction).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        password: 'mypassword',
+      })
+
+      // Verify NextAuth signIn was called second
+      expect(signIn).toHaveBeenCalledWith('credentials', {
+        email: 'test@example.com',
+        password: 'mypassword',
+        redirect: false,
+      })
+
+      // Verify redirect to dashboard
+      expect(mockPush).toHaveBeenCalledWith('/dashboard')
+    })
+
+    it('should handle Server Action authentication failure', async () => {
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+      const { loginUserAction } = await import('@/infrastructure/serverActions/loginUser.server.js')
+      const { signIn } = await import('next-auth/react')
+
+      // Mock failed Server Action response
+      ;(loginUserAction as Mock).mockResolvedValue({
+        success: false,
+        status: 401,
+        error: 'Invalid email or password',
+      })
+
+      // Set up valid form data
+      act(() => {
+        const emailHandler = result.current.handleChange('email')
+        emailHandler({
+          target: { value: 'test@example.com' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const passwordHandler = result.current.handleChange('password')
+        passwordHandler({ target: { value: 'wrongpassword' } } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      // Submit the form
+      await act(async () => {
+        await result.current.handleSubmit({
+          preventDefault: () => {},
+        } as React.FormEvent)
+      })
+
+      // Verify loginUserAction was called
+      expect(loginUserAction).toHaveBeenCalled()
+
+      // Verify NextAuth signIn was NOT called (authentication failed)
+      expect(signIn).not.toHaveBeenCalled()
+
+      // Verify error message is set
+      expect(result.current.errors.general).toBe('Invalid email or password')
+
+      // Verify no redirect
+      expect(mockPush).not.toHaveBeenCalled()
+    })
+
+    it('should handle session establishment failure after successful authentication', async () => {
+      const { result } = renderHook(() => useSignInForm(), { wrapper })
+      const { loginUserAction } = await import('@/infrastructure/serverActions/loginUser.server.js')
+      const { signIn } = await import('next-auth/react')
+
+      // Mock successful Server Action response
+      ;(loginUserAction as Mock).mockResolvedValue({
+        success: true,
+        status: 200,
+        data: {
+          userId: '123',
+          email: 'test@example.com',
+          access_token: 'mock-token',
+          roles: ['user'],
+        },
+      })
+
+      // Mock failed NextAuth signIn
+      ;(signIn as Mock).mockResolvedValue({
+        ok: false,
+        error: 'Session creation failed',
+      })
+
+      // Set up valid form data
+      act(() => {
+        const emailHandler = result.current.handleChange('email')
+        emailHandler({
+          target: { value: 'test@example.com' },
+        } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
+        const passwordHandler = result.current.handleChange('password')
+        passwordHandler({ target: { value: 'mypassword' } } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      // Submit the form
+      await act(async () => {
+        await result.current.handleSubmit({
+          preventDefault: () => {},
+        } as React.FormEvent)
+      })
+
+      // Verify both calls were made
+      expect(loginUserAction).toHaveBeenCalled()
+      expect(signIn).toHaveBeenCalled()
+
+      // Verify appropriate error message
+      expect(result.current.errors.general).toBe(
+        'Authentication succeeded but session creation failed. Please try again.'
+      )
+
+      // Verify no redirect
+      expect(mockPush).not.toHaveBeenCalled()
     })
   })
 })
