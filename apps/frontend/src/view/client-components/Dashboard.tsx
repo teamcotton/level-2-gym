@@ -1,8 +1,17 @@
 'use client'
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import ChatIcon from '@mui/icons-material/Chat'
+import LogoutIcon from '@mui/icons-material/Logout'
 import PersonIcon from '@mui/icons-material/Person'
-import { Box, Card, CardActionArea, CardContent, Container, Typography } from '@mui/material'
+import {
+  Box,
+  Button,
+  Card,
+  CardActionArea,
+  CardContent,
+  Container,
+  Typography,
+} from '@mui/material'
 
 interface DashboardProps {
   canAccessAdmin: boolean
@@ -31,9 +40,20 @@ interface DashboardProps {
 export function Dashboard({ canAccessAdmin, onNavigate }: DashboardProps) {
   return (
     <Container maxWidth="lg" sx={{ py: 8 }}>
-      <Typography variant="h3" component="h1" gutterBottom align="center" sx={{ mb: 6 }}>
-        Dashboard
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6 }}>
+        <Typography variant="h3" component="h1">
+          Dashboard
+        </Typography>
+        <Button
+          variant="outlined"
+          color="primary"
+          startIcon={<LogoutIcon />}
+          href="/api/auth/signout"
+          sx={{ textTransform: 'none' }}
+        >
+          Sign Out
+        </Button>
+      </Box>
 
       <Box
         sx={{
