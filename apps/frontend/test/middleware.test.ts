@@ -171,20 +171,20 @@ describe('Middleware', () => {
       vi.mocked(getToken).mockResolvedValue(createMockToken())
     })
 
-    it('should redirect authenticated user from /signin to /admin', async () => {
+    it('should redirect authenticated user from /signin to /dashboard', async () => {
       const request = createRequest('/signin')
       const response = await middleware(request)
 
       expect(response.status).toBe(302)
-      expect(response.headers.get('location')).toBe(`${baseUrl}/admin`)
+      expect(response.headers.get('location')).toBe(`${baseUrl}/dashboard`)
     })
 
-    it('should redirect authenticated user from /register to /admin', async () => {
+    it('should redirect authenticated user from /register to /dashboard', async () => {
       const request = createRequest('/register')
       const response = await middleware(request)
 
       expect(response.status).toBe(302)
-      expect(response.headers.get('location')).toBe(`${baseUrl}/admin`)
+      expect(response.headers.get('location')).toBe(`${baseUrl}/dashboard`)
     })
 
     it('should ignore query parameters when redirecting from /signin', async () => {
@@ -192,7 +192,7 @@ describe('Middleware', () => {
       const response = await middleware(request)
 
       expect(response.status).toBe(302)
-      expect(response.headers.get('location')).toBe(`${baseUrl}/admin`)
+      expect(response.headers.get('location')).toBe(`${baseUrl}/dashboard`)
     })
   })
 
