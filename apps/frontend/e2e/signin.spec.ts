@@ -1,9 +1,7 @@
 import { expect, test } from '@playwright/test'
 
 test.describe('Sign In Page', () => {
-  test.beforeEach(async ({ context, page }) => {
-    // Clear all cookies and storage to ensure clean state
-    await context.clearCookies()
+  test.beforeEach(async ({ page }) => {
     await page.goto('/signin')
   })
 
