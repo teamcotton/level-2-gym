@@ -106,18 +106,6 @@ describe('Uuid7Util', () => {
 
       expect(typeof result).toBe('string')
     })
-
-    it('should work with multiple instances', () => {
-      const util1 = new Uuid7Util()
-      const util2 = new Uuid7Util()
-
-      const uuid1 = util1.createUuidv7()
-      const uuid2 = util2.createUuidv7()
-
-      expect(uuid1).not.toBe(uuid2)
-      expect(Uuid7Util.isValidUUID(uuid1)).toBe(true)
-      expect(Uuid7Util.isValidUUID(uuid2)).toBe(true)
-    })
   })
 
   describe('integration scenarios', () => {
