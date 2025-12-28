@@ -31,6 +31,21 @@ CREATE TABLE messages (
 CREATE INDEX messages_chat_id_idx ON messages(chat_id);
 CREATE INDEX messages_chat_id_created_at_idx ON messages(chat_id, created_at);
 
+-- AI options table: Stores model configuration parameters for each message
+CREATE TABLE ai_options (
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
+    message_id UUID NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+    prompt TEXT NOT NULL,
+    max_tokens INTEGER NOT NULL CHECK (max_tokens > 0),
+    temperature FLOAT NOT NULL,
+    top_p FLOAT NOT NULL,
+    frequency_penalty FLOAT NOT NULL,
+    presence_penalty FLOAT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX ai_options_message_id_idx ON ai_options(message_id);
+
 -- Parts table: Stores message parts (text, files, tools, etc.)
 CREATE TABLE parts (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
