@@ -13,6 +13,7 @@ import { PinoLoggerService } from '../../adapters/secondary/services/logger.serv
 import { JwtTokenGeneratorService } from '../../adapters/secondary/services/jwt-token-generator.service.js'
 import { UserController } from '../../adapters/primary/http/user.controller.js'
 import { AuthController } from '../../adapters/primary/http/auth.controller.js'
+import { AIController } from '../../adapters/primary/http/ai.controller.js'
 
 import { EnvConfig } from '../config/env.config.js'
 import { fileURLToPath } from 'node:url'
@@ -69,6 +70,7 @@ export class Container {
   // Controllers
   public readonly userController: UserController
   public readonly authController: AuthController
+  public readonly aiController: AIController
 
   /**
    * Private constructor to enforce Singleton pattern
@@ -162,6 +164,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     // Initialize controllers (primary adapters)
     this.userController = new UserController(this.registerUserUseCase, this.getAllUsersUseCase)
     this.authController = new AuthController(this.loginUserUseCase)
+    this.aiController = new AIController(this.logger)
 
     // Register routes
     this.registerRoutes()

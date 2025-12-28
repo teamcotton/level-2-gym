@@ -305,7 +305,7 @@
         }
       }
     },
-    "/ai": {
+    "/ai/chat": {
       "post": {
         "summary": "Get AI-generated response",
         "description": "Sends a prompt to the AI service and retrieves the generated response",
@@ -324,11 +324,25 @@
         },
         "responses": {
           "200": {
-            "description": "AI response generated successfully",
+            "description": "AI response stream using Server-Sent Events (SSE)",
             "content": {
-              "application/json": {
+              "text/event-stream": {
                 "schema": {
-                  "$ref": "#/components/schemas/AIResponse"
+                  "type": "string",
+                  "format": "event-stream",
+                  "description": "Server-Sent Events (SSE) stream following the AI SDK stream protocol. Each line starts with 'data: ' followed by a JSON object. The stream includes various event types: start, text-delta (incremental text chunks), tool calls, finish, etc. Stream ends with 'data: [DONE]'. Full protocol: https://ai-sdk.dev/docs/ai-sdk-ui/stream-protocol"
+                },
+                "examples": {
+                  "simpleTextResponse": {
+                    "summary": "Simple text response",
+                    "description": "Basic streaming response with text only",
+                    "value": "data: {\"type\":\"start\"}\n\ndata: {\"type\":\"start-step\"}\n\ndata: {\"type\":\"text-start\",\"id\":\"0\"}\n\ndata: {\"type\":\"text-delta\",\"id\":\"0\",\"delta\":\"Hello\"}\n\ndata: {\"type\":\"text-delta\",\"id\":\"0\",\"delta\":\" world\"}\n\ndata: {\"type\":\"text-delta\",\"id\":\"0\",\"delta\":\"!\"}\n\ndata: {\"type\":\"text-end\",\"id\":\"0\"}\n\ndata: {\"type\":\"finish-step\"}\n\ndata: {\"type\":\"finish\",\"finishReason\":\"stop\"}\n\ndata: [DONE]"
+                  },
+                  "responseWithToolCall": {
+                    "summary": "Response with tool invocation",
+                    "description": "Streaming response that includes an AI tool call and subsequent response",
+                    "value": "data: {\"type\":\"start\"}\n\ndata: {\"type\":\"start-step\"}\n\ndata: {\"type\":\"text-start\",\"id\":\"0\"}\n\ndata: {\"type\":\"text-delta\",\"id\":\"0\",\"delta\":\"Let me check that for you\"}\n\ndata: {\"type\":\"text-end\",\"id\":\"0\"}\n\ndata: {\"type\":\"tool-input-start\",\"toolCallId\":\"abc123\",\"toolName\":\"myTool\"}\n\ndata: {\"type\":\"tool-input-delta\",\"toolCallId\":\"abc123\",\"inputTextDelta\":\"{\\\"param\\\":\\\"value\\\"}\"}\n\ndata: {\"type\":\"tool-input-available\",\"toolCallId\":\"abc123\",\"toolName\":\"myTool\",\"input\":{\"param\":\"value\"}}\n\ndata: {\"type\":\"tool-output-available\",\"toolCallId\":\"abc123\",\"output\":{\"result\":\"data\"}}\n\ndata: {\"type\":\"finish-step\"}\n\ndata: {\"type\":\"start-step\"}\n\ndata: {\"type\":\"text-start\",\"id\":\"1\"}\n\ndata: {\"type\":\"text-delta\",\"id\":\"1\",\"delta\":\"Based on the result...\"}\n\ndata: {\"type\":\"text-end\",\"id\":\"1\"}\n\ndata: {\"type\":\"finish-step\"}\n\ndata: {\"type\":\"finish\",\"finishReason\":\"stop\"}\n\ndata: [DONE]"
+                  }
                 }
               }
             }
@@ -489,18 +503,6 @@
         }
       },
       "AIRequest": {
-        "type": "object",
-        "description": "Request payload for AI-generated response",
-        "required": ["prompt"],
-        "properties": {
-          "prompt": {
-            "type": "string",
-            "example": "Explain the theory of relativity.",
-            "description": "The prompt to send to the AI service"
-          }
-        }
-      },
-      "AIResponse": {
         "type": "object",
         "description": "AI-generated response object",
         "required": ["id", "messages", "trigger"],

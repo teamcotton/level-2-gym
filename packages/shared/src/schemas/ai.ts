@@ -66,6 +66,87 @@ export const AIRequestSchema = z.object({
   prompt: z.string().min(1, { message: 'Prompt is required' }),
 })
 
+// Streaming event schemas for SSE responses
+export const StreamEventStartSchema = z.object({
+  type: z.literal('start'),
+})
+
+export const StreamEventStartStepSchema = z.object({
+  type: z.literal('start-step'),
+})
+
+export const StreamEventTextStartSchema = z.object({
+  type: z.literal('text-start'),
+  id: z.string(),
+})
+
+export const StreamEventTextDeltaSchema = z.object({
+  type: z.literal('text-delta'),
+  id: z.string(),
+  delta: z.string(),
+})
+
+export const StreamEventTextEndSchema = z.object({
+  type: z.literal('text-end'),
+  id: z.string(),
+})
+
+export const StreamEventToolInputStartSchema = z.object({
+  type: z.literal('tool-input-start'),
+  toolCallId: z.string(),
+  toolName: z.string(),
+})
+
+export const StreamEventToolInputDeltaSchema = z.object({
+  type: z.literal('tool-input-delta'),
+  toolCallId: z.string(),
+  inputTextDelta: z.string(),
+})
+
+export const StreamEventToolInputAvailableSchema = z.object({
+  type: z.literal('tool-input-available'),
+  toolCallId: z.string(),
+  toolName: z.string(),
+  input: z.record(z.string(), z.unknown()),
+})
+
+export const StreamEventToolOutputAvailableSchema = z.object({
+  type: z.literal('tool-output-available'),
+  toolCallId: z.string(),
+  output: z.unknown(),
+})
+
+export const StreamEventFinishStepSchema = z.object({
+  type: z.literal('finish-step'),
+})
+
+export const StreamEventFinishSchema = z.object({
+  type: z.literal('finish'),
+  finishReason: z.enum(['stop', 'length', 'content-filter', 'tool-calls', 'error', 'other']),
+  usage: z
+    .object({
+      promptTokens: z.number().optional(),
+      completionTokens: z.number().optional(),
+      totalTokens: z.number().optional(),
+    })
+    .optional(),
+})
+
+// Union type for all possible stream events
+export const StreamEventSchema = z.discriminatedUnion('type', [
+  StreamEventStartSchema,
+  StreamEventStartStepSchema,
+  StreamEventTextStartSchema,
+  StreamEventTextDeltaSchema,
+  StreamEventTextEndSchema,
+  StreamEventToolInputStartSchema,
+  StreamEventToolInputDeltaSchema,
+  StreamEventToolInputAvailableSchema,
+  StreamEventToolOutputAvailableSchema,
+  StreamEventFinishStepSchema,
+  StreamEventFinishSchema,
+])
+
 export const MessagePartSchema = z.object({
   type: z.enum([
     'text',
@@ -106,3 +187,19 @@ export type AIModelsSchemaType = z.infer<typeof AIModelsSchema>
 export type AIRequestSchemaType = z.infer<typeof AIRequestSchema>
 export type MessagePartSchemaType = z.infer<typeof MessagePartSchema>
 export type MessageSchemaType = z.infer<typeof MessageSchema>
+export type StreamEventSchemaType = z.infer<typeof StreamEventSchema>
+export type StreamEventStartSchemaType = z.infer<typeof StreamEventStartSchema>
+export type StreamEventStartStepSchemaType = z.infer<typeof StreamEventStartStepSchema>
+export type StreamEventTextStartSchemaType = z.infer<typeof StreamEventTextStartSchema>
+export type StreamEventTextDeltaSchemaType = z.infer<typeof StreamEventTextDeltaSchema>
+export type StreamEventTextEndSchemaType = z.infer<typeof StreamEventTextEndSchema>
+export type StreamEventToolInputStartSchemaType = z.infer<typeof StreamEventToolInputStartSchema>
+export type StreamEventToolInputDeltaSchemaType = z.infer<typeof StreamEventToolInputDeltaSchema>
+export type StreamEventToolInputAvailableSchemaType = z.infer<
+  typeof StreamEventToolInputAvailableSchema
+>
+export type StreamEventToolOutputAvailableSchemaType = z.infer<
+  typeof StreamEventToolOutputAvailableSchema
+>
+export type StreamEventFinishStepSchemaType = z.infer<typeof StreamEventFinishStepSchema>
+export type StreamEventFinishSchemaType = z.infer<typeof StreamEventFinishSchema>

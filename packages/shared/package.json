@@ -20,7 +20,8 @@
     "lint:fix": "eslint . --fix",
     "lint:api": "spectral lint --verbose ./src/openapi.json --ruleset ./src/.spectral.yaml",
     "lint:api:json": "spectral lint ./src/openapi.json --ruleset ./src/.spectral.yaml --format json",
-    "docs:api": "redoc-cli serve ./src/openapi.json --watch --port 8080"
+    "docs:api": "redoc-cli serve ./src/openapi.json --watch --port 8080",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "zod": "^4.2.1"
