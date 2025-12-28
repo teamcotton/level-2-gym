@@ -22,7 +22,11 @@ export class AIController {
       })
     }
     const { messages, id } = parsed
-    // TODO: Implement chat logic using getChatUseCase
+
+    return reply.status(200).send({
+      id,
+      messages,
+    })
   }
 }
 
