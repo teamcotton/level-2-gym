@@ -549,7 +549,8 @@
           },
           "trigger": {
             "type": "string",
-            "example": "submit-message"
+            "example": "submit-message",
+            "description": "Indicates which user or system action caused this AI response to be generated. Implementations should use consistent, machine-readable identifiers (e.g. \"submit-message\")."
           }
         }
       },
