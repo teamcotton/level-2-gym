@@ -154,16 +154,16 @@ export const POST = async (req: Request): Promise<Response> => {
       // console.log('Full text:', text)
       // The reason the model finished generating the text.
       // "stop" | "length" | "content-filter" | "tool-calls" | "error" | "other" | "unknown"
-      // console.log('Finish reason:', finishReason)
+      console.log('Finish reason:', finishReason)
       //usage
-      // console.log('Usage info:', usage, totalUsage)
+      console.log('Usage info:', usage, totalUsage)
       // use proper logging for production
-      // console.log('toUIMessageStreamResponse.onFinish')
+      console.log('toUIMessageStreamResponse.onFinish')
       // Model messages (AssistantModelMessage or ToolModelMessage)
       // Minimal information, no UI data
       // Not suitable for UI applications
-      // console.log('  messages')
-      // console.dir(messages, { depth: null })
+      console.log('  messages')
+      console.dir(messages, { depth: null })
       // 'response.messages' is an array of ToolModelMessage and AssistantModelMessage,
       // which are the model messages that were generated during the stream.
       // This is useful if you don't need UIMessages - for simpler applications.
@@ -183,9 +183,9 @@ export const POST = async (req: Request): Promise<Response> => {
       // 'messages' is the full message history, including the original messages
       // Includes original user message and assistant's response with all parts
       // Ideal for persisting entire conversations
-      // console.log('toUIMessageStreamResponse.onFinish')
-      // console.log('  messages')
-      // console.dir(messages, { depth: null })
+      console.log('toUIMessageStreamResponse.onFinish')
+      console.log('  messages')
+      console.dir(messages, { depth: null })
 
       // Single message
       // Just the newly generated assistant message

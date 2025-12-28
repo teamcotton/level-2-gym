@@ -35,6 +35,10 @@
     {
       "name": "users",
       "description": "User management operations"
+    },
+    {
+      "name": "ai",
+      "description": "AI-generated response operations"
     }
   ],
   "paths": {
@@ -300,6 +304,57 @@
           }
         }
       }
+    },
+    "/ai": {
+      "post": {
+        "summary": "Get AI-generated response",
+        "description": "Sends a prompt to the AI service and retrieves the generated response",
+        "operationId": "getAIResponse",
+        "tags": ["ai"],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AIRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AI response generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Missing or invalid authentication token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -430,6 +485,72 @@
                 "example": 3600
               }
             }
+          }
+        }
+      },
+      "AIRequest": {
+        "type": "object",
+        "description": "Request payload for AI-generated response",
+        "required": ["prompt"],
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "example": "Explain the theory of relativity.",
+            "description": "The prompt to send to the AI service"
+          }
+        }
+      },
+      "AIResponse": {
+        "type": "object",
+        "description": "AI-generated response object",
+        "required": ["id", "messages", "trigger"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "019b659a-2ad2-7fd8-9f32-35624caef900"
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "role", "parts"],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "example": "Z9HbJCTLArucKCzf"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": ["user", "assistant"]
+                },
+                "parts": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["type"],
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": ["text", "step-start"]
+                      },
+                      "text": {
+                        "type": "string"
+                      },
+                      "state": {
+                        "type": "string",
+                        "enum": ["done"]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "trigger": {
+            "type": "string",
+            "example": "submit-message",
+            "description": "Indicates which user or system action caused this AI response to be generated. Implementations should use consistent, machine-readable identifiers (e.g. \"submit-message\")."
           }
         }
       },
