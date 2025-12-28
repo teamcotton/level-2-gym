@@ -13,7 +13,7 @@ export interface PaginatedResult<T> {
 }
 
 export interface UserRepositoryPort {
-  save(user: User): Promise<void>
+  save(user: User): Promise<string>
   findAll(params?: PaginationParams): Promise<PaginatedResult<User>>
   findById(id: string): Promise<User | null>
   findByEmail(email: string): Promise<User | null>

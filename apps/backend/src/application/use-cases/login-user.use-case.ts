@@ -3,6 +3,7 @@ import type { UserRepositoryPort } from '../ports/user.repository.port.js'
 import type { LoggerPort } from '../ports/logger.port.js'
 import type { TokenGeneratorPort } from '../ports/token-generator.port.js'
 import { UnauthorizedException } from '../../shared/exceptions/unauthorized.exception.js'
+import { InternalErrorException } from '../../shared/exceptions/internal-error.exception.js'
 
 /**
  * Use case for authenticating users and generating access tokens
@@ -127,6 +128,15 @@ export class LoginUserUseCase {
     if (!user) {
       this.logger.warn('Login failed: User not found', { email: dto.email })
       throw new UnauthorizedException('Invalid email or password')
+    }
+
+    if (!user.id) {
+      this.logger.error('User found but has no ID', new InternalErrorException('Missing user ID'), {
+        email: dto.email,
+      })
+      throw new InternalErrorException('User found but has no ID', {
+        email: dto.email,
+      })
     }
 
     const isPasswordValid = await user.verifyPassword(dto.password)

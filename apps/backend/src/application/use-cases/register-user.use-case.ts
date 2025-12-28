@@ -9,7 +9,6 @@ import type { TokenGeneratorPort } from '../ports/token-generator.port.js'
 import { RegisterUserDto } from '../dtos/register-user.dto.js'
 import { ConflictException } from '../../shared/exceptions/conflict.exception.js'
 import { DatabaseUtil } from '../../shared/utils/database.util.js'
-import { uuidv7 } from 'uuidv7'
 import { EnvConfig } from '../../infrastructure/config/env.config.js'
 
 /**
@@ -95,23 +94,20 @@ export class RegisterUserUseCase {
     const email = new Email(dto.email)
     const password = await Password.create(dto.password)
     const role = new Role(dto.role)
-    // TODO: remove the generateId from the user entity and handle UUID V7
-    // generation in the native PostgreSQL uuidv7() function that is
-    // available from PostgreSQL 18 onwards.
-    const userId = this.generateId() // Simplified
 
-    // Create user entity
-    const user = new User(userId, email, password, dto.name, role)
+    // Create user entity without ID - PostgreSQL will generate UUIDv7 via uuidv7() function
+    const user = new User(undefined, email, password, dto.name, role)
 
     // Persist user with race condition handling
     // The database has a unique constraint on email, so if two concurrent requests
     // try to register the same email, one will succeed and the other will fail
     // with a duplicate key error. We catch that error and convert it to a
     // user-friendly ConflictException.
+    let userId: string
     try {
-      await this.userRepository.save(user)
+      userId = await this.userRepository.save(user)
     } catch (error) {
-      this.logger.error('Failed to save user', error as Error, { userId })
+      this.logger.error('Failed to save user', error as Error, { email: dto.email })
       if (DatabaseUtil.isDuplicateKeyError(error)) {
         throw new ConflictException('User with this email already exists', { email: dto.email })
       }
@@ -147,18 +143,5 @@ export class RegisterUserUseCase {
       token_type: 'Bearer',
       expires_in: safeExpiresIn,
     }
-  }
-
-  /**
-   * Generates a unique identifier for a new user
-   *
-   * Uses UUIDv7 which provides time-ordered, globally unique identifiers
-   * suitable for distributed systems and database indexing.
-   *
-   * @private
-   * @returns {string} A UUIDv7 string identifier
-   */
-  private generateId(): string {
-    return uuidv7()
   }
 }

@@ -44,12 +44,14 @@ describe('PostgresUserRepository', () => {
 
   describe('save', () => {
     it('should insert a new user into the database', async () => {
-      const mockValues = vi.fn().mockResolvedValue(undefined)
+      const mockReturning = vi.fn().mockResolvedValue([{ userId: 'user-123' }])
+      const mockValues = vi.fn().mockReturnValue({ returning: mockReturning })
       const mockInsert = vi.fn().mockReturnValue({ values: mockValues })
       vi.mocked(db.insert).mockReturnValue(mockInsert() as any)
 
-      await repository.save(testUser)
+      const userId = await repository.save(testUser)
 
+      expect(userId).toBe('user-123')
       expect(db.insert).toHaveBeenCalledTimes(1)
       expect(mockValues).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -65,7 +67,8 @@ describe('PostgresUserRepository', () => {
     })
 
     it('should save user password hash', async () => {
-      const mockValues = vi.fn().mockResolvedValue(undefined)
+      const mockReturning = vi.fn().mockResolvedValue([{ userId: 'user-123' }])
+      const mockValues = vi.fn().mockReturnValue({ returning: mockReturning })
       const mockInsert = vi.fn().mockReturnValue({ values: mockValues })
       vi.mocked(db.insert).mockReturnValue(mockInsert() as any)
 
@@ -76,7 +79,8 @@ describe('PostgresUserRepository', () => {
     })
 
     it('should save user with correct email', async () => {
-      const mockValues = vi.fn().mockResolvedValue(undefined)
+      const mockReturning = vi.fn().mockResolvedValue([{ userId: 'user-456' }])
+      const mockValues = vi.fn().mockReturnValue({ returning: mockReturning })
       const mockInsert = vi.fn().mockReturnValue({ values: mockValues })
       vi.mocked(db.insert).mockReturnValue(mockInsert() as any)
 
@@ -85,8 +89,9 @@ describe('PostgresUserRepository', () => {
       const role = new Role('admin')
       const user = new User('user-456', email, password, 'Jane Doe', role)
 
-      await repository.save(user)
+      const userId = await repository.save(user)
 
+      expect(userId).toBe('user-456')
       const callArgs = mockValues.mock.calls?.[0]?.[0]
       expect(callArgs.email).toBe('newemail@example.com')
       expect(callArgs.name).toBe('Jane Doe')
@@ -464,7 +469,8 @@ describe('PostgresUserRepository', () => {
         const duplicateError = new Error('duplicate key') as any
         duplicateError.code = POSTGRES_ERROR_CODE.UNIQUE_VIOLATION
 
-        const mockValues = vi.fn().mockRejectedValue(duplicateError)
+        const mockReturning = vi.fn().mockRejectedValue(duplicateError)
+        const mockValues = vi.fn().mockReturnValue({ returning: mockReturning })
         const mockInsert = vi.fn().mockReturnValue({ values: mockValues })
         vi.mocked(db.insert).mockReturnValue(mockInsert() as any)
 

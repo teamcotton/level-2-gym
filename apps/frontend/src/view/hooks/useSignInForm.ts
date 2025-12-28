@@ -112,6 +112,13 @@ export function useSignInForm() {
         redirect: false,
       })
 
+      logger.info('[useSignInForm] NextAuth signIn result:', {
+        ok: sessionResult?.ok,
+        error: sessionResult?.error,
+        status: sessionResult?.status,
+        url: sessionResult?.url,
+      })
+
       if (sessionResult?.error) {
         logger.error('[useSignInForm] Session establishment failed:', sessionResult.error)
         setErrors((prev) => ({
@@ -121,10 +128,27 @@ export function useSignInForm() {
         return
       }
 
+      // Redirect on successful session establishment
+      // NextAuth's signIn returns { ok, error, status, url } or undefined in some edge cases
       if (sessionResult?.ok) {
-        logger.info('[useSignInForm] Success - redirecting to dashboard')
+        logger.info('[useSignInForm] Success (ok=true) - redirecting to dashboard')
         router.push('/dashboard')
         router.refresh()
+      } else if (!sessionResult?.error) {
+        // If there's no explicit error but ok is falsy, this might be a timing/state issue
+        // Log the full result and try redirect anyway since Step 1 authentication succeeded
+        logger.warn(
+          '[useSignInForm] Unexpected session result (no ok, no error), attempting redirect anyway:',
+          sessionResult
+        )
+        router.push('/dashboard')
+        router.refresh()
+      } else {
+        logger.error('[useSignInForm] Session establishment explicitly failed')
+        setErrors((prev) => ({
+          ...prev,
+          general: 'An unexpected error occurred during sign in. Please try again.',
+        }))
       }
     } catch (error) {
       logger.error('[useSignInForm] Exception:', error)
