@@ -88,17 +88,18 @@ export class PostgresUserRepository implements UserRepositoryPort {
    */
   async save(userEntity: User): Promise<string> {
     try {
-      // Build values object with proper typing
-      const insertValues = {
+      // Build values object conditionally to maintain type safety
+      // If userId is provided, include it; otherwise let PostgreSQL generate UUIDv7
+      const baseValues = {
         email: userEntity.getEmail(),
         password: userEntity.getPasswordHash(),
         name: userEntity.getName(),
         role: userEntity.getRole(),
         createdAt: new Date(),
-        // Only include userId if it's provided (not undefined)
-        // If undefined, PostgreSQL will generate UUIDv7 via uuidv7() function
-        ...(userEntity.id !== undefined && { userId: userEntity.id }),
       }
+
+      const insertValues =
+        userEntity.id !== undefined ? { ...baseValues, userId: userEntity.id } : baseValues
 
       const result = await db.insert(user).values(insertValues).returning({ userId: user.userId })
 
