@@ -1,5 +1,6 @@
 import type { UserRepositoryPort, PaginationParams } from '../ports/user.repository.port.js'
 import type { LoggerPort } from '../ports/logger.port.js'
+import { InternalErrorException } from '../../shared/exceptions/internal-error.exception.js'
 
 /**
  * Data Transfer Object for user information
@@ -74,7 +75,9 @@ export class GetAllUsersUseCase {
 
       const userDtos = result.data.map((user) => {
         if (!user.id) {
-          throw new Error('User ID is missing')
+          throw new InternalErrorException('User ID is missing', {
+            email: user.getEmail(),
+          })
         }
         return {
           userId: user.id,
