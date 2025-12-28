@@ -16,6 +16,8 @@
     "test:browser": "vitest run --config vitest.config.browser.ts",
     "test:coverage": "pnpm run test:node -- --coverage && pnpm run test:browser -- --coverage",
     "test:watch": "vitest watch --config vitest.config.node.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "lint:api": "spectral lint --verbose ./src/openapi.json --ruleset ./src/.spectral.yaml",
     "lint:api:json": "spectral lint ./src/openapi.json --ruleset ./src/.spectral.yaml --format json",
     "docs:api": "redoc-cli serve ./src/openapi.json --watch --port 8080"

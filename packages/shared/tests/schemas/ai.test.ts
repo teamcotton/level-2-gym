@@ -1,11 +1,12 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect,it } from 'vitest'
+
 import {
   AISchema,
-  CreateAISchema,
-  UpdateAISchema,
   AISummarySchema,
+  CreateAISchema,
   MessagePartSchema,
   MessageSchema,
+  UpdateAISchema,
 } from '../../src/schemas/ai.js'
 
 describe('AI Schemas', () => {
