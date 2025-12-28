@@ -4,6 +4,18 @@ export const AISchema = z.object({
   id: z.string(),
   // Text prompt associated with this AI option (maps to ai_options.prompt)
   prompt: z.string().min(1, { message: 'Prompt is required' }),
+  // Maximum number of tokens to generate (maps to ai_options.max_tokens)
+  maxTokens: z.number().int().min(1, { message: 'maxTokens must be at least 1' }),
+  // Temperature for sampling (maps to ai_options.temperature)
+  temperature: z
+    .number()
+    .min(0, { message: 'temperature must be at least 0' })
+    .max(2, { message: 'temperature must be at most 2' }),
+  // Top P for nucleus sampling (maps to ai_options.top_p)
+  topP: z
+    .number()
+    .min(0, { message: 'topP must be at least 0' })
+    .max(1, { message: 'topP must be at most 1' }),
   // Penalty for repeated tokens (maps to ai_options.frequency_penalty)
   frequencyPenalty: z
     .number()
@@ -19,6 +31,9 @@ export const AISchema = z.object({
 
 export const CreateAISchema = AISchema.pick({
   prompt: true,
+  maxTokens: true,
+  temperature: true,
+  topP: true,
   frequencyPenalty: true,
   presencePenalty: true,
 })
