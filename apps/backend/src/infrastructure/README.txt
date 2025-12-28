@@ -88,7 +88,7 @@ export class EnvConfig {
   static readonly PORT = parseInt(process.env.PORT || '3000', 10)
   static readonly HOST = process.env.HOST || 'localhost'
   
-  static readonly DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/level2gym'
+  static readonly DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/norbertsSpark'
   
   static readonly JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
   static readonly JWT_EXPIRATION = process.env.JWT_EXPIRATION || '7d'
