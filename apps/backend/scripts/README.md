@@ -73,11 +73,11 @@ pnpm seed:users
 
 ```bash
 # Total count by role
-docker exec -i level2gym-postgres psql -U postgres -d level2gym -c \
+docker exec -i norbertsSpark-postgres psql -U postgres -d norbertsSpark -c \
   "SELECT role, COUNT(*) FROM users GROUP BY role;"
 
 # List all users
-docker exec -i level2gym-postgres psql -U postgres -d level2gym -c \
+docker exec -i norbertsSpark-postgres psql -U postgres -d norbertsSpark -c \
   "SELECT name, email, role FROM users ORDER BY role, email;"
 ```
 
