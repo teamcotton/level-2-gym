@@ -15,6 +15,7 @@ export class AIController {
     try {
       const body = request.body
       parsed = AIReturnedResponseSchema.parse(body)
+      this.logger.debug('Parsed AI chat request body', { parsed })
     } catch (e) {
       return reply.status(400).send({
         error: 'Invalid request body',
