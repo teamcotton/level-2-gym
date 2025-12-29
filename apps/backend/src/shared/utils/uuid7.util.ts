@@ -79,11 +79,4 @@ export class Uuid7Util {
   static createUuidv7(): string {
     return uuidv7()
   }
-
-  static processUserUUID(userUUID: string): string | undefined {
-    if (!Uuid7Util.isValidUUID(userUUID)) {
-      throw new Error('Invalid UUID format provided')
-    }
-    return Uuid7Util.uuidVersionValidation(userUUID)
-  }
 }
