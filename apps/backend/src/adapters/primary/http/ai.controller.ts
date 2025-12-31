@@ -16,7 +16,7 @@ export class AIController {
   constructor(
     private readonly getChatUseCase: GetChatUseCase,
     private readonly logger: LoggerPort,
-    private readonly appendToChatMessages: AppendedChatUseCase
+    private readonly appendChatUseCase: AppendedChatUseCase
   ) {}
 
   registerRoutes(app: FastifyInstance): void {
