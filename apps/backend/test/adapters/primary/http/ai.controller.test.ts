@@ -297,7 +297,7 @@ describe('AIController', () => {
 
         await controller.chat(mockRequest, mockReply)
 
-        expect(mockLogger.debug).toHaveBeenCalledWith('Sending message to chat')
+        expect(mockLogger.debug).toHaveBeenCalledWith('Received chat request')
         expect(mockLogger.debug).toHaveBeenCalledWith('Parsed AI chat request body', {
           parsed: expect.objectContaining({
             id: chatId,

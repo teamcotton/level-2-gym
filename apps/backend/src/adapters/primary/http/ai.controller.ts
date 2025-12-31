@@ -75,7 +75,7 @@ export class AIController {
       this.logger.info('Chat does not exist, creating new chat', { id })
       await this.getChatUseCase.execute(userId, messages)
     } else {
-      await this.appendToChatMessages.execute(id, [mostRecentMessage as UIMessage])
+      await this.appendChatUseCase.execute(id, [mostRecentMessage as UIMessage])
       this.logger.info('Chat exists, appending most recent message', { id })
     }
 
@@ -184,7 +184,7 @@ export class AIController {
         // console.log('toUIMessageStreamResponse.onFinish')
         // console.log('  responseMessage')
         // console.dir(responseMessage, { depth: null })
-        await this.appendToChatMessages.execute(id, [responseMessage])
+        await this.appendChatUseCase.execute(id, [responseMessage])
       },
     })
   }
