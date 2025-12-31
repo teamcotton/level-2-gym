@@ -40,9 +40,9 @@ const DRAWER_WIDTH = 280
 
 export default function AIChatPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
-  logger.warn('id', id)
+  logger.debug('id', id)
 
-  logger.info(
+  logger.debug(
     'process.env.NEXT_PUBLIC_POST_AI_CALLBACK_URL',
     process.env.NEXT_PUBLIC_POST_AI_CALLBACK_URL
   )
