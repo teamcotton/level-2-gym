@@ -24,7 +24,7 @@ export class AIController {
 
   /**
    * Handles AI chat requests
-   * THe flow of of chat is as follows:
+   * The flow of chat is as follows:
    * 1. Validate the request body against the AIReturnedResponseSchema
    * 2. Retrieve the chat using the GetChatUseCase
    * 3. Validate that the most recent message is from the user
@@ -68,9 +68,7 @@ export class AIController {
     if (!chat) {
       const userId = request.user?.sub
       if (!userId) {
-        return reply
-          .status(401)
-          .send(FastifyUtil.createResponse('User not authenticated', 401))
+        return reply.status(401).send(FastifyUtil.createResponse('User not authenticated', 401))
       }
       this.logger.info('Chat does not exist, creating new chat', { id })
       await this.getChatUseCase.execute(userId, messages)
