@@ -24,7 +24,7 @@ export class AIController {
 
   /**
    * Handles AI chat requests
-   * The flow of chat is as follows:
+   * The flow of chat is as follows: return FastifyUtil.createResponse('Last message must be from the user', 400)
    * 1. Validate the request body against the AIReturnedResponseSchema
    * 2. Retrieve the chat using the GetChatUseCase
    * 3. Validate that the most recent message is from the user
