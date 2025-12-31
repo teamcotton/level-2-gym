@@ -112,6 +112,7 @@ async function globalSetup() {
         GOOGLE_GENERATIVE_AI_API_KEY: 'test-google-api-key-for-e2e',
         MODEL_NAME: 'gemini-1.5-flash',
         RESEND_API_KEY: 'test-resend-api-key-for-e2e',
+        API_VERSION: 'v1',
       },
       stdio: ['ignore', 'pipe', 'pipe'],
     })

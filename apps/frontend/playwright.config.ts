@@ -26,12 +26,12 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     ignoreHTTPSErrors: true,
     env: {
-      BACKEND_AI_CALLBACK_URL_DEV: 'http://localhost:3000',
-      BACKEND_AI_CALLBACK_URL_PROD: 'http://localhost:3000',
+      BACKEND_AI_CALLBACK_URL_DEV: 'http://localhost:3000/api/v1',
+      BACKEND_AI_CALLBACK_URL_PROD: 'http://localhost:3000/api/v1',
       // Ensure the un-suffixed env var is set for the Next dev server
       // so server-side calls (backendRequest) point to the local backend
       // during E2E tests.
-      BACKEND_AI_CALLBACK_URL: 'http://localhost:3000',
+      BACKEND_AI_CALLBACK_URL: 'http://localhost:3000/api/v1',
     },
   },
 })
