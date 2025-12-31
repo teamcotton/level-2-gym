@@ -1,12 +1,12 @@
 # Norbert's Spark - an AI tools CRM
 
-Nobert's Spark ( named after Norbert Wiener, the father of cybernetics) is a cutting-edge AI tools CRM designed to help users manage and leverage AI technologies effectively. Built with modern web technologies, it offers a seamless experience for integrating AI capabilities into everyday workflows.
+Norbert's Spark ( named after Norbert Wiener, the father of cybernetics) is a cutting-edge AI tools CRM designed to help users manage and leverage AI technologies effectively. Built with modern web technologies, it offers a seamless experience for integrating AI capabilities into everyday workflows.
 
 It is hihgly optimized for Next.js 16 and React 19, utilizing the latest features of these frameworks to deliver a fast and responsive user interface. The application employs Material UI 7 with Emotion for styling, functional and cohesive look and feel..
 
 The API is documented in the backend folder using Fastify and TypeScript, providing a robust and scalable backend solution. The database layer is powered by PostgreSQL 18.1, managed through Docker for easy setup and deployment.
 
-The OpenAPI docs are found in packages/shared/src/openapi.json, meaing that the backend could, if so desired, be separated from the frontend and the a separate UI implemented.
+The OpenAPI docs are found in packages/shared/src/openapi.json, meaning that the backend could, if so desired, be separated from the frontend and the a separate UI implemented.
 
 ## Table of Contents
 
@@ -25,7 +25,7 @@ For ease of working with AI tools, there are three parts to the codebase"
 
 - [Tech Stack](#tech-stack)
 
-The tech stack choices are listed as belowe.
+The tech stack choices are listed as below.
 
 ### ESLint and Prettier
 
