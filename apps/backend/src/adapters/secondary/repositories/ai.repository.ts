@@ -45,7 +45,9 @@ export class AIRepository implements AIServicePort {
         const content = Array.isArray((uiMessage as any).content) ? (uiMessage as any).content : []
 
         return content
-          .filter((part: any) => part && typeof part.type === 'string' && typeof part.text === 'string')
+          .filter(
+            (part: any) => part && typeof part.type === 'string' && typeof part.text === 'string'
+          )
           .map((part: any) => ({
             messageId: insertedMessage.id,
             type: part.type,
