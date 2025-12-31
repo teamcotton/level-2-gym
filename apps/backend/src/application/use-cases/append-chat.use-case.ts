@@ -15,6 +15,7 @@ export class AppendedChatUseCase {
 
   async execute(chatId: string, messages: UIMessage[]): Promise<AppendedChatResult | null> {
     this.logger.info('Appending chat messages', { chatId, messageCount: messages.length })
+    this.logger.debug('Appended chat', { chatId, messages })
     // Here you would add the logic to append messages to the chat with the given chatId
     // For example, you might interact with a repository or database layer to perform the update
     // Retrieve chat data from DB

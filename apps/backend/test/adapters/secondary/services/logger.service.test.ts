@@ -13,18 +13,34 @@ vi.mock('pino', () => ({
   default: vi.fn(() => mockPinoLogger),
 }))
 
+// Mock EnvConfig to control LOG_LEVEL independently
+vi.mock('../../../../src/infrastructure/config/env.config.js', () => ({
+  EnvConfig: {
+    NODE_ENV: 'development',
+    LOG_LEVEL: 'info', // Default for tests
+  },
+}))
+
 describe('PinoLoggerService', () => {
   let originalEnv: typeof process.env
 
   // Helper function to create a logger service instance
   async function createLoggerService(logLevel?: string) {
+    // Reset modules first to clear any cached imports
+    vi.resetModules()
+
+    // Set environment variables BEFORE importing
     process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
-    if (logLevel !== undefined) {
-      process.env.LOG_LEVEL = logLevel
-    } else {
-      // Ensure LOG_LEVEL is not set to test default behavior
-      delete process.env.LOG_LEVEL
-    }
+
+    // Mock EnvConfig with the desired log level
+    vi.doMock('../../../../src/infrastructure/config/env.config.js', () => ({
+      EnvConfig: {
+        NODE_ENV: 'development',
+        LOG_LEVEL: logLevel ?? 'info',
+      },
+    }))
+
+    // Now import the module with the correct environment
     const { PinoLoggerService } =
       await import('../../../../src/adapters/secondary/services/logger.service.js')
     return new PinoLoggerService()

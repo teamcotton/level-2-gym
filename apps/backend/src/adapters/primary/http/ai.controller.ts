@@ -7,15 +7,16 @@ import { FastifyUtil } from '../../../shared/utils/fastify.utils.js'
 import { z } from 'zod'
 import { convertToModelMessages, stepCountIs, streamText, tool, type UIMessage } from 'ai'
 import { google } from '@ai-sdk/google'
-import { appendToChatMessages } from '../../../shared/persistance-layer.js'
 import { GetText } from '../../../infrastructure/ai/tools/getText.js'
+import { AppendedChatUseCase } from '../../../application/use-cases/append-chat.use-case.js'
 
 const getTextInstance = new GetText('data', 'heart-of-darkness.txt')
 
 export class AIController {
   constructor(
     private readonly getChatUseCase: GetChatUseCase,
-    private readonly logger: LoggerPort
+    private readonly logger: LoggerPort,
+    private readonly appendChatUseCase: AppendedChatUseCase
   ) {}
 
   registerRoutes(app: FastifyInstance): void {
@@ -38,6 +39,7 @@ export class AIController {
    * @param reply
    */
   async chat(request: FastifyRequest, reply: FastifyReply) {
+    this.logger.debug('Received chat request')
     let parsed
     try {
       const body = request.body
@@ -73,7 +75,7 @@ export class AIController {
       this.logger.info('Chat does not exist, creating new chat', { id })
       await this.getChatUseCase.execute(userId, messages)
     } else {
-      // to be implemented
+      await this.appendChatUseCase.execute(id, [mostRecentMessage as UIMessage])
       this.logger.info('Chat exists, appending most recent message', { id })
     }
 
@@ -182,7 +184,7 @@ export class AIController {
         // console.log('toUIMessageStreamResponse.onFinish')
         // console.log('  responseMessage')
         // console.dir(responseMessage, { depth: null })
-        await appendToChatMessages(id, [responseMessage])
+        await this.appendChatUseCase.execute(id, [responseMessage])
       },
     })
   }

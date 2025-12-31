@@ -57,7 +57,7 @@ export class Chat {
    * ```
    */
   getCreatedAt(): Date {
-    return this.createdAt
+    return new Date(this.createdAt.getTime())
   }
 
   /**
@@ -72,6 +72,6 @@ export class Chat {
    * ```
    */
   getUpdatedAt(): Date {
-    return this.updatedAt
+    return new Date(this.updatedAt.getTime())
   }
 }

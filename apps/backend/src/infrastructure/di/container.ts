@@ -7,6 +7,7 @@ import { GetAllUsersUseCase } from '../../application/use-cases/get-all-users.us
 import { LoginUserUseCase } from '../../application/use-cases/login-user.use-case.js'
 import { GetChatUseCase } from '../../application/use-cases/get-chat.use-case.js'
 import { CreateChatUseCase } from '../../application/use-cases/create-chat.use-case.js'
+import { AppendedChatUseCase } from '../../application/use-cases/append-chat.use-case.js'
 
 // Adapters
 import { PostgresUserRepository } from '../../adapters/secondary/repositories/user.repository.js'
@@ -72,6 +73,7 @@ export class Container {
   public readonly loginUserUseCase: LoginUserUseCase
   public readonly getChatUseCase: GetChatUseCase
   private readonly createChatUseCase: CreateChatUseCase
+  private readonly appendChatUseCase: AppendedChatUseCase
 
   // Controllers
   public readonly userController: UserController
@@ -169,11 +171,12 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     )
     this.getChatUseCase = new GetChatUseCase(this.aiRepository, this.logger)
     this.createChatUseCase = new CreateChatUseCase(this.logger, this.aiRepository)
+    this.appendChatUseCase = new AppendedChatUseCase(this.aiRepository, this.logger)
 
     // Initialize controllers (primary adapters)
     this.userController = new UserController(this.registerUserUseCase, this.getAllUsersUseCase)
     this.authController = new AuthController(this.loginUserUseCase)
-    this.aiController = new AIController(this.getChatUseCase, this.logger)
+    this.aiController = new AIController(this.getChatUseCase, this.logger, this.appendChatUseCase)
 
     // Register routes
     this.registerRoutes()
