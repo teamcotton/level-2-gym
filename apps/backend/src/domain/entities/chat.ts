@@ -18,4 +18,16 @@ export class Chat {
   getId(): string {
     return this.id
   }
+
+  getUserId(): string {
+    return this.user_id
+  }
+
+  getCreatedAt(): Date {
+    return this.createdAt
+  }
+
+  getUpdatedAt(): Date {
+    return this.updatedAt
+  }
 }
