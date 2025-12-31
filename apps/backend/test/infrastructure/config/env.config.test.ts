@@ -380,7 +380,7 @@ describe('EnvConfig', () => {
       expect(EnvConfig.API_VERSION).toBe('v1')
     })
 
-    it('should be undefined when API_VERSION is not set (no default)', async () => {
+    it('should default to "v1" when API_VERSION is not set', async () => {
       delete process.env.API_VERSION
       process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 
@@ -395,7 +395,7 @@ describe('EnvConfig', () => {
 
       const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
 
-      expect(EnvConfig.API_VERSION).toBeUndefined()
+      expect(EnvConfig.API_VERSION).toBe('v1')
 
       vi.doUnmock('dotenv')
     })

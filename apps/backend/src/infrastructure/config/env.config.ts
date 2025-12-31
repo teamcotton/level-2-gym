@@ -38,7 +38,7 @@ export class EnvConfig {
   static readonly JWT_SECRET = process.env.JWT_SECRET
   static readonly JWT_EXPIRATION = process.env.JWT_EXPIRATION || '3600' // 1 hour in seconds
   static readonly JWT_ISSUER = process.env.JWT_ISSUER || 'my-app'
-  static readonly API_VERSION = process.env.API_VERSION
+  static readonly API_VERSION = process.env.API_VERSION || 'v1'
 
   static validate(): void {
     const missing = requiredEnvs.filter((key) => !process.env[key])
