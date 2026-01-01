@@ -208,14 +208,17 @@ describe('useAIChat', () => {
   })
 
   describe('handleNewChat', () => {
-    it('should navigate to /ai route', () => {
+    it('should navigate to /ai/{uuid} route', () => {
       const { result } = renderHook(() => useAIChat({ id: 'test-id' }))
 
       act(() => {
         result.current.handleNewChat()
       })
 
-      expect(mockPush).toHaveBeenCalledWith('/ai')
+      expect(mockPush).toHaveBeenCalledTimes(1)
+      expect(mockPush.mock.calls[0]?.[0]).toMatch(
+        /^\/ai\/[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/
+      )
     })
 
     it('should call router.push exactly once', () => {
@@ -821,7 +824,10 @@ describe('useAIChat', () => {
       act(() => {
         result.current.handleNewChat()
       })
-      expect(mockPush).toHaveBeenCalledWith('/ai')
+      expect(mockPush).toHaveBeenCalledTimes(1)
+      expect(mockPush.mock.calls[0]?.[0]).toMatch(
+        /^\/ai\/[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/
+      )
     })
 
     it('should handle file error and error close', () => {
