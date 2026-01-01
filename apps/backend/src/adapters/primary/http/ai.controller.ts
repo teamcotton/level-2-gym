@@ -13,11 +13,15 @@ import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 import { HeartOfDarknessTool } from '../../../infrastructure/ai/tools/heart-of-darkness.tool.js'
 
 export class AIController {
+  private readonly heartOfDarknessTool: HeartOfDarknessTool
+
   constructor(
     private readonly getChatUseCase: GetChatUseCase,
     private readonly logger: LoggerPort,
     private readonly appendChatUseCase: AppendedChatUseCase
-  ) {}
+  ) {
+    this.heartOfDarknessTool = new HeartOfDarknessTool(this.logger)
+  }
 
   registerRoutes(app: FastifyInstance): void {
     app.post('/ai/chat', this.chat.bind(this))
@@ -98,7 +102,7 @@ export class AIController {
       - heartOfDarknessQA (for answering questions about the novella Heart of Darkness)
     `,
       tools: {
-        heartOfDarknessQA: new HeartOfDarknessTool(this.logger).getTool(),
+        heartOfDarknessQA: this.heartOfDarknessTool.getTool(),
       },
       stopWhen: [stepCountIs(10)],
       onChunk({ chunk }) {
