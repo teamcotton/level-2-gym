@@ -3,7 +3,7 @@ import type { UIMessage } from 'ai'
 import { AIRepository } from '../../adapters/secondary/repositories/ai.repository.js'
 
 export interface CreateChatResult {
-  chatId: string
+  id: string
   initialMessages: UIMessage[]
 }
 
@@ -13,14 +13,18 @@ export class CreateChatUseCase {
     private readonly aiRepository: AIRepository
   ) {}
   //(id: string, initialMessages: UIMessage[] = []
-  async execute(userId: string, messages: UIMessage[] = []): Promise<CreateChatResult> {
+  async execute(
+    chatId: string,
+    userId: string,
+    messages: UIMessage[] = []
+  ): Promise<CreateChatResult> {
     this.logger.info('Appending chat messages', { userId, messageCount: messages.length })
-
-    const chatId = await this.aiRepository.createChat(userId, messages)
+    //chatId: string, userId: string, initialMessages: UIMessage[] = []
+    const id = await this.aiRepository.createChat(chatId, userId, messages)
 
     // This is a placeholder return value
     return {
-      chatId,
+      id,
       initialMessages: messages,
     }
   }

@@ -5,6 +5,7 @@ import { AIController } from '../../../../src/adapters/primary/http/ai.controlle
 import type { LoggerPort } from '../../../../src/application/ports/logger.port.js'
 import type { AppendedChatUseCase } from '../../../../src/application/use-cases/append-chat.use-case.js'
 import type { GetChatUseCase } from '../../../../src/application/use-cases/get-chat.use-case.js'
+import type { SaveChatUseCase } from '../../../../src/application/use-cases/save-chat.use-case.js'
 
 // Mock the AI SDK modules
 vi.mock('ai', () => ({
@@ -40,6 +41,7 @@ describe('AIController', () => {
   let controller: AIController
   let mockGetChatUseCase: GetChatUseCase
   let mockAppendChatUseCase: AppendedChatUseCase
+  let mockSaveChatUseCase: SaveChatUseCase
   let mockLogger: LoggerPort
   let mockRequest: FastifyRequest
   let mockReply: FastifyReply
@@ -57,6 +59,10 @@ describe('AIController', () => {
       execute: vi.fn(),
     } as any
 
+    mockSaveChatUseCase = {
+      execute: vi.fn(),
+    } as any
+
     // Create mock logger
     mockLogger = {
       info: vi.fn(),
@@ -66,7 +72,12 @@ describe('AIController', () => {
     }
 
     // Create controller instance with mocked dependencies
-    controller = new AIController(mockGetChatUseCase, mockLogger, mockAppendChatUseCase)
+    controller = new AIController(
+      mockGetChatUseCase,
+      mockLogger,
+      mockAppendChatUseCase,
+      mockSaveChatUseCase
+    )
 
     // Create mock Fastify reply with chainable methods
     mockReply = {
@@ -86,14 +97,24 @@ describe('AIController', () => {
 
   describe('constructor', () => {
     it('should create instance with required dependencies', () => {
-      const instance = new AIController(mockGetChatUseCase, mockLogger, mockAppendChatUseCase)
+      const instance = new AIController(
+        mockGetChatUseCase,
+        mockLogger,
+        mockAppendChatUseCase,
+        mockSaveChatUseCase
+      )
 
       expect(instance).toBeInstanceOf(AIController)
       expect(instance).toBeDefined()
     })
 
     it('should accept GetChatUseCase, LoggerPort, and AppendedChatUseCase as dependencies', () => {
-      const instance = new AIController(mockGetChatUseCase, mockLogger, mockAppendChatUseCase)
+      const instance = new AIController(
+        mockGetChatUseCase,
+        mockLogger,
+        mockAppendChatUseCase,
+        mockSaveChatUseCase
+      )
 
       expect(instance).toBeDefined()
       expect(instance).toBeInstanceOf(AIController)
@@ -109,7 +130,11 @@ describe('AIController', () => {
       controller.registerRoutes(mockApp)
 
       expect(mockApp.post).toHaveBeenCalledTimes(1)
-      expect(mockApp.post).toHaveBeenCalledWith('/ai/chat', expect.any(Function))
+      expect(mockApp.post).toHaveBeenCalledWith(
+        '/ai/chat',
+        expect.objectContaining({ preHandler: expect.any(Array) }),
+        expect.any(Function)
+      )
     })
 
     it('should bind controller context to route handler', () => {
@@ -119,8 +144,9 @@ describe('AIController', () => {
 
       controller.registerRoutes(mockApp)
 
-      // Verify handler is a bound function
-      const chatHandler = vi.mocked(mockApp.post).mock.calls[0]?.[1]
+      // Verify handler is a bound function (in the options object at index 1)
+      const routeOptions = vi.mocked(mockApp.post).mock.calls[0]?.[1]
+      const chatHandler = routeOptions?.handler
 
       expect(chatHandler).toBeTypeOf('function')
     })
@@ -257,7 +283,11 @@ describe('AIController', () => {
 
         await controller.chat(mockRequest, mockReply)
 
-        expect(mockGetChatUseCase.execute).toHaveBeenCalledWith(chatId, [])
+        expect(mockGetChatUseCase.execute).toHaveBeenCalledWith('user-123', [
+          expect.objectContaining({ id: '1', role: 'user' }),
+          expect.objectContaining({ id: '2', role: 'assistant' }),
+          expect.objectContaining({ id: '3', role: 'user' }),
+        ])
         expect(mockAppendChatUseCase.execute).toHaveBeenCalledWith(chatId, [
           expect.objectContaining({ id: '3', role: 'user' }),
         ])

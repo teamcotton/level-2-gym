@@ -51,7 +51,7 @@ export class GetChatUseCase {
    * ```
    */
   async execute(
-    userId: string,
+    userId: string, //TODO: change below to types from shared package
     messages: {
       id: string
       role: 'user' | 'assistant'
@@ -85,7 +85,7 @@ export class GetChatUseCase {
     // Retrieve chat data from DB
     const chatData = await this.aiService.getChatResponse(userId)
 
-    if (chatData) {
+    if (chatData && chatData.length > 0) {
       this.logger.info('Chat data retrieved successfully', {
         userId,
         messageCount: chatData.length,

@@ -9,7 +9,6 @@ import {
   type MyDBUIMessagePartSelect,
 } from '../../../infrastructure/database/schema.js'
 import type { UIMessage } from 'ai'
-import { Uuid7Util } from '../../../shared/utils/uuid7.util.js'
 
 export type ChatResponseResult = {
   message: DBMessageSelect
@@ -17,15 +16,20 @@ export type ChatResponseResult = {
 }[]
 
 export class AIRepository implements AIServicePort {
-  async createChat(userId: string, initialMessages: UIMessage[] = []): Promise<string> {
-    const chatId = Uuid7Util.createUuidv7()
-
+  async createChat(
+    chatId: string,
+    userId: string,
+    initialMessages: UIMessage[] = []
+  ): Promise<string> {
     const newChat = {
+      userId: userId,
       id: chatId,
-      userId,
     }
+    console.log('createChat', newChat)
+    debugger
 
     await db.insert(chats).values(newChat)
+    debugger
 
     // Insert initial messages if provided
     if (initialMessages.length > 0) {

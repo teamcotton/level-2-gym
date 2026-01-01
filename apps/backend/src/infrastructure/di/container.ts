@@ -8,6 +8,7 @@ import { LoginUserUseCase } from '../../application/use-cases/login-user.use-cas
 import { GetChatUseCase } from '../../application/use-cases/get-chat.use-case.js'
 import { CreateChatUseCase } from '../../application/use-cases/create-chat.use-case.js'
 import { AppendedChatUseCase } from '../../application/use-cases/append-chat.use-case.js'
+import { SaveChatUseCase } from '../../application/use-cases/save-chat.use-case.js'
 
 // Adapters
 import { PostgresUserRepository } from '../../adapters/secondary/repositories/user.repository.js'
@@ -74,6 +75,7 @@ export class Container {
   public readonly getChatUseCase: GetChatUseCase
   private readonly createChatUseCase: CreateChatUseCase
   private readonly appendChatUseCase: AppendedChatUseCase
+  private readonly saveChatUseCase: SaveChatUseCase
 
   // Controllers
   public readonly userController: UserController
@@ -172,14 +174,26 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     this.getChatUseCase = new GetChatUseCase(this.aiRepository, this.logger)
     this.createChatUseCase = new CreateChatUseCase(this.logger, this.aiRepository)
     this.appendChatUseCase = new AppendedChatUseCase(this.aiRepository, this.logger)
+    this.saveChatUseCase = new SaveChatUseCase(this.logger, this.aiRepository)
 
     // Initialize controllers (primary adapters)
     this.userController = new UserController(this.registerUserUseCase, this.getAllUsersUseCase)
     this.authController = new AuthController(this.loginUserUseCase)
-    this.aiController = new AIController(this.getChatUseCase, this.logger, this.appendChatUseCase)
+    this.aiController = new AIController(
+      this.getChatUseCase,
+      this.logger,
+      this.appendChatUseCase,
+      this.saveChatUseCase
+    )
 
     // Register routes
     this.registerRoutes()
+    /**
+     *   private readonly getChatUseCase: SaveChatUseCase,
+     *     private readonly logger: LoggerPort,
+     *     private readonly appendChatUseCase: AppendedChatUseCase,
+     *     private readonly saveChatUseCase: SaveChatUseCase
+     */
   }
 
   /**

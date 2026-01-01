@@ -1,6 +1,7 @@
 import { useChat } from '@ai-sdk/react'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { useRouter } from 'next/navigation.js'
+import { useSession } from 'next-auth/react'
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 
 import { fileToDataURL } from '@/application/services/fileToDataURL.service.js'
@@ -9,6 +10,10 @@ import { useAIChat } from '@/view/hooks/useAIChat.js'
 // Mock dependencies
 vi.mock('next/navigation.js', () => ({
   useRouter: vi.fn(),
+}))
+
+vi.mock('next-auth/react', () => ({
+  useSession: vi.fn(),
 }))
 
 vi.mock('@ai-sdk/react', () => ({
@@ -58,6 +63,13 @@ describe('useAIChat', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     ;(useRouter as Mock).mockReturnValue(mockRouter)
+    ;(useSession as Mock).mockReturnValue({
+      data: {
+        accessToken: 'mock-access-token',
+        user: { email: 'test@example.com', name: 'Test User' },
+      },
+      status: 'authenticated',
+    })
     ;(useChat as Mock).mockReturnValue({
       messages: mockMessages,
       sendMessage: mockSendMessage,

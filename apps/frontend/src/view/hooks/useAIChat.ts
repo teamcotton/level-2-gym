@@ -1,6 +1,7 @@
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 import { useRouter } from 'next/navigation.js'
+import { useSession } from 'next-auth/react'
 import { useEffect, useRef, useState } from 'react'
 import { uuidv7 } from 'uuidv7'
 
@@ -33,6 +34,7 @@ interface UseAIChatProps {
 
 export function useAIChat({ id }: UseAIChatProps = {}) {
   const router = useRouter()
+  const { data: session } = useSession()
 
   const disabled = !id
 
@@ -45,6 +47,17 @@ export function useAIChat({ id }: UseAIChatProps = {}) {
     id: id,
     transport: new DefaultChatTransport({
       api: process.env.NEXT_PUBLIC_POST_AI_CALLBACK_URL,
+      fetch: (url, options) => {
+        const accessToken = session?.accessToken
+        return fetch(url, {
+          ...options,
+          credentials: 'include', // Send cookies for authentication
+          headers: {
+            ...options?.headers,
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          },
+        })
+      },
     }),
     onError: (error) => {
       logger.error('Chat transport error', error)
