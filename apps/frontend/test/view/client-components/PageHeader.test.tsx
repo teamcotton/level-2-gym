@@ -200,7 +200,7 @@ describe('PageHeader Component', () => {
         />
       )
 
-      const homeButton = screen.getByLabelText('home')
+      const homeButton = screen.getByLabelText('Home')
       expect(homeButton).toBeInTheDocument()
     })
 
