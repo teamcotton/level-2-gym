@@ -1,17 +1,15 @@
-import { getServerSession } from 'next-auth'
-
 import { createLogger } from '@/adapters/secondary/services/logger.service.js'
 import type { PaginatedUsersResponse } from '@/domain/user/user.js'
-import { authOptions } from '@/lib/auth-config.js'
+import { getAuthToken } from '@/lib/auth.js'
 
 const logger = createLogger({ prefix: 'UsersAPI' })
 
 export async function GET(request: Request) {
   try {
-    // Get the session to access the JWT token
-    const session = await getServerSession(authOptions)
+    // Get the JWT token for backend requests
+    const accessToken = await getAuthToken()
 
-    if (!session) {
+    if (!accessToken) {
       return Response.json(
         {
           success: false,
@@ -66,7 +64,7 @@ export async function GET(request: Request) {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         agent,
       })) as unknown as Response
@@ -75,7 +73,7 @@ export async function GET(request: Request) {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         cache: 'no-store',
       })
