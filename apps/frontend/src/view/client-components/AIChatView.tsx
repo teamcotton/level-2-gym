@@ -206,9 +206,9 @@ export function AIChatView({
               </Box>
             ) : (
               <Stack spacing={2}>
-                {messages.map((message, index) => (
+                {messages.map((message) => (
                   <Box
-                    key={index}
+                    key={message.id}
                     sx={{
                       display: 'flex',
                       gap: 2,

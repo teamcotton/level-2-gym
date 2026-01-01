@@ -390,7 +390,7 @@
             "name": "userId",
             "in": "path",
             "required": true,
-            "description": "The AI response's unique identifier",
+            "description": "The user's unique identifier whose chat history is being retrieved",
             "schema": {
               "type": "string",
               "format": "uuid"
