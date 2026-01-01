@@ -1,10 +1,26 @@
+import { getServerSession } from 'next-auth'
+
 import { createLogger } from '@/adapters/secondary/services/logger.service.js'
 import type { PaginatedUsersResponse } from '@/domain/user/user.js'
+import { authOptions } from '@/lib/auth-config.js'
 
 const logger = createLogger({ prefix: 'UsersAPI' })
 
 export async function GET(request: Request) {
   try {
+    // Get the session to access the JWT token
+    const session = await getServerSession(authOptions)
+
+    if (!session?.accessToken) {
+      return Response.json(
+        {
+          success: false,
+          error: 'Authentication required',
+        },
+        { status: 401 }
+      )
+    }
+
     const apiUrl =
       process.env.NODE_ENV === 'production'
         ? process.env.BACKEND_AI_CALLBACK_URL_PROD
@@ -50,6 +66,7 @@ export async function GET(request: Request) {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.accessToken}`,
         },
         agent,
       })) as unknown as Response
@@ -58,6 +75,7 @@ export async function GET(request: Request) {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.accessToken}`,
         },
         cache: 'no-store',
       })
