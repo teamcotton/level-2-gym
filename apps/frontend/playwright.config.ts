@@ -32,6 +32,7 @@ export default defineConfig({
       // so server-side calls (backendRequest) point to the local backend
       // during E2E tests.
       BACKEND_AI_CALLBACK_URL: 'http://localhost:3000/api/v1',
+      NEXT_PUBLIC_POST_AI_CALLBACK_URL: 'https://127.0.0.1:3000/api/v1/ai/chat',
     },
   },
 })

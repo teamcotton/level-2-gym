@@ -54,6 +54,7 @@ export const ChatInput = ({
         disabled={isLoading}
         variant="outlined"
         size="small"
+        data-testid="chat-text-input"
         onKeyDown={(e) => {
           if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault()

@@ -82,7 +82,7 @@ export function Dashboard({ canAccessAdmin, onNavigate, onSignOut }: DashboardPr
             },
           }}
         >
-          <CardActionArea sx={{ flexGrow: 1 }} onClick={() => onNavigate('/ai')}>
+          <CardActionArea data-testid="chat" sx={{ flexGrow: 1 }} onClick={() => onNavigate('/ai')}>
             <CardContent
               sx={{
                 display: 'flex',

@@ -253,6 +253,7 @@ export default function AIChatPage({ params }: { params: Promise<{ id: string }>
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
+                data-testid="chat-text-output-empty"
               >
                 <MessageIntroComponent />
               </Box>
