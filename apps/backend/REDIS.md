@@ -37,9 +37,7 @@ This guide explains how to integrate Redis as a caching and session management s
 ## Step 2: Install Redis Client Libraries
 
 1. **Add dependencies to `apps/backend/package.json`**:
-   - `redis` - Official Node.js Redis client
-   - `@types/redis` - TypeScript type definitions
-
+   - `redis` - Official Node.js Redis client (v4+ includes TypeScript type definitions; no separate `@types/redis` package is needed)
 2. **Run installation**:
    - Execute `pnpm install` from `apps/backend/`
 
