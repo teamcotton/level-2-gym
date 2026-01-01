@@ -378,16 +378,16 @@
         }
       }
     },
-    "/ai/chat/{id}": {
+    "/ai/chat/{userId}": {
       "get": {
-        "summary": "Get AI response by ID",
-        "description": "Retrieves a previously generated AI response by its unique identifier",
+        "summary": "Get AI response by UserId",
+        "description": "Retrieves previous chats by UserId",
         "operationId": "getAIResponseById",
         "tags": ["ai"],
-        "security": [],
+        "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
-            "name": "id",
+            "name": "userId",
             "in": "path",
             "required": true,
             "description": "The AI response's unique identifier",
@@ -403,13 +403,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AIRequest"
+                  "$ref": "#/components/schemas/AIUserIdResponse"
                 }
               }
             }
           },
-          "404": {
-            "description": "AI response not found",
+          "500": {
+            "description": "Server error",
             "content": {
               "application/json": {
                 "schema": {
@@ -551,6 +551,15 @@
               }
             }
           }
+        }
+      },
+      "AIUserIdResponse": {
+        "type": "array",
+        "description": "Array of UUID strings for previous AI chats",
+        "items": {
+          "type": "string",
+          "format": "uuid",
+          "example": "019b659a-2ad2-7fd8-9f32-35624caef900"
         }
       },
       "AIRequest": {
