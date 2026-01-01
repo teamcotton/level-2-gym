@@ -3,35 +3,27 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GET } from '@/app/api/users/route.js'
 import type { PaginatedUsersResponse } from '@/domain/user/user.js'
 
-// Mock next-auth
-vi.mock('next-auth', () => ({
-  getServerSession: vi.fn(),
+// Mock the auth helper
+vi.mock('@/lib/auth.js', () => ({
+  getAuthToken: vi.fn(),
 }))
 
 // Import after mock
-const { getServerSession } = await import('next-auth')
+const { getAuthToken } = await import('@/lib/auth.js')
 
 describe('GET /api/users', () => {
   const mockEnv = {
     BACKEND_AI_CALLBACK_URL_DEV: 'https://api.example.com',
   }
 
-  const mockSession = {
-    user: {
-      id: 'test-user-id',
-      email: 'test@example.com',
-      roles: ['admin'],
-    },
-    accessToken: 'mock-jwt-token',
-    expires: '2026-12-31',
-  }
+  const mockAccessToken = 'mock-jwt-token'
 
   beforeEach(() => {
     vi.resetAllMocks()
     global.fetch = vi.fn()
     process.env.BACKEND_AI_CALLBACK_URL_DEV = mockEnv.BACKEND_AI_CALLBACK_URL_DEV
     // Mock successful authentication by default
-    ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue(mockSession)
+    ;(getAuthToken as ReturnType<typeof vi.fn>).mockResolvedValue(mockAccessToken)
   })
 
   describe('Successful User Retrieval', () => {
@@ -91,8 +83,8 @@ describe('GET /api/users', () => {
     })
 
     it('should require authentication', async () => {
-      // Mock no session (unauthenticated)
-      ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null)
+      // Mock no token (unauthenticated)
+      ;(getAuthToken as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null)
 
       const request = new Request('https://localhost:4321/api/users', {
         method: 'GET',
@@ -111,10 +103,7 @@ describe('GET /api/users', () => {
 
     it('should require access token in session', async () => {
       // Mock session without accessToken
-      ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        user: { id: 'test-id', email: 'test@example.com', roles: ['admin'] },
-        expires: '2026-12-31',
-      })
+      ;(getAuthToken as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null)
 
       const request = new Request('https://localhost:4321/api/users', {
         method: 'GET',
