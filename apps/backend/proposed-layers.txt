@@ -1,0 +1,21 @@
+``Client
+    ↓
+  NGINX (TLS, cache, proxy, rate limit)
+    ↓
+  App (Fastify / Next.js / API)
+    ↓
+  Redis (data cache, sessions)
+    ↓
+  Database
+
+
+  Client
+    ↓
+  NGINX
+    ├─ /           → frontend/dist
+    └─ /api/*      → Fastify
+                      ↓
+                    Redis
+                      ↓
+                    Database
+
