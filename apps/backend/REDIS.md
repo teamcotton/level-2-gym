@@ -328,7 +328,7 @@ Document the Redis integration:
 
 - Easy to swap Redis for Memcached or another cache provider (replace adapter, keep port)
 - Testable without actual Redis instance (mock the port interface)
-- Clear separation of concerns following dependency rule (Infrastructure → Adapters → Application → Domain)
+- Clear separation of concerns following dependency rule (dependencies point inward: Adapters → Application → Domain)
 - Adapters can be replaced without changing core logic
 
 ---
