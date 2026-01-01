@@ -1,12 +1,11 @@
 import { expect, test } from '@playwright/test'
 
 test.describe('Chat Interaction', () => {
-  // eslint-disable-next-line playwright/no-skipped-test
-  test.skip('admin user should be able to sign in and interact with chat', async ({ page }) => {
-    // Step 1: Navigate to sign in page
+  test.beforeEach(async ({ page }) => {
+    // Navigate to sign in page
     await page.goto('https://localhost:4321/signin')
 
-    // Step 2: Sign in with admin credentials
+    // Sign in with admin credentials
     const emailField = page.getByLabel(/email address/i)
     const passwordField = page.getByLabel(/^password/i)
     const submitButton = page.getByRole('button', { name: /^sign in$/i })
@@ -15,32 +14,37 @@ test.describe('Chat Interaction', () => {
     await passwordField.fill('Admin123!')
     await submitButton.click()
 
-    // Wait for successful sign in and redirect to dashboard
+    // Wait for redirect to dashboard
     await expect(page).toHaveURL('/dashboard', { timeout: 10000 })
+  })
+
+  // eslint-disable-next-line playwright/no-skipped-test
+  test.skip('admin user should be able to sign in and interact with chat', async ({ page }) => {
+    // Verify we're on the dashboard
     await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible()
 
-    // Step 3: Navigate to chat by clicking element with data-testid="chat"
+    // Navigate to chat by clicking element with data-testid="chat"
     const chatButton = page.getByTestId('chat')
     await expect(chatButton).toBeVisible()
     await chatButton.click()
 
-    // Step 4: Wait for redirect to new chat page
+    // Wait for redirect to new chat page
     await page.waitForURL(/\/ai\/[a-zA-Z0-9-]+/, { timeout: 10000 })
     await page.waitForLoadState('load')
 
-    // Step 5: Enter "hello" in the textarea with data-testid="chat-text-input"
+    // Enter "hello" in the textarea with data-testid="chat-text-input"
     const chatInput = page.getByTestId('chat-text-input').locator('textarea').first()
     await expect(chatInput).toBeVisible()
     await chatInput.fill('hello')
 
-    // Step 6: Press Enter to submit the message
+    // Press Enter to submit the message
     await chatInput.press('Enter')
 
-    // Step 7: Find the text that reads 'User: hello'
+    // Find the text that reads 'User: hello'
     const userMessage = page.getByText('User: hello')
     await expect(userMessage).toBeVisible({ timeout: 5000 })
 
-    // Step 8: Wait for AI response - look for loading indicator first, then AI response
+    // Wait for AI response - look for loading indicator first, then AI response
     // Wait for loading indicator to appear (CircularProgress)
     const loadingIndicator = page.locator('[role="progressbar"]')
     await expect(loadingIndicator).toBeVisible({ timeout: 5000 })
@@ -58,18 +62,8 @@ test.describe('Chat Interaction', () => {
   })
   // eslint-disable-next-line playwright/no-skipped-test
   test.skip('should handle multiple chat interactions in sequence', async ({ page }) => {
-    // Sign in as admin
-    await page.goto('https://localhost:4321/signin')
-
-    const emailField = page.getByLabel(/email address/i)
-    const passwordField = page.getByLabel(/^password/i)
-    const submitButton = page.getByRole('button', { name: /^sign in$/i })
-
-    await emailField.fill('james.smith@gmail.com')
-    await passwordField.fill('Admin123!')
-    await submitButton.click()
-
-    await expect(page).toHaveURL('/dashboard', { timeout: 10000 })
+    // Verify we're on the dashboard
+    await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible()
 
     // Navigate to chat
     const chatButton = page.getByTestId('chat')
@@ -113,18 +107,8 @@ test.describe('Chat Interaction', () => {
   })
   // eslint-disable-next-line playwright/no-skipped-test
   test.skip('should maintain chat history after sending messages', async ({ page }) => {
-    // Sign in as admin
-    await page.goto('https://localhost:4321/signin')
-
-    const emailField = page.getByLabel(/email address/i)
-    const passwordField = page.getByLabel(/^password/i)
-    const submitButton = page.getByRole('button', { name: /^sign in$/i })
-
-    await emailField.fill('james.smith@gmail.com')
-    await passwordField.fill('Admin123!')
-    await submitButton.click()
-
-    await expect(page).toHaveURL('/dashboard', { timeout: 10000 })
+    // Verify we're on the dashboard
+    await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible()
 
     // Navigate to chat
     const chatButton = page.getByTestId('chat')
@@ -161,18 +145,8 @@ test.describe('Chat Interaction', () => {
   })
 
   test('should clear input field after sending message', async ({ page }) => {
-    // Sign in as admin
-    await page.goto('https://localhost:4321/signin')
-
-    const emailField = page.getByLabel(/email address/i)
-    const passwordField = page.getByLabel(/^password/i)
-    const submitButton = page.getByRole('button', { name: /^sign in$/i })
-
-    await emailField.fill('james.smith@gmail.com')
-    await passwordField.fill('Admin123!')
-    await submitButton.click()
-
-    await expect(page).toHaveURL('/dashboard', { timeout: 10000 })
+    // Verify we're on the dashboard
+    await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible()
 
     // Navigate to chat
     const chatButton = page.getByTestId('chat')
@@ -194,18 +168,8 @@ test.describe('Chat Interaction', () => {
   })
 
   test('should handle empty message submission gracefully', async ({ page }) => {
-    // Sign in as admin
-    await page.goto('https://localhost:4321/signin')
-
-    const emailField = page.getByLabel(/email address/i)
-    const passwordField = page.getByLabel(/^password/i)
-    const submitButton = page.getByRole('button', { name: /^sign in$/i })
-
-    await emailField.fill('james.smith@gmail.com')
-    await passwordField.fill('Admin123!')
-    await submitButton.click()
-
-    await expect(page).toHaveURL('/dashboard', { timeout: 10000 })
+    // Verify we're on the dashboard
+    await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible()
 
     // Navigate to chat
     const chatButton = page.getByTestId('chat')
