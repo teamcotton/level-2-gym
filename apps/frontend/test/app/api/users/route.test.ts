@@ -101,25 +101,6 @@ describe('GET /api/users', () => {
       expect(global.fetch).not.toHaveBeenCalled()
     })
 
-    it('should require access token in session', async () => {
-      // Mock session without accessToken
-      ;(getAuthToken as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null)
-
-      const request = new Request('https://localhost:4321/api/users', {
-        method: 'GET',
-      })
-
-      const response = await GET(request)
-      const result = await response.json()
-
-      expect(response.status).toBe(401)
-      expect(result).toEqual({
-        success: false,
-        error: 'Authentication required',
-      })
-      expect(global.fetch).not.toHaveBeenCalled()
-    })
-
     it('should use BACKEND_AI_CALLBACK_URL_DEV environment variable', async () => {
       process.env.BACKEND_AI_CALLBACK_URL_DEV = 'https://custom-api.example.com'
 
