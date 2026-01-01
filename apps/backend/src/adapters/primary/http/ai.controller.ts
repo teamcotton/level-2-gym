@@ -12,8 +12,6 @@ import { AppendedChatUseCase } from '../../../application/use-cases/append-chat.
 import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 import { HeartOfDarknessTool } from '../../../infrastructure/ai/tools/heart-of-darkness.tool.js'
 
-const getTextInstance = new GetText('data', 'heart-of-darkness.txt')
-
 export class AIController {
   constructor(
     private readonly getChatUseCase: GetChatUseCase,
