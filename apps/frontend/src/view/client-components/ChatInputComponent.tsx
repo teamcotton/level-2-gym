@@ -4,6 +4,7 @@ import { Box, Chip, IconButton, Stack, TextField } from '@mui/material'
 import React from 'react'
 
 export const ChatInput = ({
+  disabled,
   enableFileUpload = false,
   input,
   isLoading,
@@ -19,6 +20,7 @@ export const ChatInput = ({
   onFileSelect?: (file: File | null) => void
   onSubmit: (e: React.FormEvent) => void
   selectedFile?: File | null
+  disabled: boolean
 }) => (
   <Box
     component="form"
@@ -51,7 +53,7 @@ export const ChatInput = ({
         value={input}
         onChange={onChange}
         placeholder="Type your message..."
-        disabled={isLoading}
+        disabled={isLoading || disabled}
         variant="outlined"
         size="small"
         data-testid="chat-text-input"
@@ -66,7 +68,7 @@ export const ChatInput = ({
         <IconButton
           component="label"
           color="default"
-          disabled={isLoading}
+          disabled={isLoading || disabled}
           sx={{ alignSelf: 'flex-end' }}
         >
           <AttachFileIcon />
@@ -81,7 +83,7 @@ export const ChatInput = ({
       <IconButton
         type="submit"
         color="primary"
-        disabled={!input.trim() || isLoading}
+        disabled={!input.trim() || isLoading || disabled}
         sx={{ alignSelf: 'flex-end' }}
       >
         <SendIcon />

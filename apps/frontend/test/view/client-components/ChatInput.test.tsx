@@ -9,6 +9,7 @@ describe('ChatInput Component', () => {
     onChange: vi.fn(),
     onSubmit: vi.fn(),
     isLoading: false,
+    disabled: false,
   }
 
   it('should render the input field with placeholder', () => {
@@ -98,6 +99,30 @@ describe('ChatInput Component', () => {
     render(<ChatInput {...defaultProps} />)
     const sendIcon = screen.getByRole('button').querySelector('svg')
     expect(sendIcon).toBeInTheDocument()
+  })
+
+  it('should disable input when disabled prop is true', () => {
+    render(<ChatInput {...defaultProps} disabled={true} />)
+    const input = screen.getByPlaceholderText('Type your message...')
+    expect(input).toBeDisabled()
+  })
+
+  it('should disable submit button when disabled prop is true', () => {
+    render(<ChatInput {...defaultProps} input="Test" disabled={true} />)
+    const submitButton = screen.getByRole('button')
+    expect(submitButton).toBeDisabled()
+  })
+
+  it('should disable input when both isLoading and disabled are true', () => {
+    render(<ChatInput {...defaultProps} isLoading={true} disabled={true} />)
+    const input = screen.getByPlaceholderText('Type your message...')
+    expect(input).toBeDisabled()
+  })
+
+  it('should keep submit button disabled when input has content but disabled is true', () => {
+    render(<ChatInput {...defaultProps} input="Valid message" disabled={true} />)
+    const submitButton = screen.getByRole('button')
+    expect(submitButton).toBeDisabled()
   })
 
   it('should support multiline input', () => {

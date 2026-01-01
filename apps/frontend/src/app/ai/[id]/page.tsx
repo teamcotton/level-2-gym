@@ -14,6 +14,7 @@ export default function AIChatPage({ params }: { params: Promise<{ id: string }>
   const { id } = use(params)
 
   const {
+    disabled,
     errorMessage,
     handleDrawerToggle,
     handleErrorClose,
@@ -31,6 +32,7 @@ export default function AIChatPage({ params }: { params: Promise<{ id: string }>
 
   return (
     <AIChatView
+      disabled={disabled}
       errorMessage={errorMessage}
       input={input}
       isLoading={isLoading}

@@ -13,6 +13,7 @@ describe('AIChatView Component', () => {
   const mockMessagesEndRef = { current: null }
 
   const defaultProps = {
+    disabled: false,
     errorMessage: '',
     input: '',
     isLoading: false,
@@ -266,6 +267,16 @@ describe('AIChatView Component', () => {
       // File should be displayed in the ChatInput component (check for chip with file info)
       const chip = container.querySelector('.MuiChip-root')
       expect(chip).toBeInTheDocument()
+    })
+
+    it('should pass disabled prop to ChatInput', () => {
+      const { container, rerender } = render(<AIChatView {...defaultProps} disabled={false} />)
+      let textarea = container.querySelector('textarea')
+      expect(textarea).not.toBeDisabled()
+
+      rerender(<AIChatView {...defaultProps} disabled={true} />)
+      textarea = container.querySelector('textarea')
+      expect(textarea).toBeDisabled()
     })
 
     it('should pass isLoading state to ChatInput', () => {

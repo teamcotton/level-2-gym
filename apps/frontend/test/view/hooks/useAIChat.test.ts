@@ -61,6 +61,7 @@ describe('useAIChat', () => {
     ;(useChat as Mock).mockReturnValue({
       messages: mockMessages,
       sendMessage: mockSendMessage,
+      stop: vi.fn().mockResolvedValue(undefined),
     })
     ;(fileToDataURL as Mock).mockResolvedValue('data:image/png;base64,abc123')
   })
@@ -108,6 +109,28 @@ describe('useAIChat', () => {
       renderHook(() => useAIChat({ id: 'test-id' }))
 
       expect(useRouter).toHaveBeenCalled()
+    })
+
+    it('should set disabled to false when id is provided', () => {
+      const { result } = renderHook(() => useAIChat({ id: 'test-id' }))
+
+      expect(result.current.disabled).toBe(false)
+    })
+
+    it('should set disabled to true when no id is provided', () => {
+      const { result } = renderHook(() => useAIChat())
+
+      expect(result.current.disabled).toBe(true)
+    })
+
+    it('should call useChat with undefined id when no id is provided', () => {
+      renderHook(() => useAIChat())
+
+      expect(useChat).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: undefined,
+        })
+      )
     })
   })
 
@@ -195,14 +218,17 @@ describe('useAIChat', () => {
   })
 
   describe('handleNewChat', () => {
-    it('should navigate to /ai route', () => {
+    it('should navigate to /ai/{uuid} route', () => {
       const { result } = renderHook(() => useAIChat({ id: 'test-id' }))
 
       act(() => {
         result.current.handleNewChat()
       })
 
-      expect(mockPush).toHaveBeenCalledWith('/ai')
+      expect(mockPush).toHaveBeenCalledTimes(1)
+      expect(mockPush.mock.calls[0]?.[0]).toMatch(
+        /^\/ai\/[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/
+      )
     })
 
     it('should call router.push exactly once', () => {
@@ -808,7 +834,10 @@ describe('useAIChat', () => {
       act(() => {
         result.current.handleNewChat()
       })
-      expect(mockPush).toHaveBeenCalledWith('/ai')
+      expect(mockPush).toHaveBeenCalledTimes(1)
+      expect(mockPush.mock.calls[0]?.[0]).toMatch(
+        /^\/ai\/[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/
+      )
     })
 
     it('should handle file error and error close', () => {

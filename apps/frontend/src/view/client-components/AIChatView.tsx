@@ -44,6 +44,7 @@ interface AIChatViewProps {
   readonly isLoading: boolean
   readonly messages: MessageType[]
   readonly messagesEndRef: React.RefObject<HTMLDivElement | null>
+  readonly disabled: boolean
   readonly mobileOpen: boolean
   readonly onDrawerToggle: () => void
   readonly onErrorClose: () => void
@@ -55,6 +56,7 @@ interface AIChatViewProps {
 }
 
 export function AIChatView({
+  disabled,
   errorMessage,
   input,
   isLoading,
@@ -251,6 +253,7 @@ export function AIChatView({
             )}
           </Box>
           <ChatInput
+            disabled={disabled}
             input={input}
             onChange={onInputChange}
             onSubmit={onSubmit}
