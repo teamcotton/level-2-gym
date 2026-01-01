@@ -423,7 +423,7 @@ export class RedisCacheAdapter implements CachePort {
 
 ### Use Case with Caching Example
 
-```typescript
+````typescript
 /**
  * Use case for retrieving all users with pagination support and caching
  *
@@ -526,7 +526,7 @@ export class GetAllUsersUseCase {
     }
   }
 }
-```
+````
 
 ---
 
