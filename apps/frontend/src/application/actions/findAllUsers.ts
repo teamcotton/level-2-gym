@@ -1,5 +1,5 @@
-import { UnifiedLogger } from '@/adapters/secondary/services/logger.service.js'
 import type { PaginatedUsersResponse, User } from '@/domain/user/user.js'
+import { UnifiedLogger } from '@/infrastructure/logging/logger.js'
 
 export interface FindAllUsersParams {
   limit: number

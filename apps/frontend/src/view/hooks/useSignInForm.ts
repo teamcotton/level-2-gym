@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation.js'
 import { signIn } from 'next-auth/react'
 import { useState } from 'react'
 
-import { createLogger } from '@/adapters/secondary/services/logger.service.js'
+import { createLogger } from '@/infrastructure/logging/logger.js'
 import { loginUserAction } from '@/infrastructure/serverActions/loginUser.server.js'
 
 const logger = createLogger({ prefix: '[useSignInForm]' })

@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation.js'
 
-import { createLogger } from '@/adapters/secondary/services/logger.service.js'
+import { createLogger } from '@/infrastructure/logging/logger.js'
 import { getAuthSession, hasAnyRole } from '@/lib/auth.js'
 
 import { DashboardPageClient } from './DashboardPageClient.js'

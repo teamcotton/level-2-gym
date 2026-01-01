@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { createLogger, UnifiedLogger } from '@/adapters/secondary/services/logger.service.js'
+import { createLogger, UnifiedLogger } from '@/infrastructure/logging/logger.js'
 
 describe('UnifiedLogger', () => {
   let consoleTraceSpy: ReturnType<typeof vi.spyOn>

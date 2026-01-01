@@ -1,6 +1,6 @@
 'use server'
 // Shared utilities (error handling, logging, SSL handling)
-import { createLogger } from '@/adapters/secondary/services/logger.service.js'
+import { createLogger } from '@/infrastructure/logging/logger.js'
 
 const logger = createLogger({ prefix: 'backendRequest' })
 

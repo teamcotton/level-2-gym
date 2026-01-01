@@ -1,10 +1,24 @@
-import { createLogger } from '@/adapters/secondary/services/logger.service.js'
 import type { PaginatedUsersResponse } from '@/domain/user/user.js'
+import { createLogger } from '@/infrastructure/logging/logger.js'
+import { getAuthToken } from '@/lib/auth.js'
 
 const logger = createLogger({ prefix: 'UsersAPI' })
 
 export async function GET(request: Request) {
   try {
+    // Get the JWT token for backend requests
+    const accessToken = await getAuthToken()
+
+    if (!accessToken) {
+      return Response.json(
+        {
+          success: false,
+          error: 'Authentication required',
+        },
+        { status: 401 }
+      )
+    }
+
     const apiUrl =
       process.env.NODE_ENV === 'production'
         ? process.env.BACKEND_AI_CALLBACK_URL_PROD
@@ -50,6 +64,7 @@ export async function GET(request: Request) {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
         },
         agent,
       })) as unknown as Response
@@ -58,6 +73,7 @@ export async function GET(request: Request) {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
         },
         cache: 'no-store',
       })

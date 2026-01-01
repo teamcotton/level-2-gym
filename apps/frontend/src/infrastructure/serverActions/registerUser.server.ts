@@ -1,6 +1,6 @@
 'use server'
-import { createLogger } from '@/adapters/secondary/services/logger.service.js'
 import type { RegisterUserData, RegisterUserResponse } from '@/domain/auth/index.js'
+import { createLogger } from '@/infrastructure/logging/logger.js'
 import { backendRequest } from '@/infrastructure/serverActions/baseServerAction.js'
 
 const logger = createLogger({ prefix: '[register:action]' })

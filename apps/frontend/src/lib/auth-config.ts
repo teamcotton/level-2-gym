@@ -1,7 +1,7 @@
 import { type NextAuthOptions, type User } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 
-import { createLogger } from '@/adapters/secondary/services/logger.service.js'
+import { createLogger } from '@/infrastructure/logging/logger.js'
 
 const logger = createLogger({ prefix: '[auth-config]' })
 

@@ -1,5 +1,5 @@
-import { createLogger } from '@/adapters/secondary/services/logger.service.js'
 import type { RegisterUserData, RegisterUserResponse } from '@/domain/auth/index.js'
+import { createLogger } from '@/infrastructure/logging/logger.js'
 
 const logger = createLogger({ minLevel: 'info', prefix: '[register:route]' })
 

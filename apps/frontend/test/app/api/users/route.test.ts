@@ -3,15 +3,27 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GET } from '@/app/api/users/route.js'
 import type { PaginatedUsersResponse } from '@/domain/user/user.js'
 
+// Mock the auth helper
+vi.mock('@/lib/auth.js', () => ({
+  getAuthToken: vi.fn(),
+}))
+
+// Import after mock
+const { getAuthToken } = await import('@/lib/auth.js')
+
 describe('GET /api/users', () => {
   const mockEnv = {
     BACKEND_AI_CALLBACK_URL_DEV: 'https://api.example.com',
   }
 
+  const mockAccessToken = 'mock-jwt-token'
+
   beforeEach(() => {
     vi.resetAllMocks()
     global.fetch = vi.fn()
     process.env.BACKEND_AI_CALLBACK_URL_DEV = mockEnv.BACKEND_AI_CALLBACK_URL_DEV
+    // Mock successful authentication by default
+    ;(getAuthToken as ReturnType<typeof vi.fn>).mockResolvedValue(mockAccessToken)
   })
 
   describe('Successful User Retrieval', () => {
@@ -63,10 +75,30 @@ describe('GET /api/users', () => {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            Authorization: 'Bearer mock-jwt-token',
           },
           cache: 'no-store',
         })
       )
+    })
+
+    it('should require authentication', async () => {
+      // Mock no token (unauthenticated)
+      ;(getAuthToken as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null)
+
+      const request = new Request('https://localhost:4321/api/users', {
+        method: 'GET',
+      })
+
+      const response = await GET(request)
+      const result = await response.json()
+
+      expect(response.status).toBe(401)
+      expect(result).toEqual({
+        success: false,
+        error: 'Authentication required',
+      })
+      expect(global.fetch).not.toHaveBeenCalled()
     })
 
     it('should use BACKEND_AI_CALLBACK_URL_DEV environment variable', async () => {
@@ -482,6 +514,7 @@ describe('GET /api/users', () => {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            Authorization: 'Bearer mock-jwt-token',
           },
         })
       )
@@ -531,6 +564,7 @@ describe('GET /api/users', () => {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            Authorization: 'Bearer mock-jwt-token',
           },
         })
       )
@@ -798,6 +832,7 @@ describe('GET /api/users', () => {
         expect.objectContaining({
           headers: {
             'Content-Type': 'application/json',
+            Authorization: 'Bearer mock-jwt-token',
           },
         })
       )
