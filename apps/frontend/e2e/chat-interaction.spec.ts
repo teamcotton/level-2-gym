@@ -4,7 +4,7 @@ test.describe('Chat Interaction', () => {
   // eslint-disable-next-line playwright/no-skipped-test
   test.skip('admin user should be able to sign in and interact with chat', async ({ page }) => {
     // Step 1: Navigate to sign in page
-    await page.goto('https://localhost:4321/signin')
+    await page.goto('/signin')
 
     // Step 2: Sign in with admin credentials
     const emailField = page.getByLabel(/email address/i)
@@ -59,7 +59,7 @@ test.describe('Chat Interaction', () => {
   // eslint-disable-next-line playwright/no-skipped-test
   test.skip('should handle multiple chat interactions in sequence', async ({ page }) => {
     // Sign in as admin
-    await page.goto('https://localhost:4321/signin')
+    await page.goto('/signin')
 
     const emailField = page.getByLabel(/email address/i)
     const passwordField = page.getByLabel(/^password/i)
@@ -114,7 +114,7 @@ test.describe('Chat Interaction', () => {
   // eslint-disable-next-line playwright/no-skipped-test
   test.skip('should maintain chat history after sending messages', async ({ page }) => {
     // Sign in as admin
-    await page.goto('https://localhost:4321/signin')
+    await page.goto('/signin')
 
     const emailField = page.getByLabel(/email address/i)
     const passwordField = page.getByLabel(/^password/i)
@@ -162,7 +162,7 @@ test.describe('Chat Interaction', () => {
 
   test('should clear input field after sending message', async ({ page }) => {
     // Sign in as admin
-    await page.goto('https://localhost:4321/signin')
+    await page.goto('/signin')
 
     const emailField = page.getByLabel(/email address/i)
     const passwordField = page.getByLabel(/^password/i)
@@ -195,7 +195,7 @@ test.describe('Chat Interaction', () => {
 
   test('should handle empty message submission gracefully', async ({ page }) => {
     // Sign in as admin
-    await page.goto('https://localhost:4321/signin')
+    await page.goto('/signin')
 
     const emailField = page.getByLabel(/email address/i)
     const passwordField = page.getByLabel(/^password/i)
