@@ -11,6 +11,23 @@ const logger = createLogger({ prefix: 'useAIChat' })
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 
+// Allowed MIME types for file uploads (matching ChatInput accept attribute)
+const ALLOWED_FILE_TYPES = [
+  // Images
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'image/svg+xml',
+  // Documents
+  'application/pdf',
+  'application/msword', // .doc
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+  'text/plain',
+  'text/markdown',
+]
+
 interface UseAIChatProps {
   id: string
 }
@@ -78,8 +95,18 @@ export function useAIChat({ id }: UseAIChatProps) {
 
   const handleFileSelect = (file: File | null) => {
     if (file) {
+      // Validate file size
       if (file.size > MAX_FILE_SIZE) {
         setErrorMessage('File too large. Maximum size is 10MB')
+        setSelectedFile(null)
+        return
+      }
+
+      // Validate file type
+      if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+        setErrorMessage(
+          'Invalid file type. Please upload images, PDFs, Word documents, or text files only.'
+        )
         setSelectedFile(null)
         return
       }

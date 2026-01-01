@@ -319,6 +319,119 @@ describe('useAIChat', () => {
       })
       expect(result.current.selectedFile).toBe(pdfFile)
     })
+
+    it('should reject file with invalid MIME type', () => {
+      const { result } = renderHook(() => useAIChat({ id: 'test-id' }))
+      const execFile = new File(['content'], 'malware.exe', { type: 'application/x-msdownload' })
+
+      act(() => {
+        result.current.handleFileSelect(execFile)
+      })
+
+      expect(result.current.errorMessage).toBe(
+        'Invalid file type. Please upload images, PDFs, Word documents, or text files only.'
+      )
+      expect(result.current.selectedFile).toBe(null)
+    })
+
+    it('should reject JavaScript file', () => {
+      const { result } = renderHook(() => useAIChat({ id: 'test-id' }))
+      const jsFile = new File(['alert("xss")'], 'script.js', { type: 'application/javascript' })
+
+      act(() => {
+        result.current.handleFileSelect(jsFile)
+      })
+
+      expect(result.current.errorMessage).toBe(
+        'Invalid file type. Please upload images, PDFs, Word documents, or text files only.'
+      )
+      expect(result.current.selectedFile).toBe(null)
+    })
+
+    it('should accept all allowed image types', () => {
+      const { result } = renderHook(() => useAIChat({ id: 'test-id' }))
+      const imageTypes = [
+        { type: 'image/jpeg', name: 'photo.jpg' },
+        { type: 'image/png', name: 'image.png' },
+        { type: 'image/gif', name: 'anim.gif' },
+        { type: 'image/webp', name: 'modern.webp' },
+        { type: 'image/svg+xml', name: 'vector.svg' },
+      ]
+
+      imageTypes.forEach((img) => {
+        const file = new File(['image'], img.name, { type: img.type })
+        act(() => {
+          result.current.handleFileSelect(file)
+        })
+        expect(result.current.selectedFile).toBe(file)
+        expect(result.current.errorMessage).toBe('')
+      })
+    })
+
+    it('should accept all allowed document types', () => {
+      const { result } = renderHook(() => useAIChat({ id: 'test-id' }))
+      const docTypes = [
+        { type: 'application/pdf', name: 'doc.pdf' },
+        { type: 'application/msword', name: 'old.doc' },
+        {
+          type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          name: 'modern.docx',
+        },
+        { type: 'text/plain', name: 'readme.txt' },
+        { type: 'text/markdown', name: 'docs.md' },
+      ]
+
+      docTypes.forEach((doc) => {
+        const file = new File(['content'], doc.name, { type: doc.type })
+        act(() => {
+          result.current.handleFileSelect(file)
+        })
+        expect(result.current.selectedFile).toBe(file)
+        expect(result.current.errorMessage).toBe('')
+      })
+    })
+
+    it('should reject HTML file', () => {
+      const { result } = renderHook(() => useAIChat({ id: 'test-id' }))
+      const htmlFile = new File(['<html></html>'], 'page.html', { type: 'text/html' })
+
+      act(() => {
+        result.current.handleFileSelect(htmlFile)
+      })
+
+      expect(result.current.errorMessage).toBe(
+        'Invalid file type. Please upload images, PDFs, Word documents, or text files only.'
+      )
+      expect(result.current.selectedFile).toBe(null)
+    })
+
+    it('should reject shell script', () => {
+      const { result } = renderHook(() => useAIChat({ id: 'test-id' }))
+      const shFile = new File(['#!/bin/bash'], 'script.sh', { type: 'application/x-sh' })
+
+      act(() => {
+        result.current.handleFileSelect(shFile)
+      })
+
+      expect(result.current.errorMessage).toBe(
+        'Invalid file type. Please upload images, PDFs, Word documents, or text files only.'
+      )
+      expect(result.current.selectedFile).toBe(null)
+    })
+
+    it('should reject ZIP archive', () => {
+      const { result } = renderHook(() => useAIChat({ id: 'test-id' }))
+      const zipFile = new File(['content'], 'archive.zip', { type: 'application/zip' })
+
+      act(() => {
+        result.current.handleFileSelect(zipFile)
+      })
+
+      expect(result.current.errorMessage).toBe(
+        'Invalid file type. Please upload images, PDFs, Word documents, or text files only.'
+      )
+      expect(result.current.selectedFile).toBe(null)
+    })
   })
 
   describe('handleSubmit', () => {
