@@ -54,6 +54,6 @@
   "packageManager": "pnpm@10.25.0",
   "preinstall": "npx --yes only-allow pnpm",
   "dependencies": {
-    "zod": "^4.3.2"
+    "zod": "^4.3.4"
   }
 }
