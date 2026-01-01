@@ -424,46 +424,106 @@ export class RedisCacheAdapter implements CachePort {
 ### Use Case with Caching Example
 
 ```typescript
+/**
+ * Use case for retrieving all users with pagination support and caching
+ *
+ * This use case handles the business logic for fetching users from the repository,
+ * checking the cache first for performance optimization, transforming domain entities
+ * into DTOs, and returning paginated results.
+ *
+ * @class GetAllUsersUseCase
+ * @example
+ * ```typescript
+ * const useCase = new GetAllUsersUseCase(userRepository, cache, logger)
+ * const result = await useCase.execute({ limit: 10, offset: 0 })
+ * ```
+ */
 export class GetAllUsersUseCase {
+  /**
+   * Creates an instance of GetAllUsersUseCase
+   * @param {UserRepositoryPort} userRepository - Repository for accessing user data
+   * @param {CachePort} cache - Cache port for storing and retrieving cached data
+   * @param {LoggerPort} logger - Logger for tracking operations
+   */
   constructor(
     private readonly userRepository: UserRepositoryPort,
     private readonly cache: CachePort,
     private readonly logger: LoggerPort
   ) {}
 
+  /**
+   * Executes the get all users use case with caching
+   *
+   * Retrieves all users from cache if available, otherwise from the repository
+   * with optional pagination parameters, transforms them into DTOs, caches the
+   * result, and returns a paginated response.
+   *
+   * @param {PaginationParams} [params] - Optional pagination parameters (limit, offset)
+   * @returns {Promise<PaginatedUsersDto>} Paginated list of users with metadata
+   * @throws {Error} If the repository or cache operation fails
+   * @example
+   * ```typescript
+   * // Get first 20 users
+   * const result = await useCase.execute({ limit: 20, offset: 0 })
+   *
+   * // Get all users (default pagination)
+   * const allUsers = await useCase.execute()
+   * ```
+   */
   async execute(params?: PaginationParams): Promise<PaginatedUsersDto> {
+    this.logger.info('Fetching all users', { params })
+
     const cacheKey = `users:all:limit:${params?.limit || 10}:offset:${params?.offset || 0}`
 
-    // Try cache first
-    const cached = await this.cache.get<PaginatedUsersDto>(cacheKey)
-    if (cached) {
-      this.logger.info('Users loaded from cache')
-      return cached
+    try {
+      // Try cache first
+      const cached = await this.cache.get<PaginatedUsersDto>(cacheKey)
+      if (cached) {
+        this.logger.info('Users loaded from cache', { cacheKey })
+        return cached
+      }
+
+      // Cache miss - load from database
+      this.logger.info('Cache miss - fetching from database', { cacheKey })
+      const result = await this.userRepository.findAll(params)
+
+      // Transform to DTOs
+      const userDtos = result.data.map((user) => {
+        if (!user.id) {
+          throw new InternalErrorException('User ID is missing', {
+            email: user.getEmail(),
+          })
+        }
+        return {
+          userId: user.id,
+          email: user.getEmail(),
+          name: user.getName(),
+          role: user.getRole(),
+          createdAt: user.getCreatedAt(),
+        }
+      })
+
+      const response = {
+        data: userDtos,
+        total: result.total,
+        limit: result.limit,
+        offset: result.offset,
+      }
+
+      // Store in cache with 5 minute TTL
+      await this.cache.set(cacheKey, response, 300)
+
+      this.logger.info('Successfully fetched and cached users', {
+        count: userDtos.length,
+        total: result.total,
+        cacheKey,
+      })
+
+      return response
+    } catch (error) {
+      this.logger.error('Failed to fetch all users', error as Error)
+      throw error
     }
-
-    // Cache miss - load from database
-    const result = await this.userRepository.findAll(params)
-
-    // Transform to DTOs
-    const userDtos = result.data.map((user) => ({
-      userId: user.id,
-      email: user.getEmail(),
-      name: user.getName(),
-      role: user.getRole(),
-      createdAt: user.getCreatedAt(),
-    }))
-
-    const response = {
-      data: userDtos,
-      total: result.total,
-      limit: result.limit,
-      offset: result.offset,
-    }
-
-    // Store in cache with 5 minute TTL
-    await this.cache.set(cacheKey, response, 300)
-
-    return response
   }
 }
 ```
