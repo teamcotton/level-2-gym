@@ -8,6 +8,7 @@ export async function GET(request: Request) {
   try {
     // Get the JWT token for backend requests
     const accessToken = await getAuthToken()
+    console.log(accessToken)
 
     if (!accessToken) {
       return Response.json(
