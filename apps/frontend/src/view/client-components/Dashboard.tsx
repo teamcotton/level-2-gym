@@ -1,17 +1,10 @@
 'use client'
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import ChatIcon from '@mui/icons-material/Chat'
-import LogoutIcon from '@mui/icons-material/Logout'
 import PersonIcon from '@mui/icons-material/Person'
-import {
-  Box,
-  Button,
-  Card,
-  CardActionArea,
-  CardContent,
-  Container,
-  Typography,
-} from '@mui/material'
+import { Box, Card, CardActionArea, CardContent, Container, Typography } from '@mui/material'
+
+import { PageHeader } from './PageHeader.js'
 
 interface DashboardProps {
   canAccessAdmin: boolean
@@ -43,20 +36,13 @@ interface DashboardProps {
 export function Dashboard({ canAccessAdmin, onNavigate, onSignOut }: DashboardProps) {
   return (
     <Container maxWidth="lg" sx={{ py: 8 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6 }}>
-        <Typography variant="h3" component="h1">
-          Dashboard
-        </Typography>
-        <Button
-          variant="outlined"
-          color="primary"
-          startIcon={<LogoutIcon />}
-          onClick={onSignOut}
-          sx={{ textTransform: 'none' }}
-        >
-          Sign Out
-        </Button>
-      </Box>
+      <header>
+        <PageHeader
+          title="Dashboard"
+          onNavigateHome={() => onNavigate('/dashboard')}
+          onSignOut={onSignOut}
+        />
+      </header>
 
       <Box
         sx={{
