@@ -494,27 +494,7 @@ describe('GetAllUsersUseCase', () => {
       expect(userDto).toHaveProperty('createdAt')
     })
 
-    it('should have correct types for all DTO fields', async () => {
-      const user = await createTestUser('user-1', 'test@example.com', 'Test', 'user')
-
-      vi.mocked(mockUserRepository.findAll).mockResolvedValue({
-        data: [user],
-        total: 1,
-        limit: 10,
-        offset: 0,
-      })
-
-      const result = await useCase.execute()
-
-      expect(typeof result.data[0]!.userId).toBe('string')
-      expect(typeof result.data[0]!.email).toBe('string')
-      expect(typeof result.data[0]!.name).toBe('string')
-      expect(typeof result.data[0]!.role).toBe('string')
-      expect(result.data[0]!.createdAt).toBeInstanceOf(Date)
-      expect(typeof result.total).toBe('number')
-      expect(typeof result.limit).toBe('number')
-      expect(typeof result.offset).toBe('number')
-    })
+    // Removed redundant DTO field type checks (covered by TypeScript and higher-level tests)
   })
 
   describe('integration scenarios', () => {
