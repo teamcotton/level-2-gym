@@ -13,7 +13,6 @@ import { HeartOfDarknessTool } from '../../../infrastructure/ai/tools/heart-of-d
 import { SaveChatUseCase } from '../../../application/use-cases/save-chat.use-case.js'
 import { GetChatUseCase } from '../../../application/use-cases/get-chat.use-case.js'
 import { ChatId } from '../../../domain/value-objects/chatID.js'
-import { UserId } from '../../../domain/value-objects/userID.js'
 
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
