@@ -52,10 +52,11 @@ function brandChatId<T extends string>(value: string): ChatIdType<T> {
  * import { ChatId, ChatIdType } from './chatID';
  *
  * // Create a new chat ID with a valid UUID v7
- * const chatId = new ChatId(uuidv7()) as ChatIdType;
+ * const chatId = new ChatId(uuidv7());
+ * const chatIdValue: ChatIdType = chatId.getValue();
  *
  * // Get the underlying UUID string value
- * const uuidString = chatId.getValue();
+ * const uuidString = chatIdValue;
  * console.log(uuidString); // "019b8589-7670-725e-b51b-2fcb23f9c593"
  *
  * // Invalid UUID will throw an error
