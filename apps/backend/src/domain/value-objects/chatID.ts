@@ -27,7 +27,10 @@ export class ChatId<T> {
       throw new Error('Invalid UUID format provided')
     }
     // Validate the UUID version but return the UUID itself, not the version string
-    Uuid7Util.uuidVersionValidation(userUUID)
+    const version = Uuid7Util.uuidVersionValidation(userUUID)
+    if (version !== 'v7') {
+      throw new Error(`Invalid UUID version: ${version}`)
+    }
     return userUUID
   }
 

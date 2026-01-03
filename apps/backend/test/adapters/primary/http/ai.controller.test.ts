@@ -220,7 +220,7 @@ describe('AIController', () => {
 
       it('should return 400 if no messages are provided', async () => {
         mockRequest.body = {
-          id: '550e8400-e29b-41d4-a716-446655440000',
+          id: uuidv7(),
           messages: [],
           trigger: 'user-input',
         }
@@ -235,7 +235,7 @@ describe('AIController', () => {
 
       it('should return 400 if last message is not from user', async () => {
         mockRequest.body = {
-          id: '550e8400-e29b-41d4-a716-446655440000',
+          id: uuidv7(),
           messages: [
             { id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] },
             { id: '2', role: 'assistant', parts: [{ type: 'text', text: 'Hi there!' }] },
@@ -253,7 +253,7 @@ describe('AIController', () => {
 
       it('should return 401 if user is not authenticated for new chat', async () => {
         mockRequest.body = {
-          id: '550e8400-e29b-41d4-a716-446655440000',
+          id: uuidv7(),
           messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           trigger: 'user-input',
         }
@@ -270,7 +270,7 @@ describe('AIController', () => {
 
     describe('successful chat processing', () => {
       it('should process valid chat request with existing chat', async () => {
-        const chatId = '550e8400-e29b-41d4-a716-446655440000'
+        const chatId = uuidv7()
         const userId = uuidv7()
         mockRequest.body = {
           id: chatId,
@@ -309,7 +309,7 @@ describe('AIController', () => {
       })
 
       it('should create new chat if chat does not exist', async () => {
-        const chatId = '550e8400-e29b-41d4-a716-446655440000'
+        const chatId = uuidv7()
         const userId = uuidv7()
         mockRequest.body = {
           id: chatId,
@@ -332,7 +332,7 @@ describe('AIController', () => {
       })
 
       it('should log debug message when sending to chat', async () => {
-        const chatId = '550e8400-e29b-41d4-a716-446655440000'
+        const chatId = uuidv7()
         const userId = uuidv7()
         mockRequest.body = {
           id: chatId,
@@ -358,7 +358,7 @@ describe('AIController', () => {
       })
 
       it('should log info when creating new chat', async () => {
-        const chatId = '550e8400-e29b-41d4-a716-446655440001'
+        const chatId = uuidv7()
         mockRequest.body = {
           id: chatId,
           messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
@@ -379,7 +379,7 @@ describe('AIController', () => {
       })
 
       it('should log info when appending to existing chat', async () => {
-        const chatId = '550e8400-e29b-41d4-a716-446655440002'
+        const chatId = uuidv7()
         mockRequest.body = {
           id: chatId,
           messages: [
@@ -407,7 +407,7 @@ describe('AIController', () => {
     describe('AI streaming', () => {
       it('should call streamText with correct parameters', async () => {
         const { streamText } = await import('ai')
-        const chatId = '550e8400-e29b-41d4-a716-446655440003'
+        const chatId = uuidv7()
 
         mockRequest.body = {
           id: chatId,
@@ -442,7 +442,7 @@ describe('AIController', () => {
       })
 
       it('should return stream response', async () => {
-        const chatId = '550e8400-e29b-41d4-a716-446655440004'
+        const chatId = uuidv7()
         mockRequest.body = {
           id: chatId,
           messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
@@ -479,7 +479,7 @@ describe('AIController', () => {
       })
 
       it('should handle use case errors gracefully', async () => {
-        const chatId = '550e8400-e29b-41d4-a716-446655440005'
+        const chatId = uuidv7()
         mockRequest.body = {
           id: chatId,
           messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],

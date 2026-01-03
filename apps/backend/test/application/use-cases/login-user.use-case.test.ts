@@ -1,5 +1,4 @@
-import { randomUUID } from 'node:crypto'
-
+import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { LoginUserDto } from '../../../src/application/dtos/login-user.dto.js'
@@ -27,7 +26,7 @@ describe('LoginUserUseCase', () => {
     role: string = 'user',
     name: string = 'Test User'
   ): Promise<User> => {
-    const userId = new UserId(randomUUID()) as UserIdType
+    const userId = new UserId(uuidv7()) as UserIdType
     return new User(userId, new Email(email), await Password.create(password), name, new Role(role))
   }
 

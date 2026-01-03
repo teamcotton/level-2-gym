@@ -28,7 +28,7 @@ export class UserId<T> {
     }
     // Validate the UUID version but return the UUID itself, not the version string
     const version = Uuid7Util.uuidVersionValidation(userUUID)
-    if (!version || version.startsWith('Expected')) {
+    if (version !== 'v7') {
       throw new Error(`Invalid UUID version: ${version}`)
     }
     return userUUID
