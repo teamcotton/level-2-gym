@@ -6,7 +6,7 @@ import vitestPlugin from '@vitest/eslint-plugin'
 import simpleImportSort from 'eslint-plugin-simple-import-sort'
 import sortDestructureKeys from 'eslint-plugin-sort-destructure-keys'
 
-import rootConfig from '../../eslint.config.js'
+import rootConfig from '../../eslint.config.ts'
 
 const config: Linter.Config[] = [
   ...rootConfig,
@@ -21,6 +21,8 @@ const config: Linter.Config[] = [
       parser: tsParser,
     },
     rules: {
+      'import/no-unresolved': 'off', // TypeScript handles module resolution
+      'import/named': 'off', // TypeScript handles named exports
       'no-console': 'warn', // Shared package should minimize console usage
       'no-restricted-syntax': [
         'error',

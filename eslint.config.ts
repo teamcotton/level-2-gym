@@ -38,11 +38,11 @@ const config: Linter.Config[] = [
       },
     },
     rules: {
+      ...importPlugin.configs.recommended.rules,
       // Disable import/no-unresolved as TypeScript handles this
       'import/no-unresolved': 'off',
       // Disable import/named as TypeScript handles named exports
       'import/named': 'off',
-      ...importPlugin.configs.recommended.rules,
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
