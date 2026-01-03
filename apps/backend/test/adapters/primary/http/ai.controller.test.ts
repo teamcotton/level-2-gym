@@ -144,9 +144,10 @@ describe('AIController', () => {
 
       controller.registerRoutes(mockApp)
 
-      // Verify handler is a bound function (in the options object at index 1)
-      const routeOptions = vi.mocked(mockApp.post).mock.calls[0]?.[1]
-      const chatHandler = routeOptions?.handler
+      // Verify handler is a bound function (at index 2, the third argument)
+      // Using 'any' cast because Fastify has multiple overloads and TypeScript infers the 2-arg version
+      const mockCalls = vi.mocked(mockApp.post).mock.calls[0] as any
+      const chatHandler = mockCalls?.[2] as Function
 
       expect(chatHandler).toBeTypeOf('function')
     })
