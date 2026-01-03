@@ -61,7 +61,7 @@ function brandUserId<T extends string>(value: string): UserIdType<T> {
  *
  * // Invalid UUID will throw an error
  * try {
- *   const invalid = new UserId('not-a-uuid'); // Throws: Invalid UUID format provided
+ *   const invalid = new UserId('not-a-uuid'); // Throws: Invalid userID UUID format provided
  * } catch (error) {
  *   console.error(error.message);
  * }
@@ -69,7 +69,7 @@ function brandUserId<T extends string>(value: string): UserIdType<T> {
  * // Wrong UUID version will throw an error
  * try {
  *   const uuidv4 = '550e8400-e29b-41d4-a716-446655440000';
- *   const invalid = new UserId(uuidv4); // Throws: Invalid UUID version: v4
+ *   const invalid = new UserId(uuidv4); // Throws: Invalid userID UUID version: v4
  * } catch (error) {
  *   console.error(error.message);
  * }
