@@ -188,12 +188,6 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
 
     // Register routes
     this.registerRoutes()
-    /**
-     *   private readonly getChatUseCase: SaveChatUseCase,
-     *     private readonly logger: LoggerPort,
-     *     private readonly appendChatUseCase: AppendedChatUseCase,
-     *     private readonly saveChatUseCase: SaveChatUseCase
-     */
   }
 
   /**
