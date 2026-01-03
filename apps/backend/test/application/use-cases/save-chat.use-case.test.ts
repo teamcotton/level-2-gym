@@ -29,7 +29,7 @@ describe('SaveChatUseCase', () => {
     vi.clearAllMocks()
 
     // Create test IDs
-    testChatId = new ChatId(uuidv7()) as ChatIdType
+    testChatId = new ChatId(uuidv7()).getValue()
     testUserId = new UserId(uuidv7()) as UserIdType
 
     // Create mock implementations
@@ -52,7 +52,7 @@ describe('SaveChatUseCase', () => {
   describe('execute() - successful scenarios', () => {
     it('should save a chat successfully with messages', async () => {
       const messages = createMockMessages(3)
-      const expectedChatId = testChatId.getValue()
+      const expectedChatId = testChatId
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(expectedChatId)
 
@@ -65,7 +65,7 @@ describe('SaveChatUseCase', () => {
 
     it('should save a chat with empty messages array', async () => {
       const messages: any[] = []
-      const expectedChatId = testChatId.getValue()
+      const expectedChatId = testChatId
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(expectedChatId)
 
@@ -77,7 +77,7 @@ describe('SaveChatUseCase', () => {
 
     it('should save a chat with single message', async () => {
       const messages = createMockMessages(1)
-      const expectedChatId = testChatId.getValue()
+      const expectedChatId = testChatId
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(expectedChatId)
 
@@ -89,7 +89,7 @@ describe('SaveChatUseCase', () => {
 
     it('should save a chat with many messages', async () => {
       const messages = createMockMessages(50)
-      const expectedChatId = testChatId.getValue()
+      const expectedChatId = testChatId
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(expectedChatId)
 
@@ -101,7 +101,7 @@ describe('SaveChatUseCase', () => {
 
     it('should return the saved chat ID', async () => {
       const messages = createMockMessages()
-      const expectedChatId = testChatId.getValue()
+      const expectedChatId = testChatId
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(expectedChatId)
 
@@ -113,18 +113,18 @@ describe('SaveChatUseCase', () => {
 
     it('should handle different chat IDs correctly', async () => {
       const messages = createMockMessages()
-      const chatId1 = new ChatId(uuidv7()) as ChatIdType
-      const chatId2 = new ChatId(uuidv7()) as ChatIdType
+      const chatId1 = new ChatId(uuidv7()).getValue()
+      const chatId2 = new ChatId(uuidv7()).getValue()
 
       vi.mocked(mockAIRepository.createChat)
-        .mockResolvedValueOnce(chatId1.getValue())
-        .mockResolvedValueOnce(chatId2.getValue())
+        .mockResolvedValueOnce(chatId1)
+        .mockResolvedValueOnce(chatId2)
 
       const result1 = await useCase.execute(chatId1, testUserId, messages)
       const result2 = await useCase.execute(chatId2, testUserId, messages)
 
-      expect(result1).toBe(chatId1.getValue())
-      expect(result2).toBe(chatId2.getValue())
+      expect(result1).toBe(chatId1)
+      expect(result2).toBe(chatId2)
       expect(result1).not.toBe(result2)
     })
 
@@ -132,7 +132,7 @@ describe('SaveChatUseCase', () => {
       const messages = createMockMessages()
       const userId1 = new UserId(uuidv7()) as UserIdType
       const userId2 = new UserId(uuidv7()) as UserIdType
-      const expectedChatId = testChatId.getValue()
+      const expectedChatId = testChatId
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(expectedChatId)
 
@@ -147,7 +147,7 @@ describe('SaveChatUseCase', () => {
   describe('execute() - logging', () => {
     it('should log info message before saving chat', async () => {
       const messages = createMockMessages(3)
-      const expectedChatId = testChatId.getValue()
+      const expectedChatId = testChatId
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(expectedChatId)
 
@@ -160,7 +160,7 @@ describe('SaveChatUseCase', () => {
 
     it('should log info message after successfully saving chat', async () => {
       const messages = createMockMessages()
-      const expectedChatId = testChatId.getValue()
+      const expectedChatId = testChatId
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(expectedChatId)
 
@@ -171,7 +171,7 @@ describe('SaveChatUseCase', () => {
 
     it('should log correct message count', async () => {
       const messages = createMockMessages(10)
-      const expectedChatId = testChatId.getValue()
+      const expectedChatId = testChatId
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(expectedChatId)
 
@@ -182,7 +182,7 @@ describe('SaveChatUseCase', () => {
 
     it('should log correct chat ID and user ID', async () => {
       const messages = createMockMessages()
-      const expectedChatId = testChatId.getValue()
+      const expectedChatId = testChatId
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(expectedChatId)
 
@@ -194,7 +194,7 @@ describe('SaveChatUseCase', () => {
 
     it('should log twice - before and after save', async () => {
       const messages = createMockMessages()
-      const expectedChatId = testChatId.getValue()
+      const expectedChatId = testChatId
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(expectedChatId)
 
@@ -205,7 +205,7 @@ describe('SaveChatUseCase', () => {
 
     it('should log with empty messages array', async () => {
       const messages: any[] = []
-      const expectedChatId = testChatId.getValue()
+      const expectedChatId = testChatId
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(expectedChatId)
 
@@ -280,20 +280,20 @@ describe('SaveChatUseCase', () => {
     it('should handle concurrent save operations', async () => {
       const messages1 = createMockMessages()
       const messages2 = createMockMessages()
-      const chatId1 = new ChatId(uuidv7()) as ChatIdType
-      const chatId2 = new ChatId(uuidv7()) as ChatIdType
+      const chatId1 = new ChatId(uuidv7()).getValue()
+      const chatId2 = new ChatId(uuidv7()).getValue()
 
       vi.mocked(mockAIRepository.createChat)
-        .mockResolvedValueOnce(chatId1.getValue())
-        .mockResolvedValueOnce(chatId2.getValue())
+        .mockResolvedValueOnce(chatId1)
+        .mockResolvedValueOnce(chatId2)
 
       const [result1, result2] = await Promise.all([
         useCase.execute(chatId1, testUserId, messages1),
         useCase.execute(chatId2, testUserId, messages2),
       ])
 
-      expect(result1).toBe(chatId1.getValue())
-      expect(result2).toBe(chatId2.getValue())
+      expect(result1).toBe(chatId1)
+      expect(result2).toBe(chatId2)
       expect(mockAIRepository.createChat).toHaveBeenCalledTimes(2)
     })
   })
@@ -305,7 +305,7 @@ describe('SaveChatUseCase', () => {
         { id: uuidv7(), role: 'assistant', content: 'Hi there' },
         { id: uuidv7(), role: 'system', content: 'System message' },
       ]
-      const expectedChatId = testChatId.getValue()
+      const expectedChatId = testChatId
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(expectedChatId)
 
@@ -317,7 +317,7 @@ describe('SaveChatUseCase', () => {
 
     it('should pass messages array as-is to repository', async () => {
       const messages = createMockMessages(5)
-      const expectedChatId = testChatId.getValue()
+      const expectedChatId = testChatId
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(expectedChatId)
 
@@ -337,7 +337,7 @@ describe('SaveChatUseCase', () => {
           metadata: { source: 'web' },
         },
       ]
-      const expectedChatId = testChatId.getValue()
+      const expectedChatId = testChatId
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(expectedChatId)
 
@@ -350,7 +350,7 @@ describe('SaveChatUseCase', () => {
   describe('execute() - integration scenarios', () => {
     it('should complete full save flow successfully', async () => {
       const messages = createMockMessages(3)
-      const expectedChatId = testChatId.getValue()
+      const expectedChatId = testChatId
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(expectedChatId)
 
@@ -369,13 +369,13 @@ describe('SaveChatUseCase', () => {
 
     it('should handle rapid sequential saves', async () => {
       const messages = createMockMessages()
-      const expectedChatId = testChatId.getValue()
+      const expectedChatId = testChatId
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(expectedChatId)
 
       const results = []
       for (let i = 0; i < 5; i++) {
-        const chatId = new ChatId(uuidv7()) as ChatIdType
+        const chatId = new ChatId(uuidv7()).getValue()
         results.push(await useCase.execute(chatId, testUserId, messages))
       }
 
@@ -386,12 +386,12 @@ describe('SaveChatUseCase', () => {
     it('should maintain state independence between calls', async () => {
       const messages1 = createMockMessages(2)
       const messages2 = createMockMessages(3)
-      const chatId1 = new ChatId(uuidv7()) as ChatIdType
-      const chatId2 = new ChatId(uuidv7()) as ChatIdType
+      const chatId1 = new ChatId(uuidv7()).getValue()
+      const chatId2 = new ChatId(uuidv7()).getValue()
 
       vi.mocked(mockAIRepository.createChat)
-        .mockResolvedValueOnce(chatId1.getValue())
-        .mockResolvedValueOnce(chatId2.getValue())
+        .mockResolvedValueOnce(chatId1)
+        .mockResolvedValueOnce(chatId2)
 
       await useCase.execute(chatId1, testUserId, messages1)
       await useCase.execute(chatId2, testUserId, messages2)
@@ -405,7 +405,7 @@ describe('SaveChatUseCase', () => {
   describe('execute() - edge cases', () => {
     it('should handle very long message arrays', async () => {
       const messages = createMockMessages(1000)
-      const expectedChatId = testChatId.getValue()
+      const expectedChatId = testChatId
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(expectedChatId)
 
@@ -426,7 +426,7 @@ describe('SaveChatUseCase', () => {
           },
         },
       ]
-      const expectedChatId = testChatId.getValue()
+      const expectedChatId = testChatId
 
       vi.mocked(mockAIRepository.createChat).mockResolvedValue(expectedChatId)
 
@@ -444,12 +444,12 @@ describe('SaveChatUseCase', () => {
       const result = await useCase.execute(testChatId, testUserId, messages)
 
       expect(result).toBe(differentChatId)
-      expect(result).not.toBe(testChatId.getValue())
+      expect(result).not.toBe(testChatId)
     })
 
     it('should handle slow repository responses', async () => {
       const messages = createMockMessages()
-      const expectedChatId = testChatId.getValue()
+      const expectedChatId = testChatId
 
       vi.mocked(mockAIRepository.createChat).mockImplementation(
         () =>

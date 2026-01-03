@@ -12,7 +12,7 @@ import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 import { HeartOfDarknessTool } from '../../../infrastructure/ai/tools/heart-of-darkness.tool.js'
 import { SaveChatUseCase } from '../../../application/use-cases/save-chat.use-case.js'
 import { GetChatUseCase } from '../../../application/use-cases/get-chat.use-case.js'
-import { ChatId, type ChatIdType } from '../../../domain/value-objects/chatID.js'
+import { ChatId } from '../../../domain/value-objects/chatID.js'
 
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
@@ -72,7 +72,13 @@ export class AIController {
     }
 
     // Convert string id to ChatIdType branded type
-    const chatId = new ChatId(id) as ChatIdType
+    const chatId = new ChatId(id).getValue()
+
+    this.logger.debug('Processing chat request', {
+      chatId,
+      userId,
+      messageCount: messages.length,
+    })
 
     const chat = await this.getChatUseCase.execute(userId, messages)
 

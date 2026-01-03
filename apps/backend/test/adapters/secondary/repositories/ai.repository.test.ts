@@ -31,7 +31,7 @@ describe('AIRepository', () => {
   let mockLogger: LoggerPort
   const mockChatIdString = uuidv7()
   const mockUserIdString = uuidv7()
-  const mockChatId = new ChatId(mockChatIdString) as ChatIdType
+  const mockChatId = new ChatId(mockChatIdString).getValue()
   const mockUserId = new UserId(mockUserIdString) as UserIdType
 
   beforeEach(() => {

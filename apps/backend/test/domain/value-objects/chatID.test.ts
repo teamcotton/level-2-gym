@@ -126,18 +126,21 @@ describe('ChatId Value Object', () => {
 
   describe('Type Safety with ChatIdType', () => {
     it('should be assignable to ChatIdType with type assertion', () => {
-      const chatId = new ChatId(validUuid) as ChatIdType
+      const chatIdObj = new ChatId(validUuid)
+      const chatId: ChatIdType = chatIdObj.getValue()
 
-      expect(chatId).toBeInstanceOf(ChatId)
-      expect(chatId.getValue()).toBe(validUuid)
+      expect(chatIdObj).toBeInstanceOf(ChatId)
+      expect(chatId).toBe(validUuid)
     })
 
     it('should maintain type brand for compile-time safety', () => {
-      const chatId = new ChatId(validUuid) as ChatIdType<string>
+      const chatIdObj = new ChatId(validUuid)
+      const chatId = chatIdObj.getValue() as ChatIdType<string>
 
+      expect(chatId).toBe(validUuid)
       // This test verifies that the branded type works at compile-time
-      // At runtime, ChatIdType is just ChatId
-      expect(chatId).toBeInstanceOf(ChatId)
+      // At runtime, ChatIdType is just a branded string
+      expect(chatIdObj).toBeInstanceOf(ChatId)
     })
   })
 

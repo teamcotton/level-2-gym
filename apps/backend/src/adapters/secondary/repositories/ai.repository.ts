@@ -28,7 +28,7 @@ export class AIRepository implements AIServicePort {
   ): Promise<string> {
     const newChat = {
       userId: userId.getValue()!,
-      id: chatId.getValue()!,
+      id: chatId,
     }
     this.logger.info('createChat', newChat)
 
@@ -37,7 +37,7 @@ export class AIRepository implements AIServicePort {
     // Insert initial messages if provided
     if (initialMessages.length > 0) {
       const messageRecords = initialMessages.map((msg) => ({
-        chatId: chatId.getValue()!,
+        chatId: chatId,
         role: msg.role,
       }))
 
@@ -67,7 +67,7 @@ export class AIRepository implements AIServicePort {
       }
     }
 
-    return chatId.getValue()!
+    return chatId
   }
   async getChatResponse(chatId: string | any): Promise<ChatResponseResult | null> {
     try {

@@ -302,10 +302,9 @@ describe('AIController', () => {
             expect.objectContaining({ id: '3', role: 'user' }),
           ]
         )
-        expect(mockAppendChatUseCase.execute).toHaveBeenCalledWith(
-          expect.objectContaining({ value: chatId }),
-          [expect.objectContaining({ id: '3', role: 'user' })]
-        )
+        expect(mockAppendChatUseCase.execute).toHaveBeenCalledWith(chatId, [
+          expect.objectContaining({ id: '3', role: 'user' }),
+        ])
       })
 
       it('should create new chat if chat does not exist', async () => {
