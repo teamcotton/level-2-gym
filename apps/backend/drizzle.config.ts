@@ -13,7 +13,7 @@ export default defineConfig({
   dbCredentials: {
     url: DATABASE_URL,
   },
-  schemaFilter: ['app'],
+  schemaFilter: ['public'],
   strict: true,
   verbose: true,
 })
