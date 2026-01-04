@@ -19,6 +19,8 @@ import { UserController } from '../../adapters/primary/http/user.controller.js'
 import { AuthController } from '../../adapters/primary/http/auth.controller.js'
 import { AIController } from '../../adapters/primary/http/ai.controller.js'
 
+import type { AuditLogPort } from '../../application/ports/audit-log.port.js'
+import { AuditLogRepository } from '../../adapters/secondary/repositories/audit-log.repository.js'
 import { EnvConfig } from '../config/env.config.js'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -80,6 +82,9 @@ export class Container {
   public readonly userController: UserController
   public readonly authController: AuthController
   public readonly aiController: AIController
+
+  // Audit log
+  public readonly auditLog: AuditLogPort
 
   /**
    * Private constructor to enforce Singleton pattern
@@ -153,6 +158,7 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     // Initialize repositories (secondary adapters)
     this.userRepository = new PostgresUserRepository()
     this.aiRepository = new AIRepository(this.logger)
+    this.auditLog = new AuditLogRepository(this.logger)
 
     // Initialize domain services
     // this.workoutCalculator = new WorkoutCalculator()
@@ -168,7 +174,8 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
     this.loginUserUseCase = new LoginUserUseCase(
       this.userRepository,
       this.logger,
-      this.tokenGenerator
+      this.tokenGenerator,
+      this.auditLog
     )
     this.getChatUseCase = new GetChatUseCase(this.aiRepository, this.logger)
     this.appendChatUseCase = new AppendedChatUseCase(this.aiRepository, this.logger)

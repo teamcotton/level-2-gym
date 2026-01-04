@@ -5,6 +5,9 @@ import type { TokenGeneratorPort } from '../ports/token-generator.port.js'
 import { UnauthorizedException } from '../../shared/exceptions/unauthorized.exception.js'
 import { InternalErrorException } from '../../shared/exceptions/internal-error.exception.js'
 import type { UserIdType } from '../../domain/value-objects/userID.js'
+import type { AuditLogPort } from '../ports/audit-log.port.js'
+import { EntityType } from '../../domain/audit/entity-type.enum.js'
+import { AuditAction } from '../../domain/audit/entity-type.enum.js'
 
 /**
  * Use case for authenticating users and generating access tokens
@@ -53,6 +56,7 @@ export class LoginUserUseCase {
    * @param {LoggerPort} logger - Logger for audit trail and monitoring
    * @param {TokenGeneratorPort} tokenGenerator - Service for generating JWT tokens
    *
+   * @param auditLog
    * @example
    * ```typescript
    * const loginUseCase = new LoginUserUseCase(
@@ -65,7 +69,8 @@ export class LoginUserUseCase {
   constructor(
     private readonly userRepository: UserRepositoryPort,
     private readonly logger: LoggerPort,
-    private readonly tokenGenerator: TokenGeneratorPort
+    private readonly tokenGenerator: TokenGeneratorPort,
+    private readonly auditLog: AuditLogPort
   ) {}
 
   /**
@@ -78,6 +83,9 @@ export class LoginUserUseCase {
    *
    * @async
    * @param {LoginUserDto} dto - Login credentials (email and password)
+   * @param {Object} auditContext - Audit context information from the request
+   * @param {string} auditContext.ipAddress - IP address of the client making the request
+   * @param {string | null} auditContext.userAgent - User agent string from the request, or null if not available
    * @returns {Promise<{userId: string, email: string, access_token: string, roles: string[]}>}
    *          Object containing user information and JWT access token
    *
@@ -93,7 +101,10 @@ export class LoginUserUseCase {
    *   password: 'correctPassword'
    * })
    *
-   * const result = await loginUseCase.execute(dto)
+   * const result = await loginUseCase.execute(dto, {
+   *   ipAddress: '192.168.1.1',
+   *   userAgent: 'Mozilla/5.0...'
+   * })
    * // Returns:
    * // {
    * //   userId: '550e8400-e29b-41d4-a716-446655440000',
@@ -108,7 +119,10 @@ export class LoginUserUseCase {
    * // Failed login - invalid credentials
    * try {
    *   const dto = new LoginUserDto('user@example.com', 'wrongPassword')
-   *   await loginUseCase.execute(dto)
+   *   await loginUseCase.execute(dto, {
+   *     ipAddress: '192.168.1.1',
+   *     userAgent: null
+   *   })
    * } catch (error) {
    *   if (error instanceof UnauthorizedException) {
    *     console.error(error.message) // 'Invalid email or password'
@@ -116,7 +130,10 @@ export class LoginUserUseCase {
    * }
    * ```
    */
-  async execute(dto: LoginUserDto): Promise<{
+  async execute(
+    dto: LoginUserDto,
+    auditContext: { ipAddress: string; userAgent: string | null }
+  ): Promise<{
     userId: UserIdType
     email: string
     access_token: string
@@ -127,6 +144,16 @@ export class LoginUserUseCase {
     const user = await this.userRepository.findByEmail(dto.email)
 
     if (!user) {
+      // Log failed login attempt
+      await this.auditLog.log({
+        userId: null,
+        entityType: EntityType.USER,
+        entityId: 'unknown',
+        action: AuditAction.LOGIN_FAILED,
+        changes: { email: dto.email, reason: 'user_not_found' },
+        ipAddress: auditContext.ipAddress,
+        userAgent: auditContext.userAgent ?? undefined,
+      })
       this.logger.warn('Login failed: User not found', { email: dto.email })
       throw new UnauthorizedException('Invalid email or password')
     }
@@ -144,6 +171,16 @@ export class LoginUserUseCase {
     const isPasswordValid = await user.verifyPassword(dto.password)
 
     if (!isPasswordValid) {
+      // Log failed login attempt with user ID
+      await this.auditLog.log({
+        userId: 'unknown',
+        entityType: EntityType.USER,
+        entityId: 'unknown',
+        action: AuditAction.LOGIN_FAILED,
+        changes: { reason: 'invalid_password' },
+        ipAddress: auditContext.ipAddress,
+        userAgent: auditContext.userAgent ?? undefined,
+      })
       this.logger.warn('Login failed: Invalid password', { email: dto.email, userId: user.id })
       throw new UnauthorizedException('Invalid email or password')
     }

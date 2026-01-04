@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AuthController } from '../../../../src/adapters/primary/http/auth.controller.js'
 import { LoginUserUseCase } from '../../../../src/application/use-cases/login-user.use-case.js'
-import { UserId, type UserIdType } from '../../../../src/domain/value-objects/userID.js'
+import { UserId } from '../../../../src/domain/value-objects/userID.js'
 import { UnauthorizedException } from '../../../../src/shared/exceptions/unauthorized.exception.js'
 import { ValidationException } from '../../../../src/shared/exceptions/validation.exception.js'
 
@@ -47,6 +47,10 @@ describe('AuthController', () => {
       body: {},
       params: {},
       query: {},
+      ip: '127.0.0.1',
+      headers: {
+        'user-agent': 'test-user-agent',
+      },
     } as any
   })
 
@@ -126,6 +130,10 @@ describe('AuthController', () => {
           expect.objectContaining({
             email: 'user@example.com',
             password: 'SecurePass123!',
+          }),
+          expect.objectContaining({
+            ipAddress: expect.any(String),
+            userAgent: expect.any(String),
           })
         )
       })
@@ -727,7 +735,11 @@ describe('AuthController', () => {
         await controller.login(mockRequest, mockReply)
 
         expect(mockLoginUserUseCase.execute).toHaveBeenCalledWith(
-          expect.objectContaining({ email: longEmail })
+          expect.objectContaining({ email: longEmail }),
+          expect.objectContaining({
+            ipAddress: expect.any(String),
+            userAgent: expect.any(String),
+          })
         )
       })
 
@@ -745,7 +757,11 @@ describe('AuthController', () => {
         await controller.login(mockRequest, mockReply)
 
         expect(mockLoginUserUseCase.execute).toHaveBeenCalledWith(
-          expect.objectContaining({ password: specialPassword })
+          expect.objectContaining({ password: specialPassword }),
+          expect.objectContaining({
+            ipAddress: expect.any(String),
+            userAgent: expect.any(String),
+          })
         )
       })
 
