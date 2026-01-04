@@ -117,9 +117,6 @@ export class AIController {
         .send(FastifyUtil.createResponse('AI service configuration error', 500))
     }
 
-    // Capture logger reference for use in callbacks
-    const logger = this.logger
-
     const result = streamText({
       model: google(EnvConfig.MODEL_NAME),
       messages: convertToModelMessages(messages as UIMessage[]),
