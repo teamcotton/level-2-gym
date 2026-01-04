@@ -55,14 +55,16 @@ export class LoginUserUseCase {
    * @param {UserRepositoryPort} userRepository - Repository for user data access
    * @param {LoggerPort} logger - Logger for audit trail and monitoring
    * @param {TokenGeneratorPort} tokenGenerator - Service for generating JWT tokens
+   * @param {AuditLogPort} auditLog - Service for recording audit trail of login attempts,
+   *        failures, and security events. Tracks user actions for compliance and security monitoring.
    *
-   * @param auditLog
    * @example
    * ```typescript
    * const loginUseCase = new LoginUserUseCase(
    *   new PostgresUserRepository(),
    *   new WinstonLogger(),
-   *   new JwtTokenGenerator()
+   *   new JwtTokenGenerator(),
+   *   new PostgresAuditLog()
    * )
    * ```
    */
