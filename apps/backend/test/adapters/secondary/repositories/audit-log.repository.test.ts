@@ -179,6 +179,130 @@ describe('AuditLogRepository', () => {
       expect(mockLogger.info).not.toHaveBeenCalled()
     })
 
+    it('should redact sensitive data before storing in database', async () => {
+      const entry: CreateAuditLogDTO = {
+        userId: uuidv7(),
+        entityType: EntityType.USER,
+        entityId: uuidv7(),
+        action: AuditAction.UPDATE,
+        changes: {
+          before: {
+            email: 'old@example.com',
+            password: 'oldpassword123',
+            name: 'Old Name',
+          },
+          after: {
+            email: 'new@example.com',
+            password: 'newpassword456',
+            name: 'New Name',
+          },
+        },
+        ipAddress: '192.168.1.1',
+        userAgent: 'Mozilla/5.0',
+      }
+
+      const mockValues = vi.fn().mockResolvedValue(undefined)
+      const mockInsert = vi.fn().mockReturnValue({ values: mockValues })
+      vi.mocked(db.insert).mockReturnValue(mockInsert() as any)
+
+      await repository.log(entry)
+
+      expect(mockValues).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: entry.userId,
+          entityType: entry.entityType,
+          entityId: entry.entityId,
+          action: entry.action,
+          changes: {
+            before: {
+              email: 'old@example.com',
+              password: '[REDACTED]',
+              name: 'Old Name',
+            },
+            after: {
+              email: 'new@example.com',
+              password: '[REDACTED]',
+              name: 'New Name',
+            },
+          },
+          ipAddress: '192.168.1.1',
+          userAgent: 'Mozilla/5.0',
+        })
+      )
+    })
+
+    it('should redact nested sensitive data in complex changes objects', async () => {
+      const entry: CreateAuditLogDTO = {
+        userId: uuidv7(),
+        entityType: EntityType.USER,
+        entityId: uuidv7(),
+        action: AuditAction.CREATE,
+        changes: {
+          user: {
+            username: 'john',
+            password: 'secret123',
+            token: 'abc123xyz',
+          },
+          credentials: {
+            apiKey: 'key-123-456',
+            secret: 'super-secret',
+          },
+        },
+      }
+
+      const mockValues = vi.fn().mockResolvedValue(undefined)
+      const mockInsert = vi.fn().mockReturnValue({ values: mockValues })
+      vi.mocked(db.insert).mockReturnValue(mockInsert() as any)
+
+      await repository.log(entry)
+
+      expect(mockValues).toHaveBeenCalledWith(
+        expect.objectContaining({
+          changes: {
+            user: {
+              username: 'john',
+              password: '[REDACTED]',
+              token: '[REDACTED]',
+            },
+            credentials: {
+              apiKey: '[REDACTED]',
+              secret: '[REDACTED]',
+            },
+          },
+        })
+      )
+    })
+
+    it('should redact sensitive data in login failure logs', async () => {
+      const entry: CreateAuditLogDTO = {
+        userId: null,
+        entityType: EntityType.USER,
+        entityId: 'unknown',
+        action: AuditAction.LOGIN_FAILED,
+        changes: {
+          email: 'user@example.com',
+          password: 'wrongpassword',
+          reason: 'invalid_credentials',
+        },
+      }
+
+      const mockValues = vi.fn().mockResolvedValue(undefined)
+      const mockInsert = vi.fn().mockReturnValue({ values: mockValues })
+      vi.mocked(db.insert).mockReturnValue(mockInsert() as any)
+
+      await repository.log(entry)
+
+      expect(mockValues).toHaveBeenCalledWith(
+        expect.objectContaining({
+          changes: {
+            email: 'user@example.com',
+            password: '[REDACTED]',
+            reason: 'invalid_credentials',
+          },
+        })
+      )
+    })
+
     it('should handle different entity types', async () => {
       const entityTypes: EntityType[] = [
         EntityType.USER,

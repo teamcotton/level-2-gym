@@ -5,20 +5,26 @@ import { eq, desc, and } from 'drizzle-orm'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
 import { AuditLog } from '../../../domain/audit/audit-log.entity.js'
 import { EntityType, AuditAction } from '../../../domain/audit/entity-type.enum.js'
+import { redactAuditLogEntry } from '../../../domain/audit/redact-sensitive-data.js'
 
 export class AuditLogRepository implements AuditLogPort {
   constructor(private readonly logger: LoggerPort) {}
 
   async log(entry: CreateAuditLogDTO): Promise<void> {
     try {
+      // Redact sensitive data before storing in database
+      const redactedEntry = redactAuditLogEntry(
+        entry as unknown as Record<string, unknown>
+      ) as unknown as CreateAuditLogDTO
+
       await db.insert(auditLog).values({
-        userId: entry.userId,
-        entityType: entry.entityType,
-        entityId: entry.entityId,
-        action: entry.action,
-        changes: entry.changes ?? null,
-        ipAddress: entry.ipAddress ?? null,
-        userAgent: entry.userAgent ?? null,
+        userId: redactedEntry.userId ?? null,
+        entityType: redactedEntry.entityType,
+        entityId: redactedEntry.entityId,
+        action: redactedEntry.action,
+        changes: redactedEntry.changes ?? null,
+        ipAddress: redactedEntry.ipAddress ?? null,
+        userAgent: redactedEntry.userAgent ?? null,
       })
 
       this.logger.info('Audit log entry created', {
