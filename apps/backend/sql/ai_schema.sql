@@ -87,18 +87,17 @@ CREATE TABLE parts (
     -- tools-specific fields
     tool_heartOfDarknessQA_input: JSONB,
     /* the input will be a JSON object:
-       "input": {
-                "question": "Summarize Heart of Darkness"
-        },
+     * "input": {
+     *     "question": "Summarize Heart of Darkness"
+     * }
      */
     tool_heartOfDarknessQA_output: JSONB,
-    /**
-         the output will be a JSON object:
-         "output": {
-                "question": "Summarize Heart of Darkness",
-                "textLength": 232885,
-                "context": "﻿The Project Gutenberg eBook of Heart of"
-          }
+    /* the output will be a JSON object:
+     * "output": {
+     *     "question": "Summarize Heart of Darkness",
+     *     "textLength": 232885,
+     *     "context": "﻿The Project Gutenberg eBook of Heart of"
+     * }
      */
     tool_heartOfDarknessQA_errorText: VARCHAR,
     -- Check constraints: Enforce required fields based on part type
