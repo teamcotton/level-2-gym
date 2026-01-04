@@ -74,10 +74,10 @@ export class AuditLogRepository implements AuditLogPort {
     return new AuditLog(
       row.id,
       row.userId,
-      row.entityType,
+      row.entityType as EntityType,
       row.entityId,
-      row.action,
-      row.changes,
+      row.action as AuditAction,
+      row.changes as Record<string, any> | null,
       row.ipAddress,
       row.userAgent,
       row.createdAt
