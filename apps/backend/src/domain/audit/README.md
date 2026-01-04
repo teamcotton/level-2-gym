@@ -9,88 +9,104 @@ The audit log system uses a union type `AuditChanges` to provide type safety and
 ### Available Change Types
 
 #### CreateChanges
+
 Used when an entity is created:
+
 ```typescript
 const changes: CreateChanges = {
   created: {
     name: 'John Doe',
     email: 'john@example.com',
-    role: 'user'
-  }
+    role: 'user',
+  },
 }
 ```
 
 #### UpdateChanges
+
 Used when an entity is updated, capturing before/after states:
+
 ```typescript
 const changes: UpdateChanges = {
   before: {
     name: 'Old Name',
-    email: 'old@example.com'
+    email: 'old@example.com',
   },
   after: {
     name: 'New Name',
-    email: 'new@example.com'
-  }
+    email: 'new@example.com',
+  },
 }
 ```
 
 #### DeleteChanges
+
 Used when an entity is deleted:
+
 ```typescript
 const changes: DeleteChanges = {
   deleted: {
     chatId: '123',
     messageCount: 42,
-    wasActive: true
-  }
+    wasActive: true,
+  },
 }
 ```
 
 #### LoginChanges
+
 Used for successful login events:
+
 ```typescript
 const changes: LoginChanges = {
   success: true,
   method: 'jwt',
-  sessionDuration: '7d'
+  sessionDuration: '7d',
 }
 ```
 
 #### LoginFailedChanges
+
 Used for failed login attempts:
+
 ```typescript
 const changes: LoginFailedChanges = {
   email: 'user@example.com',
-  reason: 'invalid_password'
+  reason: 'invalid_password',
 }
 ```
 
 #### LogoutChanges
+
 Used for logout events:
+
 ```typescript
 const changes: LogoutChanges = {
   reason: 'user_initiated',
-  sessionDuration: '2h'
+  sessionDuration: '2h',
 }
 ```
 
 #### PasswordChangeChanges
+
 Used for password change events:
+
 ```typescript
 const changes: PasswordChangeChanges = {
   success: true,
-  method: 'email_verification'
+  method: 'email_verification',
 }
 ```
 
 #### EmailChangeChanges
+
 Used for email change events:
+
 ```typescript
 const changes: EmailChangeChanges = {
   before: 'old@example.com',
   after: 'new@example.com',
-  verified: true
+  verified: true,
 }
 ```
 
@@ -109,10 +125,10 @@ const auditEntry: CreateAuditLogDTO = {
   action: AuditAction.LOGIN_FAILED,
   changes: {
     email: 'user@example.com',
-    reason: 'invalid_password'
+    reason: 'invalid_password',
   } satisfies LoginFailedChanges, // Type-checked!
   ipAddress: '192.168.1.1',
-  userAgent: 'Mozilla/5.0'
+  userAgent: 'Mozilla/5.0',
 }
 
 await auditLog.log(auditEntry)

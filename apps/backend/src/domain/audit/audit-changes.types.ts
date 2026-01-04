@@ -1,6 +1,6 @@
 /**
  * Type-safe change structures for audit logs
- * 
+ *
  * These types provide better type safety and autocomplete support
  * for different audit log actions instead of using Record<string, any>.
  */
