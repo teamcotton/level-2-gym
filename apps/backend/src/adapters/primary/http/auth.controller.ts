@@ -167,8 +167,14 @@ export class AuthController {
       // Convert HTTP request to DTO
       const dto = LoginUserDto.validate(request.body)
 
+      // Extract audit context from request
+      const auditContext = {
+        ipAddress: request.ip,
+        userAgent: request.headers['user-agent'] ?? null,
+      }
+
       // Execute use case
-      const result = await this.loginUserUseCase.execute(dto)
+      const result = await this.loginUserUseCase.execute(dto, auditContext)
 
       // Convert result to HTTP response
       reply.code(200).send({

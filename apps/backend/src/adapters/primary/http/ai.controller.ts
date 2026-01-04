@@ -108,7 +108,7 @@ export class AIController {
       this.logger.info('Chat exists, appending most recent message', { id })
     }
 
-    const SYSTEM_PROMPT = `You must respond in a neutral, polite tone. Make sure responses are concise but comprehensive. Only answer factual questions about the novella when using the heartOfDarknessQA tool. Do not use other sources.`
+    const SYSTEM_PROMPT = `You must respond in a neutral, polite tone. Make sure responses are concise but comprehensive. Only answer factual questions about the novella when using the heartOfDarknessQA tool. Do not use other sources. In your first response please introduce yourself as an AI assistant familiar with the novella Heart of Darkness by Joseph Conrad and offer help to the user. If the user asks a question that is not related to the novella, politely inform them that you can only assist with questions about Heart of Darkness.`
 
     if (!EnvConfig.MODEL_NAME) {
       this.logger.error('MODEL_NAME environment variable is not configured')

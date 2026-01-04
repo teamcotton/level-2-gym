@@ -2,6 +2,7 @@ import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { LoginUserDto } from '../../../src/application/dtos/login-user.dto.js'
+import type { AuditLogPort } from '../../../src/application/ports/audit-log.port.js'
 import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
 import type { TokenGeneratorPort } from '../../../src/application/ports/token-generator.port.js'
 import type { UserRepositoryPort } from '../../../src/application/ports/user.repository.port.js'
@@ -10,7 +11,7 @@ import { User } from '../../../src/domain/entities/user.js'
 import { Email } from '../../../src/domain/value-objects/email.js'
 import { Password } from '../../../src/domain/value-objects/password.js'
 import { Role } from '../../../src/domain/value-objects/role.js'
-import { UserId, type UserIdType } from '../../../src/domain/value-objects/userID.js'
+import { UserId } from '../../../src/domain/value-objects/userID.js'
 import { UnauthorizedException } from '../../../src/shared/exceptions/unauthorized.exception.js'
 
 describe('LoginUserUseCase', () => {
@@ -18,6 +19,13 @@ describe('LoginUserUseCase', () => {
   let mockUserRepository: UserRepositoryPort
   let mockLogger: LoggerPort
   let mockTokenGenerator: TokenGeneratorPort
+  let mockAuditLog: AuditLogPort
+
+  // Standard audit context for tests
+  const auditContext = {
+    ipAddress: '127.0.0.1',
+    userAgent: 'test-user-agent',
+  }
 
   // Helper function to create a mock user
   const createMockUser = async (
@@ -56,8 +64,15 @@ describe('LoginUserUseCase', () => {
       generateToken: vi.fn().mockReturnValue('mock-jwt-token'),
     }
 
+    mockAuditLog = {
+      log: vi.fn().mockResolvedValue(undefined),
+      getByEntity: vi.fn(),
+      getByUser: vi.fn(),
+      getByAction: vi.fn(),
+    }
+
     // Create use case instance with mocks
-    useCase = new LoginUserUseCase(mockUserRepository, mockLogger, mockTokenGenerator)
+    useCase = new LoginUserUseCase(mockUserRepository, mockLogger, mockTokenGenerator, mockAuditLog)
   })
 
   describe('execute()', () => {
@@ -68,7 +83,7 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
 
-        const result = await useCase.execute(dto)
+        const result = await useCase.execute(dto, auditContext)
 
         expect(result).toBeDefined()
         expect(result.userId).toBe(mockUser.id)
@@ -83,7 +98,7 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
 
-        await useCase.execute(dto)
+        await useCase.execute(dto, auditContext)
 
         expect(mockUserRepository.findByEmail).toHaveBeenCalledTimes(1)
         expect(mockUserRepository.findByEmail).toHaveBeenCalledWith('john@example.com')
@@ -98,7 +113,7 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
 
-        await useCase.execute(dto)
+        await useCase.execute(dto, auditContext)
 
         expect(verifyPasswordSpy).toHaveBeenCalledTimes(1)
         expect(verifyPasswordSpy).toHaveBeenCalledWith('SecurePass123!')
@@ -110,7 +125,7 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
 
-        await useCase.execute(dto)
+        await useCase.execute(dto, auditContext)
 
         expect(mockTokenGenerator.generateToken).toHaveBeenCalledTimes(1)
         expect(mockTokenGenerator.generateToken).toHaveBeenCalledWith({
@@ -126,7 +141,7 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
 
-        await useCase.execute(dto)
+        await useCase.execute(dto, auditContext)
 
         expect(mockLogger.info).toHaveBeenCalledWith('User login attempt', {
           email: 'john@example.com',
@@ -139,7 +154,7 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
 
-        await useCase.execute(dto)
+        await useCase.execute(dto, auditContext)
 
         expect(mockLogger.info).toHaveBeenCalledWith('User logged in successfully', {
           userId: mockUser.id,
@@ -153,7 +168,7 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
 
-        const result = await useCase.execute(dto)
+        const result = await useCase.execute(dto, auditContext)
 
         expect(result.roles).toEqual(['admin'])
         expect(mockTokenGenerator.generateToken).toHaveBeenCalledWith(
@@ -170,7 +185,7 @@ describe('LoginUserUseCase', () => {
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
         vi.mocked(mockTokenGenerator.generateToken).mockReturnValue('custom-jwt-token-12345')
 
-        const result = await useCase.execute(dto)
+        const result = await useCase.execute(dto, auditContext)
 
         expect(result.access_token).toBe('custom-jwt-token-12345')
       })
@@ -182,8 +197,10 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
 
-        await expect(useCase.execute(dto)).rejects.toThrow(UnauthorizedException)
-        await expect(useCase.execute(dto)).rejects.toThrow('Invalid email or password')
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(UnauthorizedException)
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(
+          'Invalid email or password'
+        )
       })
 
       it('should log warning when user is not found', async () => {
@@ -191,7 +208,7 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
 
-        await expect(useCase.execute(dto)).rejects.toThrow(UnauthorizedException)
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(UnauthorizedException)
 
         expect(mockLogger.warn).toHaveBeenCalledWith('Login failed: User not found', {
           email: 'nonexistent@example.com',
@@ -203,7 +220,7 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
 
-        await expect(useCase.execute(dto)).rejects.toThrow(UnauthorizedException)
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(UnauthorizedException)
 
         expect(mockTokenGenerator.generateToken).not.toHaveBeenCalled()
       })
@@ -213,7 +230,7 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
 
-        await expect(useCase.execute(dto)).rejects.toThrow(UnauthorizedException)
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(UnauthorizedException)
 
         expect(mockLogger.info).toHaveBeenCalledTimes(1) // Only login attempt
         expect(mockLogger.info).not.toHaveBeenCalledWith(
@@ -227,7 +244,9 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
 
-        await expect(useCase.execute(dto)).rejects.toThrow('Invalid email or password')
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(
+          'Invalid email or password'
+        )
       })
     })
 
@@ -238,8 +257,10 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
 
-        await expect(useCase.execute(dto)).rejects.toThrow(UnauthorizedException)
-        await expect(useCase.execute(dto)).rejects.toThrow('Invalid email or password')
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(UnauthorizedException)
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(
+          'Invalid email or password'
+        )
       })
 
       it('should log warning when password is invalid', async () => {
@@ -248,7 +269,7 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
 
-        await expect(useCase.execute(dto)).rejects.toThrow(UnauthorizedException)
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(UnauthorizedException)
 
         expect(mockLogger.warn).toHaveBeenCalledWith('Login failed: Invalid password', {
           email: 'john@example.com',
@@ -262,7 +283,7 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
 
-        await expect(useCase.execute(dto)).rejects.toThrow(UnauthorizedException)
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(UnauthorizedException)
 
         expect(mockTokenGenerator.generateToken).not.toHaveBeenCalled()
       })
@@ -273,7 +294,7 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
 
-        await expect(useCase.execute(dto)).rejects.toThrow(UnauthorizedException)
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(UnauthorizedException)
 
         expect(mockLogger.info).toHaveBeenCalledTimes(1) // Only login attempt
         expect(mockLogger.info).not.toHaveBeenCalledWith(
@@ -288,7 +309,9 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
 
-        await expect(useCase.execute(dto)).rejects.toThrow('Invalid email or password')
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(
+          'Invalid email or password'
+        )
       })
     })
 
@@ -299,7 +322,9 @@ describe('LoginUserUseCase', () => {
         const dbError = new Error('Database connection failed')
         vi.mocked(mockUserRepository.findByEmail).mockRejectedValue(dbError)
 
-        await expect(useCase.execute(dto)).rejects.toThrow('Database connection failed')
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(
+          'Database connection failed'
+        )
       })
 
       it('should handle email with different casing', async () => {
@@ -308,7 +333,7 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
 
-        const result = await useCase.execute(dto)
+        const result = await useCase.execute(dto, auditContext)
 
         expect(result).toBeDefined()
         expect(mockUserRepository.findByEmail).toHaveBeenCalledWith('JOHN@EXAMPLE.COM')
@@ -323,7 +348,7 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
 
-        await expect(useCase.execute(dto)).rejects.toThrow(UnauthorizedException)
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(UnauthorizedException)
       })
 
       it('should generate unique tokens for different users', async () => {
@@ -341,8 +366,8 @@ describe('LoginUserUseCase', () => {
           .mockReturnValueOnce('token-for-user1')
           .mockReturnValueOnce('token-for-user2')
 
-        const result1 = await useCase.execute(dto1)
-        const result2 = await useCase.execute(dto2)
+        const result1 = await useCase.execute(dto1, auditContext)
+        const result2 = await useCase.execute(dto2, auditContext)
 
         expect(result1.access_token).toBe('token-for-user1')
         expect(result2.access_token).toBe('token-for-user2')
@@ -365,13 +390,13 @@ describe('LoginUserUseCase', () => {
         let errorMessage2: string = ''
 
         try {
-          await useCase.execute(dtoNonExistent)
+          await useCase.execute(dtoNonExistent, auditContext)
         } catch (error: any) {
           errorMessage1 = error.message
         }
 
         try {
-          await useCase.execute(dtoWrongPassword)
+          await useCase.execute(dtoWrongPassword, auditContext)
         } catch (error: any) {
           errorMessage2 = error.message
         }
@@ -387,7 +412,7 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
 
-        const result = await useCase.execute(dto)
+        const result = await useCase.execute(dto, auditContext)
 
         // Should not expose sensitive data like password hash
         expect(result).not.toHaveProperty('password')
@@ -403,7 +428,7 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
 
-        await useCase.execute(dto)
+        await useCase.execute(dto, auditContext)
 
         // Verify security audit logs are created
         expect(mockLogger.info).toHaveBeenCalledWith(
@@ -421,7 +446,7 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(null)
 
-        await expect(useCase.execute(dto)).rejects.toThrow(UnauthorizedException)
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow(UnauthorizedException)
 
         expect(mockLogger.warn).toHaveBeenCalledWith('Login failed: User not found', {
           email: 'attacker@example.com',
@@ -436,7 +461,7 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
 
-        await useCase.execute(dto)
+        await useCase.execute(dto, auditContext)
 
         expect(mockTokenGenerator.generateToken).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -451,7 +476,7 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
 
-        await useCase.execute(dto)
+        await useCase.execute(dto, auditContext)
 
         expect(mockTokenGenerator.generateToken).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -466,7 +491,7 @@ describe('LoginUserUseCase', () => {
 
         vi.mocked(mockUserRepository.findByEmail).mockResolvedValue(mockUser)
 
-        await useCase.execute(dto)
+        await useCase.execute(dto, auditContext)
 
         expect(mockTokenGenerator.generateToken).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -484,7 +509,7 @@ describe('LoginUserUseCase', () => {
           throw new Error('Token generation failed')
         })
 
-        await expect(useCase.execute(dto)).rejects.toThrow('Token generation failed')
+        await expect(useCase.execute(dto, auditContext)).rejects.toThrow('Token generation failed')
       })
     })
   })

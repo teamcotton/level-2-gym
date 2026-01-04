@@ -9,6 +9,22 @@ import { EnvConfig } from '../../../src/infrastructure/config/env.config.js'
 import { Container } from '../../../src/infrastructure/di/container.js'
 import { createFastifyApp } from '../../../src/infrastructure/http/fastify.config.js'
 
+// Mock database before all other imports to prevent validation errors
+vi.mock('../../../src/infrastructure/database/index.js', () => ({
+  db: {
+    select: vi.fn(),
+    insert: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+  },
+  pool: {
+    connect: vi.fn(),
+    query: vi.fn(),
+    end: vi.fn(),
+    on: vi.fn(),
+  },
+}))
+
 // Mock all dependencies
 vi.mock('../../../src/infrastructure/http/fastify.config.js', () => ({
   createFastifyApp: vi.fn(() => ({
@@ -30,6 +46,13 @@ vi.mock('../../../src/infrastructure/config/env.config.js', () => ({
     RESEND_API_KEY: 'test-api-key',
     LOG_LEVEL: 'silent',
     DATABASE_URL: 'postgresql://test:test@localhost:5432/test',
+    DATABASE_SSL_ENABLED: 'false',
+    DATABASE_SSL_REJECT_UNAUTHORIZED: 'false',
+    DATABASE_CONNECTION_TIMEOUT_MS: '5000',
+    DATABASE_IDLE_TIMEOUT_MS: '30000',
+    DATABASE_POOL_MAX: '20',
+    DATABASE_POOL_MIN: '5',
+    DATABASE_POOL_MAX_LIFETIME_SECONDS: '60',
   },
 }))
 
@@ -63,6 +86,15 @@ vi.mock('../../../src/adapters/secondary/repositories/user.repository.js', () =>
 vi.mock('../../../src/adapters/secondary/repositories/ai.repository.js', () => ({
   AIRepository: vi.fn(function (this: any) {
     this.getChatResponse = vi.fn()
+  }),
+}))
+
+vi.mock('../../../src/adapters/secondary/repositories/audit-log.repository.js', () => ({
+  AuditLogRepository: vi.fn(function (this: any) {
+    this.log = vi.fn()
+    this.getByEntity = vi.fn()
+    this.getByUser = vi.fn()
+    this.getByAction = vi.fn()
   }),
 }))
 

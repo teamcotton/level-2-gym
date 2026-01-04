@@ -31,6 +31,34 @@ if (!process.env.DATABASE_URL) {
   process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/testdb'
 }
 
+if (!process.env.DATABASE_SSL_ENABLED) {
+  process.env.DATABASE_SSL_ENABLED = 'false'
+}
+
+if (!process.env.DATABASE_SSL_REJECT_UNAUTHORIZED) {
+  process.env.DATABASE_SSL_REJECT_UNAUTHORIZED = 'false'
+}
+
+if (!process.env.DATABASE_CONNECTION_TIMEOUT_MS) {
+  process.env.DATABASE_CONNECTION_TIMEOUT_MS = '5000'
+}
+
+if (!process.env.DATABASE_IDLE_TIMEOUT_MS) {
+  process.env.DATABASE_IDLE_TIMEOUT_MS = '30000'
+}
+
+if (!process.env.DATABASE_POOL_MAX) {
+  process.env.DATABASE_POOL_MAX = '20'
+}
+
+if (!process.env.DATABASE_POOL_MIN) {
+  process.env.DATABASE_POOL_MIN = '5'
+}
+
+if (!process.env.DATABASE_POOL_MAX_LIFETIME_SECONDS) {
+  process.env.DATABASE_POOL_MAX_LIFETIME_SECONDS = '60'
+}
+
 if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
   process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test-google-api-key'
 }
