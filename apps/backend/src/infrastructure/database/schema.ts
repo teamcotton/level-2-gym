@@ -279,6 +279,8 @@ export const auditLog = pgTable(
   })
 )
 
+export type DBAuditLogSelect = typeof auditLog.$inferSelect
+
 export const chatsRelations = relations(chats, ({ many }) => ({
   messages: many(messages),
 }))

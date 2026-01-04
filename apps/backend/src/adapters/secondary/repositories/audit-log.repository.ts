@@ -1,5 +1,5 @@
 import { db } from '../../../infrastructure/database/index.js'
-import { auditLog } from '../../../infrastructure/database/schema.js'
+import { auditLog, type DBAuditLogSelect } from '../../../infrastructure/database/schema.js'
 import type { AuditLogPort, CreateAuditLogDTO } from '../../../application/ports/audit-log.port.js'
 import { eq, desc, and } from 'drizzle-orm'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
@@ -70,7 +70,7 @@ export class AuditLogRepository implements AuditLogPort {
     return results.map(this.mapToEntity)
   }
 
-  private mapToEntity(row: any): AuditLog {
+  private mapToEntity(row: DBAuditLogSelect): AuditLog {
     return new AuditLog(
       row.id,
       row.userId,
