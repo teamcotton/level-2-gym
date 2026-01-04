@@ -200,3 +200,28 @@ export function redactAuditLogEntry<T extends Record<string, unknown>>(entry: T)
     changes: redactSensitiveData(entry.changes) as Record<string, unknown>,
   }
 }
+
+/**
+ * Type-safe wrapper for redacting CreateAuditLogDTO entries
+ *
+ * This function provides a type-safe way to redact sensitive data from
+ * CreateAuditLogDTO objects without requiring type casting.
+ *
+ * @param entry - The CreateAuditLogDTO entry to redact
+ * @returns A new CreateAuditLogDTO with redacted changes
+ */
+export function redactCreateAuditLogDTO<T extends { changes?: unknown }>(entry: T): T {
+  // If no changes field exists or it's nullish, return entry as-is
+  if (!entry.changes) {
+    return entry
+  }
+
+  // Redact the changes object
+  const redactedChanges = redactSensitiveData(entry.changes)
+
+  // Return new object with redacted changes
+  return {
+    ...entry,
+    changes: redactedChanges,
+  }
+}

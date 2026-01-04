@@ -2,8 +2,11 @@ import { describe, expect, it } from 'vitest'
 
 import {
   redactAuditLogEntry,
+  redactCreateAuditLogDTO,
   redactSensitiveData,
 } from '../../../src/domain/audit/redact-sensitive-data.js'
+import type { CreateAuditLogDTO } from '../../../src/application/ports/audit-log.port.js'
+import { EntityType, AuditAction } from '../../../src/domain/audit/entity-type.enum.js'
 
 describe('redactSensitiveData', () => {
   describe('primitive values', () => {
@@ -389,5 +392,129 @@ describe('redactAuditLogEntry', () => {
     expect(changes.oldToken).toBe('[REDACTED]')
     expect(changes.newToken).toBe('[REDACTED]')
     expect(changes.expiresIn).toBe(3600)
+  })
+})
+
+describe('redactCreateAuditLogDTO', () => {
+  it('should redact changes field in CreateAuditLogDTO', () => {
+    const entry: CreateAuditLogDTO = {
+      userId: 'user-123',
+      entityType: EntityType.USER,
+      entityId: 'user-456',
+      action: AuditAction.UPDATE,
+      changes: {
+        before: { email: 'old@example.com', password: 'oldpass' },
+        after: { email: 'new@example.com', password: 'newpass' },
+      },
+      ipAddress: '192.168.1.1',
+      userAgent: 'Mozilla/5.0',
+    }
+
+    const result = redactCreateAuditLogDTO(entry)
+
+    expect(result.userId).toBe('user-123')
+    expect(result.entityType).toBe(EntityType.USER)
+    expect(result.action).toBe(AuditAction.UPDATE)
+    expect(result.ipAddress).toBe('192.168.1.1')
+
+    const changes = result.changes as Record<string, unknown>
+    const before = changes.before as Record<string, unknown>
+    const after = changes.after as Record<string, unknown>
+    expect(before.email).toBe('old@example.com')
+    expect(before.password).toBe('[REDACTED]')
+    expect(after.email).toBe('new@example.com')
+    expect(after.password).toBe('[REDACTED]')
+  })
+
+  it('should handle DTO without changes field', () => {
+    const entry: CreateAuditLogDTO = {
+      userId: 'user-123',
+      entityType: EntityType.USER,
+      entityId: 'user-456',
+      action: AuditAction.DELETE,
+    }
+
+    const result = redactCreateAuditLogDTO(entry)
+
+    expect(result).toEqual(entry)
+  })
+
+  it('should handle DTO with undefined changes', () => {
+    const entry: CreateAuditLogDTO = {
+      userId: 'user-123',
+      entityType: EntityType.USER,
+      entityId: 'user-456',
+      action: AuditAction.DELETE,
+      changes: undefined,
+    }
+
+    const result = redactCreateAuditLogDTO(entry)
+
+    expect(result.changes).toBe(undefined)
+  })
+
+  it('should preserve all non-changes fields in DTO', () => {
+    const entry: CreateAuditLogDTO = {
+      userId: 'user-123',
+      entityType: EntityType.USER,
+      entityId: 'user-456',
+      action: AuditAction.LOGIN,
+      changes: { success: true, password: 'secret' },
+      ipAddress: '10.0.0.1',
+      userAgent: 'Chrome',
+    }
+
+    const result = redactCreateAuditLogDTO(entry)
+
+    expect(result.userId).toBe('user-123')
+    expect(result.entityType).toBe(EntityType.USER)
+    expect(result.entityId).toBe('user-456')
+    expect(result.action).toBe(AuditAction.LOGIN)
+    expect(result.ipAddress).toBe('10.0.0.1')
+    expect(result.userAgent).toBe('Chrome')
+
+    const changes = result.changes as Record<string, unknown>
+    expect(changes.success).toBe(true)
+    expect(changes.password).toBe('[REDACTED]')
+  })
+
+  it('should handle login failure with sensitive data in changes', () => {
+    const entry: CreateAuditLogDTO = {
+      userId: null,
+      entityType: EntityType.USER,
+      entityId: 'unknown',
+      action: AuditAction.LOGIN_FAILED,
+      changes: {
+        reason: 'invalid_password',
+        token: 'secret-token',
+        apiKey: 'secret-key',
+      },
+    }
+
+    const result = redactCreateAuditLogDTO(entry)
+
+    const changes = result.changes as Record<string, unknown>
+    expect(changes.reason).toBe('invalid_password')
+    expect(changes.token).toBe('[REDACTED]')
+    expect(changes.apiKey).toBe('[REDACTED]')
+  })
+
+  it('should maintain type safety with CreateAuditLogDTO', () => {
+    const entry: CreateAuditLogDTO = {
+      userId: 'user-123',
+      entityType: EntityType.USER,
+      entityId: 'user-456',
+      action: AuditAction.UPDATE,
+      changes: {
+        before: { name: 'Old', password: 'old' },
+        after: { name: 'New', password: 'new' },
+      },
+    }
+
+    // This should compile without type errors
+    const result: CreateAuditLogDTO = redactCreateAuditLogDTO(entry)
+
+    expect(result.userId).toBe('user-123')
+    expect(result.entityType).toBe(EntityType.USER)
   })
 })
