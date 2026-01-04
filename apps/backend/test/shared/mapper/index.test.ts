@@ -79,6 +79,9 @@ describe('Mapper', () => {
         toolToolCallId: null,
         toolState: null,
         toolErrorText: null,
+        toolHeartOfDarknessQAInput: null,
+        toolHeartOfDarknessQAOutput: null,
+        toolHeartOfDarknessQAErrorText: null,
         dataContent: null,
         providerMetadata: null,
       }

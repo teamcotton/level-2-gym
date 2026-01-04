@@ -10,4 +10,5 @@ export interface AIServicePort {
     userId: UserIdType | string,
     initialMessages: UIMessage[]
   ): Promise<string>
+  appendToChatMessages(chatId: ChatIdType | string, messages: UIMessage[]): Promise<string>
 }

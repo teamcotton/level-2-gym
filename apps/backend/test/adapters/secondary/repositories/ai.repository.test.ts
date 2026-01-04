@@ -263,4 +263,337 @@ describe('AIRepository', () => {
       expect(result).toEqual([])
     })
   })
+
+  describe('appendToChatMessages', () => {
+    it('should successfully append messages with parts to an existing chat', async () => {
+      // Arrange
+      const testChatIdString = '019b86fb-f42f-7ea7-b30c-8ebf80c3f4a9'
+      const testChatId = new ChatId(testChatIdString).getValue()
+
+      const initialMessages: UIMessage[] = [
+        {
+          id: 'msg-1',
+          role: 'user',
+          parts: [{ type: 'text', text: 'What is the capital of France?' }],
+        } as any,
+        {
+          id: 'msg-2',
+          role: 'assistant',
+          parts: [{ type: 'text', text: 'The capital of France is Paris.' }],
+        } as any,
+      ]
+
+      const mockInsertedMessages = [
+        {
+          id: 'generated-msg-id-1',
+          chatId: testChatIdString,
+          role: 'user',
+          createdAt: new Date(),
+        },
+        {
+          id: 'generated-msg-id-2',
+          chatId: testChatIdString,
+          role: 'assistant',
+          createdAt: new Date(),
+        },
+      ]
+
+      // Mock for chats update
+      const mockUpdateWhere = vi.fn().mockResolvedValue(undefined)
+      const mockUpdateSet = vi.fn().mockReturnValue({ where: mockUpdateWhere })
+      const mockUpdate = vi.fn().mockReturnValue({ set: mockUpdateSet })
+
+      // Mock for messages insert
+      const mockMessagesReturning = vi.fn().mockResolvedValue(mockInsertedMessages)
+      const mockMessagesValues = vi.fn().mockReturnValue({ returning: mockMessagesReturning })
+      const mockMessagesInsert = vi.fn().mockReturnValue({ values: mockMessagesValues })
+
+      // Mock for parts insert
+      const mockPartsValues = vi.fn().mockResolvedValue(undefined)
+      const mockPartsInsert = vi.fn().mockReturnValue({ values: mockPartsValues })
+
+      // Setup mocks
+      vi.mocked(db).update = mockUpdate as any
+      vi.mocked(db.insert)
+        .mockReturnValueOnce(mockMessagesInsert() as any)
+        .mockReturnValueOnce(mockPartsInsert() as any)
+
+      // Act
+      const result = await repository.appendToChatMessages(testChatId, initialMessages)
+
+      // Assert
+      expect(result).toBe(testChatIdString)
+      expect(mockUpdate).toHaveBeenCalledTimes(1)
+      expect(db.insert).toHaveBeenCalledTimes(2) // messages and parts
+      expect(mockMessagesReturning).toHaveBeenCalledTimes(1)
+      expect(mockPartsValues).toHaveBeenCalledTimes(1)
+    })
+
+    it('should update chat timestamp when appending messages', async () => {
+      // Arrange
+      const testChatIdString = '019b86fb-f42f-7ea7-b30c-8ebf80c3f4a9'
+      const testChatId = new ChatId(testChatIdString).getValue()
+
+      const initialMessages: UIMessage[] = [
+        {
+          id: 'msg-1',
+          role: 'user',
+          parts: [{ type: 'text', text: 'Hello' }],
+        } as any,
+      ]
+
+      const mockInsertedMessages = [
+        {
+          id: 'generated-msg-id',
+          chatId: testChatIdString,
+          role: 'user',
+          createdAt: new Date(),
+        },
+      ]
+
+      // Mock for chats update
+      const mockUpdateWhere = vi.fn().mockResolvedValue(undefined)
+      const mockUpdateSet = vi.fn().mockReturnValue({ where: mockUpdateWhere })
+      const mockUpdate = vi.fn().mockReturnValue({ set: mockUpdateSet })
+
+      // Mock for messages insert
+      const mockMessagesReturning = vi.fn().mockResolvedValue(mockInsertedMessages)
+      const mockMessagesValues = vi.fn().mockReturnValue({ returning: mockMessagesReturning })
+      const mockMessagesInsert = vi.fn().mockReturnValue({ values: mockMessagesValues })
+
+      // Mock for parts insert
+      const mockPartsValues = vi.fn().mockResolvedValue(undefined)
+      const mockPartsInsert = vi.fn().mockReturnValue({ values: mockPartsValues })
+
+      // Setup mocks
+      vi.mocked(db).update = mockUpdate as any
+      vi.mocked(db.insert)
+        .mockReturnValueOnce(mockMessagesInsert() as any)
+        .mockReturnValueOnce(mockPartsInsert() as any)
+
+      // Act
+      await repository.appendToChatMessages(testChatId, initialMessages)
+
+      // Assert - verify update was called with a Date object
+      expect(mockUpdateSet).toHaveBeenCalledWith(
+        expect.objectContaining({
+          updatedAt: expect.any(Date),
+        })
+      )
+    })
+
+    it('should handle empty messages array without inserting parts', async () => {
+      // Arrange
+      const testChatIdString = '019b86fb-f42f-7ea7-b30c-8ebf80c3f4a9'
+      const testChatId = new ChatId(testChatIdString).getValue()
+      const initialMessages: UIMessage[] = []
+
+      // Mock for chats update only
+      const mockUpdateWhere = vi.fn().mockResolvedValue(undefined)
+      const mockUpdateSet = vi.fn().mockReturnValue({ where: mockUpdateWhere })
+      const mockUpdate = vi.fn().mockReturnValue({ set: mockUpdateSet })
+
+      // Setup mocks
+      vi.mocked(db).update = mockUpdate as any
+
+      // Act
+      const result = await repository.appendToChatMessages(testChatId, initialMessages)
+
+      // Assert
+      expect(result).toBe(testChatIdString)
+      expect(mockUpdate).toHaveBeenCalledTimes(1)
+      expect(db.insert).not.toHaveBeenCalled()
+    })
+
+    it('should handle messages without parts', async () => {
+      // Arrange
+      const testChatIdString = '019b86fb-f42f-7ea7-b30c-8ebf80c3f4a9'
+      const testChatId = new ChatId(testChatIdString).getValue()
+
+      const initialMessages: UIMessage[] = [
+        {
+          id: 'msg-1',
+          role: 'user',
+          parts: [],
+        } as any,
+      ]
+
+      const mockInsertedMessages = [
+        {
+          id: 'generated-msg-id',
+          chatId: testChatIdString,
+          role: 'user',
+          createdAt: new Date(),
+        },
+      ]
+
+      // Mock for chats update
+      const mockUpdateWhere = vi.fn().mockResolvedValue(undefined)
+      const mockUpdateSet = vi.fn().mockReturnValue({ where: mockUpdateWhere })
+      const mockUpdate = vi.fn().mockReturnValue({ set: mockUpdateSet })
+
+      // Mock for messages insert
+      const mockMessagesReturning = vi.fn().mockResolvedValue(mockInsertedMessages)
+      const mockMessagesValues = vi.fn().mockReturnValue({ returning: mockMessagesReturning })
+      const mockMessagesInsert = vi.fn().mockReturnValue({ values: mockMessagesValues })
+
+      // Setup mocks
+      vi.mocked(db).update = mockUpdate as any
+      vi.mocked(db.insert).mockReturnValueOnce(mockMessagesInsert() as any)
+
+      // Act
+      const result = await repository.appendToChatMessages(testChatId, initialMessages)
+
+      // Assert
+      expect(result).toBe(testChatIdString)
+      expect(db.insert).toHaveBeenCalledTimes(1) // Only messages, no parts
+    })
+
+    it('should handle multiple messages with different part types', async () => {
+      // Arrange
+      const testChatIdString = '019b86fb-f42f-7ea7-b30c-8ebf80c3f4a9'
+      const testChatId = new ChatId(testChatIdString).getValue()
+
+      const initialMessages: UIMessage[] = [
+        {
+          id: 'msg-1',
+          role: 'user',
+          parts: [
+            { type: 'text', text: 'Question with file' },
+            {
+              type: 'file',
+              mediaType: 'image/png',
+              filename: 'screenshot.png',
+              url: 'https://example.com/img.png',
+            },
+          ],
+        } as any,
+        {
+          id: 'msg-2',
+          role: 'assistant',
+          parts: [
+            { type: 'reasoning', text: 'Let me analyze this...', providerMetadata: {} },
+            { type: 'text', text: 'Here is my response' },
+          ],
+        } as any,
+      ]
+
+      const mockInsertedMessages = [
+        {
+          id: 'generated-msg-id-1',
+          chatId: testChatIdString,
+          role: 'user',
+          createdAt: new Date(),
+        },
+        {
+          id: 'generated-msg-id-2',
+          chatId: testChatIdString,
+          role: 'assistant',
+          createdAt: new Date(),
+        },
+      ]
+
+      // Mock for chats update
+      const mockUpdateWhere = vi.fn().mockResolvedValue(undefined)
+      const mockUpdateSet = vi.fn().mockReturnValue({ where: mockUpdateWhere })
+      const mockUpdate = vi.fn().mockReturnValue({ set: mockUpdateSet })
+
+      // Mock for messages insert
+      const mockMessagesReturning = vi.fn().mockResolvedValue(mockInsertedMessages)
+      const mockMessagesValues = vi.fn().mockReturnValue({ returning: mockMessagesReturning })
+      const mockMessagesInsert = vi.fn().mockReturnValue({ values: mockMessagesValues })
+
+      // Mock for parts insert
+      const mockPartsValues = vi.fn().mockResolvedValue(undefined)
+      const mockPartsInsert = vi.fn().mockReturnValue({ values: mockPartsValues })
+
+      // Setup mocks
+      vi.mocked(db).update = mockUpdate as any
+      vi.mocked(db.insert)
+        .mockReturnValueOnce(mockMessagesInsert() as any)
+        .mockReturnValueOnce(mockPartsInsert() as any)
+
+      // Act
+      const result = await repository.appendToChatMessages(testChatId, initialMessages)
+
+      // Assert
+      expect(result).toBe(testChatIdString)
+      expect(db.insert).toHaveBeenCalledTimes(2) // messages and parts
+
+      // Verify parts insert was called with 4 parts total (2 per message)
+      const partsInsertCall = mockPartsValues.mock.calls?.[0]?.[0]
+      expect(partsInsertCall).toHaveLength(4)
+    })
+
+    it('should preserve message order when inserting', async () => {
+      // Arrange
+      const testChatIdString = '019b86fb-f42f-7ea7-b30c-8ebf80c3f4a9'
+      const testChatId = new ChatId(testChatIdString).getValue()
+
+      const initialMessages: UIMessage[] = [
+        { id: 'msg-1', role: 'user', parts: [{ type: 'text', text: 'First' }] } as any,
+        { id: 'msg-2', role: 'assistant', parts: [{ type: 'text', text: 'Second' }] } as any,
+        { id: 'msg-3', role: 'user', parts: [{ type: 'text', text: 'Third' }] } as any,
+      ]
+
+      const mockInsertedMessages = initialMessages.map((msg, idx) => ({
+        id: `generated-msg-id-${idx}`,
+        chatId: testChatIdString,
+        role: msg.role,
+        createdAt: new Date(),
+      }))
+
+      // Mock for chats update
+      const mockUpdateWhere = vi.fn().mockResolvedValue(undefined)
+      const mockUpdateSet = vi.fn().mockReturnValue({ where: mockUpdateWhere })
+      const mockUpdate = vi.fn().mockReturnValue({ set: mockUpdateSet })
+
+      // Mock for messages insert
+      const mockMessagesReturning = vi.fn().mockResolvedValue(mockInsertedMessages)
+      const mockMessagesValues = vi.fn().mockReturnValue({ returning: mockMessagesReturning })
+      const mockMessagesInsert = vi.fn().mockReturnValue({ values: mockMessagesValues })
+
+      // Mock for parts insert
+      const mockPartsValues = vi.fn().mockResolvedValue(undefined)
+      const mockPartsInsert = vi.fn().mockReturnValue({ values: mockPartsValues })
+
+      // Setup mocks
+      vi.mocked(db).update = mockUpdate as any
+      vi.mocked(db.insert)
+        .mockReturnValueOnce(mockMessagesInsert() as any)
+        .mockReturnValueOnce(mockPartsInsert() as any)
+
+      // Act
+      await repository.appendToChatMessages(testChatId, initialMessages)
+
+      // Assert - verify messages were inserted in correct order with correct roles
+      const messagesInsertCall = mockMessagesValues?.mock?.calls?.[0]?.[0]
+      expect(messagesInsertCall).toHaveLength(3)
+      expect(messagesInsertCall[0].role).toBe('user')
+      expect(messagesInsertCall[1].role).toBe('assistant')
+      expect(messagesInsertCall[2].role).toBe('user')
+    })
+
+    it('should return the same chatId that was passed in', async () => {
+      // Arrange
+      const testChatIdString = '019b86fb-f42f-7ea7-b30c-8ebf80c3f4a9'
+      const testChatId = new ChatId(testChatIdString).getValue()
+      const initialMessages: UIMessage[] = []
+
+      // Mock for chats update
+      const mockUpdateWhere = vi.fn().mockResolvedValue(undefined)
+      const mockUpdateSet = vi.fn().mockReturnValue({ where: mockUpdateWhere })
+      const mockUpdate = vi.fn().mockReturnValue({ set: mockUpdateSet })
+
+      // Setup mocks
+      vi.mocked(db).update = mockUpdate as any
+
+      // Act
+      const result = await repository.appendToChatMessages(testChatId, initialMessages)
+
+      // Assert
+      expect(result).toBe(testChatIdString)
+      expect(result).toEqual(testChatId)
+    })
+  })
 })
