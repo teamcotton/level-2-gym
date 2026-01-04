@@ -45,7 +45,7 @@ vi.mock('../../../src/infrastructure/config/env.config.js', () => ({
     USE_HTTPS: 'true',
     RESEND_API_KEY: 'test-api-key',
     LOG_LEVEL: 'silent',
-    DATABASE_URL: { value: () => 'postgresql://test:test@localhost:5432/test' },
+    DATABASE_URL: 'postgresql://test:test@localhost:5432/test',
     DATABASE_SSL_ENABLED: 'false',
     DATABASE_SSL_REJECT_UNAUTHORIZED: 'false',
     DATABASE_CONNECTION_TIMEOUT_MS: '5000',
