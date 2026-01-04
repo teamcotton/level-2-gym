@@ -85,8 +85,6 @@ CREATE TABLE parts (
     provider_metadata JSONB,
 
     -- tools-specific fields
-    tool_toolCallId: VARCHAR,
-    tool_state: VARCHAR,
     tool_heartOfDarknessQA_input: JSONB,
     /* the input will be a JSON object:
        "input": {
