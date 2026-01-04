@@ -160,8 +160,12 @@ export class AuditLogRepository implements AuditLogPort {
         action: entry.action,
       })
     } catch (error) {
-      this.logger.error('Failed to create audit log entry', { error, entry })
-      // Don't throw - audit logging should not break business operations
+      this.logger.error('Failed to create audit log entry', {
+        error,
+        entityType: entry.entityType,
+        entityId: entry.entityId,
+        action: entry.action,
+      })
     }
   }
 
