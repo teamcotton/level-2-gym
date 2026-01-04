@@ -391,4 +391,3 @@ describe('redactAuditLogEntry', () => {
     expect(changes.expiresIn).toBe(3600)
   })
 })
-

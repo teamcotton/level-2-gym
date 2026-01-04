@@ -13,6 +13,7 @@
 Created a robust, reusable redaction system with the following features:
 
 #### ✅ Extensive Sensitive Field Coverage
+
 - **Authentication**: password, token, apiKey, secret, jwt, sessionId, accessToken, refreshToken, oldToken, newToken
 - **Financial**: creditCard, cvv, bankAccount, routingNumber, iban, swift
 - **PII**: ssn, passport, driversLicense, dob, nationalId, taxId
@@ -20,6 +21,7 @@ Created a robust, reusable redaction system with the following features:
 - **Biometric**: fingerprint, faceId, retinaScan
 
 #### ✅ Advanced Features
+
 - **Deep recursion**: Handles nested objects and arrays at any depth
 - **Case-insensitive matching**: Catches Password, PASSWORD, password, etc.
 - **Type preservation**: Keeps Dates, handles null/undefined correctly
@@ -29,16 +31,19 @@ Created a robust, reusable redaction system with the following features:
 #### ✅ Three Main Functions
 
 **`redactSensitiveData(data)`**
+
 - Core recursive redaction function
 - Works on any object, array, or primitive
 - Deeply traverses nested structures
 
 **`redactAuditLogEntry(entry)`**
+
 - Convenience wrapper for audit log entries
 - Specifically targets the `changes` field
 - Preserves audit metadata (userId, action, etc.)
 
 **`hasChangesObject(entry)`**
+
 - Type guard for TypeScript safety
 - Validates entry structure
 
@@ -71,22 +76,26 @@ async log(entry: CreateAuditLogDTO): Promise<void> {
 ## Coverage of All Use Cases
 
 ### ✅ Authentication Events
+
 - **Login attempts**: Passwords automatically redacted
 - **Login failures**: Password attempts redacted, emails preserved
 - **Token operations**: Access tokens, refresh tokens, JWT tokens all redacted
 
 ### ✅ User Management
+
 - **Registration**: Passwords redacted in before/after tracking
 - **Profile updates**: Password changes redacted
 - **Password resets**: New/old passwords redacted
 - **Email changes**: Email addresses preserved, tokens redacted
 
 ### ✅ CRUD Operations
+
 - **Before/after tracking**: Sensitive fields in both states redacted
 - **Nested objects**: Deep redaction handles complex structures
 - **Arrays**: Redaction works on array items
 
 ### ✅ Complex Scenarios
+
 - **Financial data**: Credit card numbers, CVV codes automatically redacted
 - **PII**: SSN, passport numbers, DOB redacted
 - **Healthcare**: Medical records redacted
@@ -95,6 +104,7 @@ async log(entry: CreateAuditLogDTO): Promise<void> {
 ## Example Transformations
 
 ### Example 1: User Password Update
+
 ```typescript
 // INPUT to audit log:
 {
@@ -116,6 +126,7 @@ async log(entry: CreateAuditLogDTO): Promise<void> {
 ```
 
 ### Example 2: Failed Login with Credentials
+
 ```typescript
 // INPUT:
 {
@@ -139,6 +150,7 @@ async log(entry: CreateAuditLogDTO): Promise<void> {
 ```
 
 ### Example 3: Nested Sensitive Data
+
 ```typescript
 // INPUT:
 {
@@ -184,6 +196,7 @@ async log(entry: CreateAuditLogDTO): Promise<void> {
 **Created:** `test/domain/audit/redact-sensitive-data.test.ts` (26 tests)
 
 Test coverage includes:
+
 - ✅ Primitive value handling
 - ✅ Single and multiple sensitive fields
 - ✅ Case-insensitive field matching
@@ -199,6 +212,7 @@ Test coverage includes:
 **Enhanced:** `test/adapters/secondary/repositories/audit-log.repository.test.ts` (29 tests)
 
 Added integration tests:
+
 - ✅ Redaction before database insert
 - ✅ Nested sensitive data handling
 - ✅ Login failure scenarios
@@ -209,21 +223,25 @@ All tests passing! ✅
 ## Security & Compliance Benefits
 
 ### 🔒 GDPR Compliance
+
 - PII automatically redacted before storage
 - Right to erasure simplified (sensitive data not stored)
 - Data minimization principle enforced
 
 ### 🔒 PCI-DSS Compliance
+
 - Credit card data never stored in audit logs
 - CVV/CVC codes automatically redacted
 - Financial data protection enforced
 
 ### 🔒 HIPAA Compliance (if applicable)
+
 - Medical record numbers redacted
 - Health information protected
 - Patient data secured
 
 ### 🔒 Security Best Practices
+
 - Passwords never stored in plaintext (even in logs)
 - API keys and tokens protected
 - Session IDs and auth tokens secured
@@ -268,10 +286,12 @@ If needed, you can:
 ## Files Created/Modified
 
 ### Created:
+
 1. ✅ `src/domain/audit/redact-sensitive-data.ts` - Core redaction logic
 2. ✅ `test/domain/audit/redact-sensitive-data.test.ts` - Comprehensive test suite
 
 ### Modified:
+
 1. ✅ `src/adapters/secondary/repositories/audit-log.repository.ts` - Integrated redaction
 2. ✅ `test/adapters/secondary/repositories/audit-log.repository.test.ts` - Added redaction tests
 
@@ -288,4 +308,3 @@ If needed, you can:
 ✅ **Zero Breaking Changes**: Existing code works without modification
 
 Every audit log entry is now automatically protected before being stored in the database!
-

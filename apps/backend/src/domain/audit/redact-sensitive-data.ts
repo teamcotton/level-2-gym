@@ -200,4 +200,3 @@ export function redactAuditLogEntry<T extends Record<string, unknown>>(entry: T)
     changes: redactSensitiveData(entry.changes) as Record<string, unknown>,
   }
 }
-
