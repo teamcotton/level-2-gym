@@ -6,7 +6,6 @@ import { RegisterUserUseCase } from '../../application/use-cases/register-user.u
 import { GetAllUsersUseCase } from '../../application/use-cases/get-all-users.use-case.js'
 import { LoginUserUseCase } from '../../application/use-cases/login-user.use-case.js'
 import { GetChatUseCase } from '../../application/use-cases/get-chat.use-case.js'
-import { CreateChatUseCase } from '../../application/use-cases/create-chat.use-case.js'
 import { AppendedChatUseCase } from '../../application/use-cases/append-chat.use-case.js'
 import { SaveChatUseCase } from '../../application/use-cases/save-chat.use-case.js'
 
@@ -73,7 +72,7 @@ export class Container {
   public readonly getAllUsersUseCase: GetAllUsersUseCase
   public readonly loginUserUseCase: LoginUserUseCase
   public readonly getChatUseCase: GetChatUseCase
-  private readonly createChatUseCase: CreateChatUseCase
+  //  private readonly createChatUseCase: CreateChatUseCase
   private readonly appendChatUseCase: AppendedChatUseCase
   private readonly saveChatUseCase: SaveChatUseCase
 
@@ -172,7 +171,6 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.tokenGenerator
     )
     this.getChatUseCase = new GetChatUseCase(this.aiRepository, this.logger)
-    this.createChatUseCase = new CreateChatUseCase(this.logger, this.aiRepository)
     this.appendChatUseCase = new AppendedChatUseCase(this.aiRepository, this.logger)
     this.saveChatUseCase = new SaveChatUseCase(this.logger, this.aiRepository)
 

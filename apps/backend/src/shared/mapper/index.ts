@@ -61,6 +61,24 @@ export const mapUIMessagePartsToDBParts = (
           order: index,
           type: part.type,
         }
+      case 'tool-heartOfDarknessQA':
+        return {
+          messageId,
+          order: index,
+          type: part.type,
+          tool_toolCallId: part.toolCallId,
+          tool_state: part.state,
+          tool_heartOfDarknessQA_input:
+            part.state === 'input-available' ||
+            part.state === 'output-available' ||
+            part.state === 'output-error'
+              ? part.input
+              : undefined,
+          tool_heartOfDarknessQA_output:
+            part.state === 'output-available' ? part.output : undefined,
+          tool_heartOfDarknessQA_errorText:
+            part.state === 'output-error' ? part.errorText : undefined,
+        }
       default:
         throw new Error(`Unsupported part type: ${JSON.stringify(part)}`)
     }
