@@ -5,6 +5,7 @@ import { Uuid7Util } from '../../shared/utils/uuid7.util.js'
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
 import type { MessageSchemaType } from '@norberts-spark/shared'
 import type { UserIdType } from '../../domain/value-objects/userID.js'
+import type { ChatIdType } from '../../domain/value-objects/chatID.js'
 /**
  * Use case for retrieving chat messages for a specific user
  *
@@ -54,32 +55,22 @@ export class GetChatUseCase {
    * ```
    */
   async execute(
-    userId: UserIdType,
+    chatID: ChatIdType,
     messages: MessageSchemaType[] = []
   ): Promise<ChatResponseResult | null> {
-    this.logger.info('Getting chat for user', { userId })
-
-    if (!Uuid7Util.isValidUUID(userId)) {
-      throw new Error('Invalid UUID format provided')
-    }
-
-    // Validate UUID format
-    const uuidVersion = Uuid7Util.uuidVersionValidation(userId)
-    if (uuidVersion !== 'v7') {
-      this.logger.warn('Invalid userId format', { userId, uuidVersion })
-      throw new ValidationException(`Invalid userId provided: expected v7, got ${uuidVersion}`)
-    }
+    this.logger.info('Getting chat', { chatID })
 
     // Retrieve chat data from DB
-    const chatData = await this.aiService.getChatResponse(userId)
+    const chatData = await this.aiService.getChatResponse(chatID)
+    console.log('chatData:', chatData)
 
     if (chatData && chatData.length > 0) {
       this.logger.info('Chat data retrieved successfully', {
-        userId,
+        chatID,
         messageCount: chatData.length,
       })
     } else {
-      this.logger.info('No chat data found for user', { userId })
+      this.logger.info('No chat data found for user', { chatID })
       return null
     }
 

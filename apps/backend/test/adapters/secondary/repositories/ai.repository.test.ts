@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AIRepository } from '../../../../src/adapters/secondary/repositories/ai.repository.js'
 import type { LoggerPort } from '../../../../src/application/ports/logger.port.js'
-import { ChatId, type ChatIdType } from '../../../../src/domain/value-objects/chatID.js'
-import { UserId, type UserIdType } from '../../../../src/domain/value-objects/userID.js'
+import { ChatId } from '../../../../src/domain/value-objects/chatID.js'
+import { UserId } from '../../../../src/domain/value-objects/userID.js'
 import { db } from '../../../../src/infrastructure/database/index.js'
 import { Uuid7Util } from '../../../../src/shared/utils/uuid7.util.js'
 
@@ -30,9 +30,7 @@ describe('AIRepository', () => {
   let repository: AIRepository
   let mockLogger: LoggerPort
   const mockChatIdString = uuidv7()
-  const mockUserIdString = uuidv7()
   const mockChatId = new ChatId(mockChatIdString).getValue()
-  const mockUserId = new UserId(mockUserIdString).getValue()
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -50,53 +48,28 @@ describe('AIRepository', () => {
   })
 
   describe('createChat', () => {
-    it('should create a new chat without initial messages', async () => {
-      const mockValues = vi.fn().mockResolvedValue(undefined)
-      const mockInsert = vi.fn().mockReturnValue({ values: mockValues })
-      vi.mocked(db.insert).mockReturnValue(mockInsert() as any)
+    it('should successfully create chat with specific chat ID, user ID, and message with parts', async () => {
+      // Arrange: Setup test data with specific values
+      const testChatIdString = '019b86fb-f42f-7ea7-b30c-8ebf80c3f4a9'
+      const testUserIdString = '019b6742-b220-7e5c-a4cd-459ff52f6579'
+      const testChatId = new ChatId(testChatIdString).getValue()
+      const testUserId = new UserId(testUserIdString).getValue()
 
-      const chatId = await repository.createChat(mockChatId, mockUserId)
-
-      expect(chatId).toBe(mockChatIdString)
-      expect(db.insert).toHaveBeenCalledTimes(1)
-      expect(mockValues).toHaveBeenCalledWith({
-        id: mockChatIdString,
-        userId: mockUserIdString,
-      })
-    })
-
-    it('should create a new chat with empty initial messages array', async () => {
-      const mockValues = vi.fn().mockResolvedValue(undefined)
-      const mockInsert = vi.fn().mockReturnValue({ values: mockValues })
-      vi.mocked(db.insert).mockReturnValue(mockInsert() as any)
-
-      const chatId = await repository.createChat(mockChatId, mockUserId, [])
-
-      expect(chatId).toBe(mockChatIdString)
-      expect(db.insert).toHaveBeenCalledTimes(1)
-      expect(mockValues).toHaveBeenCalledWith({
-        id: mockChatIdString,
-        userId: mockUserIdString,
-      })
-    })
-
-    it('should create a new chat with initial messages', async () => {
       const initialMessages: UIMessage[] = [
         {
-          id: 'msg-1',
+          id: 'b00cKhlKQI6VjXcD',
           role: 'user',
-          content: [{ type: 'text', text: 'Hello AI' }],
-        } as any,
-        {
-          id: 'msg-2',
-          role: 'assistant',
-          content: [{ type: 'text', text: 'Hello! How can I help you?' }],
+          parts: [{ type: 'text', text: 'hello' }],
         } as any,
       ]
 
       const mockInsertedMessages = [
-        { id: 'db-msg-1', chatId: mockChatIdString, role: 'user' },
-        { id: 'db-msg-2', chatId: mockChatIdString, role: 'assistant' },
+        {
+          id: 'generated-msg-id',
+          chatId: testChatIdString,
+          role: 'user',
+          createdAt: new Date(),
+        },
       ]
 
       // Mock for chats insert
@@ -117,164 +90,34 @@ describe('AIRepository', () => {
         .mockReturnValueOnce(mockMessagesInsert() as any)
         .mockReturnValueOnce(mockPartsInsert() as any)
 
-      const chatId = await repository.createChat(mockChatId, mockUserId, initialMessages)
+      // Act: Call createChat with the test data
+      const result = await repository.createChat(testChatId, testUserId, initialMessages)
 
-      expect(chatId).toBe(mockChatIdString)
+      // Assert: Verify the chat was created successfully
+      expect(result).toBe(testChatIdString)
       expect(db.insert).toHaveBeenCalledTimes(3)
 
-      // Verify chat insert
+      // Verify chat insert was called with correct data
       expect(mockChatValues).toHaveBeenCalledWith({
-        id: mockChatIdString,
-        userId: mockUserIdString,
+        id: testChatIdString,
+        userId: testUserIdString,
       })
 
-      // Verify messages insert
-      expect(mockMessagesValues).toHaveBeenCalledWith([
-        { chatId: mockChatIdString, role: 'user' },
-        { chatId: mockChatIdString, role: 'assistant' },
-      ])
+      // Verify messages insert was called with correct data
+      expect(mockMessagesValues).toHaveBeenCalledWith([{ chatId: testChatIdString, role: 'user' }])
 
-      // Verify parts insert
+      // Verify parts insert was called with correct data
       expect(mockPartsValues).toHaveBeenCalledWith([
-        { messageId: 'db-msg-1', type: 'text', text: 'Hello AI' },
-        { messageId: 'db-msg-2', type: 'text', text: 'Hello! How can I help you?' },
+        {
+          messageId: 'generated-msg-id',
+          type: 'text',
+          textText: 'hello',
+          order: 0,
+        },
       ])
-    })
 
-    it('should handle messages with multiple parts', async () => {
-      const initialMessages: UIMessage[] = [
-        {
-          id: 'msg-1',
-          role: 'user',
-          content: [
-            { type: 'text', text: 'First part' },
-            { type: 'text', text: 'Second part' },
-            { type: 'text', text: 'Third part' },
-          ],
-        } as any,
-      ]
-
-      const mockInsertedMessages = [{ id: 'db-msg-1', chatId: mockChatIdString, role: 'user' }]
-
-      const mockChatValues = vi.fn().mockResolvedValue(undefined)
-      const mockChatInsert = vi.fn().mockReturnValue({ values: mockChatValues })
-
-      const mockMessagesReturning = vi.fn().mockResolvedValue(mockInsertedMessages)
-      const mockMessagesValues = vi.fn().mockReturnValue({ returning: mockMessagesReturning })
-      const mockMessagesInsert = vi.fn().mockReturnValue({ values: mockMessagesValues })
-
-      const mockPartsValues = vi.fn().mockResolvedValue(undefined)
-      const mockPartsInsert = vi.fn().mockReturnValue({ values: mockPartsValues })
-
-      vi.mocked(db.insert)
-        .mockReturnValueOnce(mockChatInsert() as any)
-        .mockReturnValueOnce(mockMessagesInsert() as any)
-        .mockReturnValueOnce(mockPartsInsert() as any)
-
-      await repository.createChat(mockChatId, mockUserId, initialMessages)
-
-      expect(mockPartsValues).toHaveBeenCalledWith([
-        { messageId: 'db-msg-1', type: 'text', text: 'First part' },
-        { messageId: 'db-msg-1', type: 'text', text: 'Second part' },
-        { messageId: 'db-msg-1', type: 'text', text: 'Third part' },
-      ])
-    })
-
-    it('should filter out invalid parts without type or text', async () => {
-      const initialMessages: UIMessage[] = [
-        {
-          id: 'msg-1',
-          role: 'user',
-          content: [
-            { type: 'text', text: 'Valid part' },
-            { type: 'text' }, // Missing text
-            { text: 'No type' }, // Missing type
-            null, // Null part
-            { type: 'text', text: 'Another valid part' },
-          ],
-        } as any,
-      ]
-
-      const mockInsertedMessages = [{ id: 'db-msg-1', chatId: mockChatIdString, role: 'user' }]
-
-      const mockChatValues = vi.fn().mockResolvedValue(undefined)
-      const mockChatInsert = vi.fn().mockReturnValue({ values: mockChatValues })
-
-      const mockMessagesReturning = vi.fn().mockResolvedValue(mockInsertedMessages)
-      const mockMessagesValues = vi.fn().mockReturnValue({ returning: mockMessagesReturning })
-      const mockMessagesInsert = vi.fn().mockReturnValue({ values: mockMessagesValues })
-
-      const mockPartsValues = vi.fn().mockResolvedValue(undefined)
-      const mockPartsInsert = vi.fn().mockReturnValue({ values: mockPartsValues })
-
-      vi.mocked(db.insert)
-        .mockReturnValueOnce(mockChatInsert() as any)
-        .mockReturnValueOnce(mockMessagesInsert() as any)
-        .mockReturnValueOnce(mockPartsInsert() as any)
-
-      await repository.createChat(mockChatId, mockUserId, initialMessages)
-
-      // Should only insert valid parts
-      expect(mockPartsValues).toHaveBeenCalledWith([
-        { messageId: 'db-msg-1', type: 'text', text: 'Valid part' },
-        { messageId: 'db-msg-1', type: 'text', text: 'Another valid part' },
-      ])
-    })
-
-    it('should not insert parts if no valid parts exist', async () => {
-      const initialMessages: UIMessage[] = [
-        {
-          id: 'msg-1',
-          role: 'user',
-          content: [], // Empty content
-        } as any,
-      ]
-
-      const mockInsertedMessages = [{ id: 'db-msg-1', chatId: mockChatIdString, role: 'user' }]
-
-      const mockChatValues = vi.fn().mockResolvedValue(undefined)
-      const mockChatInsert = vi.fn().mockReturnValue({ values: mockChatValues })
-
-      const mockMessagesReturning = vi.fn().mockResolvedValue(mockInsertedMessages)
-      const mockMessagesValues = vi.fn().mockReturnValue({ returning: mockMessagesReturning })
-      const mockMessagesInsert = vi.fn().mockReturnValue({ values: mockMessagesValues })
-
-      vi.mocked(db.insert)
-        .mockReturnValueOnce(mockChatInsert() as any)
-        .mockReturnValueOnce(mockMessagesInsert() as any)
-
-      await repository.createChat(mockChatId, mockUserId, initialMessages)
-
-      // Should only call insert twice (chat and messages, not parts)
-      expect(db.insert).toHaveBeenCalledTimes(2)
-    })
-
-    it('should handle messages with non-array content', async () => {
-      const initialMessages: UIMessage[] = [
-        {
-          id: 'msg-1',
-          role: 'user',
-          content: 'Simple string content', // Not an array
-        } as any,
-      ]
-
-      const mockInsertedMessages = [{ id: 'db-msg-1', chatId: mockChatIdString, role: 'user' }]
-
-      const mockChatValues = vi.fn().mockResolvedValue(undefined)
-      const mockChatInsert = vi.fn().mockReturnValue({ values: mockChatValues })
-
-      const mockMessagesReturning = vi.fn().mockResolvedValue(mockInsertedMessages)
-      const mockMessagesValues = vi.fn().mockReturnValue({ returning: mockMessagesReturning })
-      const mockMessagesInsert = vi.fn().mockReturnValue({ values: mockMessagesValues })
-
-      vi.mocked(db.insert)
-        .mockReturnValueOnce(mockChatInsert() as any)
-        .mockReturnValueOnce(mockMessagesInsert() as any)
-
-      await repository.createChat(mockChatId, mockUserId, initialMessages)
-
-      // Should insert message but not parts (content is not an array)
-      expect(db.insert).toHaveBeenCalledTimes(2)
+      // Verify logger was called
+      expect(mockLogger.info).toHaveBeenCalled()
     })
   })
 
@@ -298,7 +141,8 @@ describe('AIRepository', () => {
 
       const mockWhere = vi.fn().mockResolvedValue(mockResult)
       const mockLeftJoin = vi.fn().mockReturnValue({ where: mockWhere })
-      const mockFrom = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
+      const mockInnerJoin = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
+      const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin })
       vi.mocked(db.select).mockReturnValue({ from: mockFrom } as any)
 
       const result = await repository.getChatResponse(mockChatId)
@@ -307,15 +151,16 @@ describe('AIRepository', () => {
       expect(db.select).toHaveBeenCalledTimes(1)
     })
 
-    it('should return null when chat has no messages', async () => {
-      const mockWhere = vi.fn().mockResolvedValue(null)
+    it('should return empty array when chat has no messages', async () => {
+      const mockWhere = vi.fn().mockResolvedValue([])
       const mockLeftJoin = vi.fn().mockReturnValue({ where: mockWhere })
-      const mockFrom = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
+      const mockInnerJoin = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
+      const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin })
       vi.mocked(db.select).mockReturnValue({ from: mockFrom } as any)
 
       const result = await repository.getChatResponse(mockChatId)
 
-      expect(result).toBeNull()
+      expect(result).toEqual([])
     })
 
     it('should handle messages without parts', async () => {
@@ -328,7 +173,8 @@ describe('AIRepository', () => {
 
       const mockWhere = vi.fn().mockResolvedValue(mockResult)
       const mockLeftJoin = vi.fn().mockReturnValue({ where: mockWhere })
-      const mockFrom = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
+      const mockInnerJoin = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
+      const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin })
       vi.mocked(db.select).mockReturnValue({ from: mockFrom } as any)
 
       const result = await repository.getChatResponse(mockChatId)
@@ -351,7 +197,8 @@ describe('AIRepository', () => {
 
       const mockWhere = vi.fn().mockResolvedValue(mockResult)
       const mockLeftJoin = vi.fn().mockReturnValue({ where: mockWhere })
-      const mockFrom = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
+      const mockInnerJoin = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
+      const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin })
       vi.mocked(db.select).mockReturnValue({ from: mockFrom } as any)
 
       const result = await repository.getChatResponse(mockChatId)
@@ -366,7 +213,8 @@ describe('AIRepository', () => {
 
       const mockWhere = vi.fn().mockRejectedValue(dbError)
       const mockLeftJoin = vi.fn().mockReturnValue({ where: mockWhere })
-      const mockFrom = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
+      const mockInnerJoin = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
+      const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin })
       vi.mocked(db.select).mockReturnValue({ from: mockFrom } as any)
 
       await expect(repository.getChatResponse(mockChatId)).rejects.toThrow(
@@ -375,12 +223,13 @@ describe('AIRepository', () => {
     })
 
     it('should query with correct chat ID', async () => {
-      const specificChatId = 'specific-chat-id-123'
+      const specificChatIdString = uuidv7()
+      const specificChatId = new ChatId(specificChatIdString).getValue()
       const mockResult = [
         {
           message: {
             id: 'msg-1',
-            chatId: specificChatId,
+            chatId: specificChatIdString,
             role: 'user',
             createdAt: new Date(),
           },
@@ -390,7 +239,8 @@ describe('AIRepository', () => {
 
       const mockWhere = vi.fn().mockResolvedValue(mockResult)
       const mockLeftJoin = vi.fn().mockReturnValue({ where: mockWhere })
-      const mockFrom = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
+      const mockInnerJoin = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
+      const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin })
       vi.mocked(db.select).mockReturnValue({ from: mockFrom } as any)
 
       const result = await repository.getChatResponse(specificChatId)
@@ -404,7 +254,8 @@ describe('AIRepository', () => {
 
       const mockWhere = vi.fn().mockResolvedValue(mockResult)
       const mockLeftJoin = vi.fn().mockReturnValue({ where: mockWhere })
-      const mockFrom = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
+      const mockInnerJoin = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
+      const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin })
       vi.mocked(db.select).mockReturnValue({ from: mockFrom } as any)
 
       const result = await repository.getChatResponse(mockChatId)

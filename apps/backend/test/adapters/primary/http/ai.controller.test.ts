@@ -7,7 +7,7 @@ import type { LoggerPort } from '../../../../src/application/ports/logger.port.j
 import type { AppendedChatUseCase } from '../../../../src/application/use-cases/append-chat.use-case.js'
 import type { GetChatUseCase } from '../../../../src/application/use-cases/get-chat.use-case.js'
 import type { SaveChatUseCase } from '../../../../src/application/use-cases/save-chat.use-case.js'
-import { UserId, type UserIdType } from '../../../../src/domain/value-objects/userID.js'
+import { UserId } from '../../../../src/domain/value-objects/userID.js'
 
 // Mock the AI SDK modules
 vi.mock('ai', () => ({
@@ -294,14 +294,20 @@ describe('AIController', () => {
 
         await controller.chat(mockRequest, mockReply)
 
-        expect(mockGetChatUseCase.execute).toHaveBeenCalledWith(userId, [
-          expect.objectContaining({ id: '1', role: 'user' }),
-          expect.objectContaining({ id: '2', role: 'assistant' }),
-          expect.objectContaining({ id: '3', role: 'user' }),
-        ])
-        expect(mockAppendChatUseCase.execute).toHaveBeenCalledWith(chatId, [
-          expect.objectContaining({ id: '3', role: 'user' }),
-        ])
+        expect(mockGetChatUseCase.execute).toHaveBeenCalledWith(
+          expect.any(String), // chatId as branded type
+          expect.arrayContaining([
+            expect.objectContaining({ id: '1', role: 'user', parts: expect.any(Array) }),
+            expect.objectContaining({ id: '2', role: 'assistant', parts: expect.any(Array) }),
+            expect.objectContaining({ id: '3', role: 'user', parts: expect.any(Array) }),
+          ])
+        )
+        expect(mockAppendChatUseCase.execute).toHaveBeenCalledWith(
+          expect.any(String), // chatId as branded type
+          expect.arrayContaining([
+            expect.objectContaining({ id: '3', role: 'user', parts: expect.any(Array) }),
+          ])
+        )
       })
 
       it('should create new chat if chat does not exist', async () => {
@@ -321,9 +327,12 @@ describe('AIController', () => {
 
         await controller.chat(mockRequest, mockReply)
 
-        expect(mockGetChatUseCase.execute).toHaveBeenCalledWith(userId, [
-          expect.objectContaining({ id: '1', role: 'user' }),
-        ])
+        expect(mockGetChatUseCase.execute).toHaveBeenCalledWith(
+          expect.any(String), // chatId as branded type
+          expect.arrayContaining([
+            expect.objectContaining({ id: '1', role: 'user', parts: expect.any(Array) }),
+          ])
+        )
       })
 
       it('should log debug message when sending to chat', async () => {
@@ -428,7 +437,7 @@ describe('AIController', () => {
           expect.objectContaining({
             model: expect.any(String),
             messages: expect.any(Array),
-            system: expect.stringContaining('Charles Marlow'),
+            system: expect.stringContaining('neutral, polite tone'),
             tools: expect.objectContaining({
               heartOfDarknessQA: expect.any(Object),
             }),

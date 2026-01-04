@@ -12,6 +12,7 @@ export class SaveChatUseCase {
   async execute(chatId: ChatIdType, userId: UserIdType, messages: any[]): Promise<string> {
     // Placeholder implementation
     this.logger.info(`Saving chat ${chatId} for user ${userId} with ${messages.length} messages.`)
+    this.logger.info('Messages:', messages)
 
     const savedChatId = await this.aiRepository.createChat(chatId, userId, messages)
     this.logger.info(`Chat saved with ID: ${savedChatId}`)

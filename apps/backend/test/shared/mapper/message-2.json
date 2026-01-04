@@ -1,0 +1,16 @@
+[
+  {
+    "id": "",
+    "role": "assistant",
+    "parts": [
+      {
+        "type": "step-start"
+      },
+      {
+        "type": "text",
+        "text": "Hello! How can I help you today?\n",
+        "state": "done"
+      }
+    ]
+  }
+]

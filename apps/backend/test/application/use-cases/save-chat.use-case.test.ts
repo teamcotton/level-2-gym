@@ -200,7 +200,7 @@ describe('SaveChatUseCase', () => {
 
       await useCase.execute(testChatId, testUserId, messages)
 
-      expect(mockLogger.info).toHaveBeenCalledTimes(2)
+      expect(mockLogger.info).toHaveBeenCalledTimes(3) // Before save, messages log, after save
     })
 
     it('should log with empty messages array', async () => {
@@ -261,7 +261,7 @@ describe('SaveChatUseCase', () => {
         // Expected to throw
       }
 
-      expect(mockLogger.info).toHaveBeenCalledTimes(1) // Only the initial log
+      expect(mockLogger.info).toHaveBeenCalledTimes(2) // Initial log and messages log only
       expect(mockLogger.info).not.toHaveBeenCalledWith(
         expect.stringContaining('Chat saved with ID:')
       )
@@ -364,7 +364,7 @@ describe('SaveChatUseCase', () => {
       expect(result).toBe(expectedChatId)
 
       // Verify logging
-      expect(mockLogger.info).toHaveBeenCalledTimes(2)
+      expect(mockLogger.info).toHaveBeenCalledTimes(3) // Before save, messages log, after save
     })
 
     it('should handle rapid sequential saves', async () => {

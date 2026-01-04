@@ -4,7 +4,7 @@ import type { UserIdType } from '../../domain/value-objects/userID.js'
 import type { ChatIdType } from '../../domain/value-objects/chatID.js'
 
 export interface AIServicePort {
-  getChatResponse(userId: UserIdType | ChatIdType | string): Promise<ChatResponseResult | null>
+  getChatResponse(chatId: ChatIdType): Promise<ChatResponseResult | null>
   createChat(
     chatId: ChatIdType | string,
     userId: UserIdType | string,

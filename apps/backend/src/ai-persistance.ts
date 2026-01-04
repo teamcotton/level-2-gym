@@ -148,7 +148,7 @@ export const POST = async (req: Request): Promise<Response> => {
       }
       // you can also inspect chunk.reasoning / chunk.sources / etc.
     },
-    onFinish({ text, finishReason, usage, response, totalUsage }) {
+    onFinish({ finishReason, usage, totalUsage }) {
       // Called once when the full output is complete
       // console.log('\n--- DONE ---')
       // console.log('Full text:', text)
