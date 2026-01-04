@@ -140,30 +140,24 @@ export class AIController {
         }
         // you can also inspect chunk.reasoning / chunk.sources / etc.
       },
-      onFinish({ text, finishReason, usage, response, totalUsage }) {
+      onFinish: ({ text, finishReason, usage, response, totalUsage }) => {
         // Called once when the full output is complete
-        // console.log('\n--- DONE ---')
-        // console.log('Full text:', text)
         // The reason the model finished generating the text.
         // "stop" | "length" | "content-filter" | "tool-calls" | "error" | "other" | "unknown"
-        console.log('Finish reason:', { finishReason })
-        console.log('Usage info:', { usage, totalUsage })
-        // use proper logging for production
-        console.log('streamText.onFinish')
+        this.logger.debug('Stream finished', { finishReason })
+        this.logger.debug('Stream usage info', { usage, totalUsage })
+        this.logger.debug('streamText.onFinish')
         // Model messages (AssistantModelMessage or ToolModelMessage)
         // Minimal information, no UI data
         // Not suitable for UI applications
-        console.log('  messages')
-        console.log(JSON.stringify(messages), { depth: null })
+        this.logger.debug('Stream messages', { messages: JSON.stringify(messages) })
         // 'response.messages' is an array of ToolModelMessage and AssistantModelMessage,
         // which are the model messages that were generated during the stream.
         // This is useful if you don't need UIMessages - for simpler applications.
-        console.log('  response')
-        console.log(JSON.stringify(response), { depth: null })
+        this.logger.debug('Stream response', { response: JSON.stringify(response) })
       },
-      onError({ error }) {
-        // use proper logging for production
-        console.log('Stream error:', error as Error)
+      onError: ({ error }) => {
+        this.logger.error('Stream error', error as Error)
       },
     })
 
@@ -173,7 +167,7 @@ export class AIController {
         // 'messages' is the full message history, including the original messages
         // Includes original user message and assistant's response with all parts
         // Ideal for persisting entire conversations
-        console.log('toUIMessageStreamResponse.onFinish', {
+        this.logger.debug('toUIMessageStreamResponse.onFinish', {
           chatId: id,
           messageCount: Array.isArray(messages) ? messages.length : undefined,
         })
@@ -181,9 +175,7 @@ export class AIController {
         // Single message
         // Just the newly generated assistant message
         // Good for persisting only the latest response
-        console.log('toUIMessageStreamResponse.onFinish')
-        console.log('  responseMessage')
-        console.dir(responseMessage, { depth: null })
+        this.logger.debug('Response message', { responseMessage })
         await this.appendChatUseCase.execute(chatId, [responseMessage])
       },
     })

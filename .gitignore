@@ -181,3 +181,9 @@ apps/frontend/certificates/*
 # Ignore local e2e test DB config
 apps/frontend/e2e/.test-db-config.json
 .DS_Store
+
+# Ignore temporary husky directories
+.husky_temp/
+.husky_disabled/
+.husky_backup/
+.husky_final/
