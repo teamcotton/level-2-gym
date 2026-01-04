@@ -85,13 +85,13 @@ CREATE TABLE parts (
     provider_metadata JSONB,
 
     -- tools-specific fields
-    tool_heartOfDarknessQA_input: JSONB,
+    tool_heart_of_darkness_qa_input JSONB,
     /* the input will be a JSON object:
      * "input": {
      *     "question": "Summarize Heart of Darkness"
      * }
      */
-    tool_heartOfDarknessQA_output: JSONB,
+    tool_heart_of_darkness_qa_output JSONB,
     /* the output will be a JSON object:
      * "output": {
      *     "question": "Summarize Heart of Darkness",
@@ -99,7 +99,7 @@ CREATE TABLE parts (
      *     "context": "﻿The Project Gutenberg eBook of Heart of"
      * }
      */
-    tool_heartOfDarknessQA_errorText: VARCHAR,
+    tool_heart_of_darkness_qa_error_text VARCHAR,
     -- Check constraints: Enforce required fields based on part type
     CONSTRAINT text_text_required_if_type_is_text 
         CHECK (CASE WHEN type = 'text' THEN text_text IS NOT NULL ELSE TRUE END),
