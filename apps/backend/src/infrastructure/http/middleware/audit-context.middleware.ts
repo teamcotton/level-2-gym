@@ -10,7 +10,7 @@ import type { FastifyRequest, FastifyReply } from 'fastify'
  */
 export async function auditContextMiddleware(
   request: FastifyRequest,
-  reply: FastifyReply
+  _reply: FastifyReply
 ): Promise<void> {
   // Attach audit context to request for use in use cases
   request.auditContext = {
