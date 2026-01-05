@@ -186,7 +186,7 @@ export function AIChatView({
           </Box>
 
           {errorMessage && (
-            <Alert severity="error" onClose={onErrorClose} sx={{ m: 2 }}>
+            <Alert severity="error" onClose={onErrorClose} sx={{ m: 2 }} data-testid="error-alert">
               {errorMessage}
             </Alert>
           )}

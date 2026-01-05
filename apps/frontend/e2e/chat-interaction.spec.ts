@@ -101,8 +101,7 @@ test.describe('Chat Interaction', () => {
     await submitBtn.click()
 
     // Wait for and verify the error Alert is displayed
-    // Filter to exclude Next.js route announcer
-    const errorAlert = page.getByRole('alert').filter({ hasNotText: 'AI Chat Assistant' }).first()
+    const errorAlert = page.getByTestId('error-alert')
     await expect(errorAlert).toBeVisible({ timeout: 5000 })
 
     // Verify the error message contains expected text
@@ -115,8 +114,8 @@ test.describe('Chat Interaction', () => {
     const closeButton = errorAlert.getByRole('button', { name: /close/i })
     await expect(closeButton).toBeVisible()
 
-    // Click close button and verify alert disappears
+    // Click close button and verify alert is removed from DOM
     await closeButton.click()
-    await expect(errorAlert).toBeHidden()
+    await expect(errorAlert).not.toBeAttached()
   })
 })
