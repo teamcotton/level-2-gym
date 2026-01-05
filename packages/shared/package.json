@@ -24,7 +24,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "zod": "^4.3.2"
+    "zod": "^4.3.5"
   },
   "exports": {
     ".": {
@@ -33,7 +33,7 @@
     }
   },
   "devDependencies": {
-    "@redocly/cli": "^2.14.2",
+    "@redocly/cli": "^2.14.3",
     "@stoplight/spectral-cli": "^6.15.0",
     "@vitest/coverage-v8": "^4.0.16",
     "jsdom": "^27.4.0",

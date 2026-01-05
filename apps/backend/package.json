@@ -30,7 +30,7 @@
     "@ai-sdk/google": "^2.0.51",
     "@fastify/cors": "^11.2.0",
     "@fastify/swagger": "^9.6.1",
-    "@fastify/swagger-ui": "^5.2.3",
+    "@fastify/swagger-ui": "^5.2.4",
     "@google/generative-ai": "^0.24.1",
     "@norberts-spark/shared": "workspace:*",
     "ai": "^5.0.116",
@@ -48,7 +48,7 @@
     "uuidv7": "^1.1.0",
     "uuidv7-utilities": "^3.1.0",
     "yaml": "^2.8.2",
-    "zod": "^4.3.2"
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
@@ -63,7 +63,7 @@
     "@typescript-eslint/eslint-plugin": "^8.51.0",
     "@typescript-eslint/parser": "^8.51.0",
     "@vitest/coverage-v8": "^4.0.16",
-    "@vitest/eslint-plugin": "^1.6.4",
+    "@vitest/eslint-plugin": "^1.6.5",
     "drizzle-kit": "^0.31.8",
     "eslint": "^9.39.2",
     "eslint-plugin-codegen": "^0.34.1",

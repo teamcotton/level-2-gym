@@ -52,7 +52,7 @@
     "shiki": "^3.20.0",
     "streamdown": "^1.6.10",
     "uuidv7": "^1.1.0",
-    "zod": "^4.3.2"
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.3",
@@ -71,7 +71,7 @@
     "@typescript-eslint/parser": "^8.51.0",
     "@vitejs/plugin-react": "^5.1.2",
     "@vitest/coverage-v8": "^4.0.16",
-    "@vitest/eslint-plugin": "^1.6.4",
+    "@vitest/eslint-plugin": "^1.6.5",
     "babel-plugin-react-compiler": "^1.0.0",
     "drizzle-orm": "^0.45.1",
     "eslint": "^9.39.2",

@@ -20,13 +20,13 @@
     "prepare": "husky"
   },
   "devDependencies": {
-    "@commitlint/cli": "^20.2.0",
-    "@commitlint/config-conventional": "^20.2.0",
+    "@commitlint/cli": "^20.3.0",
+    "@commitlint/config-conventional": "^20.3.0",
     "@eslint/js": "^9.39.2",
     "@typescript-eslint/eslint-plugin": "^8.51.0",
     "@typescript-eslint/parser": "^8.51.0",
     "@typescript-eslint/utils": "^8.51.0",
-    "@vitest/eslint-plugin": "^1.6.4",
+    "@vitest/eslint-plugin": "^1.6.5",
     "eslint": "^9.39.2",
     "eslint-config-turbo": "^2.7.2",
     "eslint-plugin-codegen": "^0.34.1",
@@ -54,6 +54,6 @@
   "packageManager": "pnpm@10.25.0",
   "preinstall": "npx --yes only-allow pnpm",
   "dependencies": {
-    "zod": "^4.3.2"
+    "zod": "^4.3.5"
   }
 }
