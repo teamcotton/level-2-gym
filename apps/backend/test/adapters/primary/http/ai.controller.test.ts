@@ -513,8 +513,8 @@ describe('AIController', () => {
         await controller.chat(mockRequest, mockReply)
 
         // Verify appendChatUseCase was called twice:
-        // 1. Once for the user message (line 109)
-        // 2. Once for the assistant message from cache (line 143)
+        // 1. Once for the user message when appending to existing chat
+        // 2. Once for the assistant message from cache
         expect(mockAppendChatUseCase.execute).toHaveBeenCalledTimes(2)
 
         // Verify the second call persisted the assistant message

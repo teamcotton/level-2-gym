@@ -7,6 +7,7 @@ import { authMiddleware } from '../../../infrastructure/http/middleware/auth.mid
 import { z } from 'zod'
 import { convertToModelMessages, stepCountIs, streamText, type UIMessage } from 'ai'
 import { google } from '@ai-sdk/google'
+import { uuidv7 } from 'uuidv7'
 import { AppendedChatUseCase } from '../../../application/use-cases/append-chat.use-case.js'
 import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 import { HeartOfDarknessTool } from '../../../infrastructure/ai/tools/heart-of-darkness.tool.js'
@@ -129,7 +130,7 @@ export class AIController {
         // Persist the cached assistant message to maintain consistency
         // This ensures cache hits have the same persistence behavior as cache misses
         const assistantMessage: UIMessage = {
-          id: `msg-${Date.now()}`,
+          id: uuidv7(),
           role: 'assistant',
           parts: [
             {
