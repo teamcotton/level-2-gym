@@ -35,21 +35,18 @@ MODEL_NAME=gemini-1.5-flash
 
 ### 2. Rebuild Native Dependencies (One-time setup)
 
-Evalite uses `better-sqlite3` which requires native bindings. If you encounter a "Could not locate the bindings file" error, run:
+Evalite uses `better-sqlite3` which requires native bindings. After installing evalite for the first time, you must rebuild the native module:
 
 ```bash
-cd node_modules/.pnpm/better-sqlite3@*/node_modules/better-sqlite3
-pnpm run build-release
-cd -
+cd apps/backend
+npm rebuild better-sqlite3
 ```
 
-Or from the root:
+**Why npm and not pnpm?** pnpm ignores build scripts for security reasons. Using `npm rebuild` forces compilation of the native bindings for your platform (macOS ARM64, Linux x64, etc.).
 
-```bash
-pnpm rebuild better-sqlite3
-```
+**You'll know you need this if you see:** `"Could not locate the bindings file"` error when running `pnpm eval`.
 
-### 2. Run Evaluations
+### 3. Run Evaluations
 
 **Important:** Always run these commands from the `apps/backend` directory.
 
@@ -175,14 +172,21 @@ Average Scores:
 
 **"Could not locate the bindings file" (better-sqlite3 error)**
 
-- Evalite uses better-sqlite3 which needs native bindings compiled
-- Solution: Run from the better-sqlite3 directory:
+- Evalite uses better-sqlite3 which needs native bindings compiled for your platform
+- **Root cause:** pnpm ignores build scripts for security reasons when installing packages
+- **Solution:** Use npm to force rebuild the native module:
   ```bash
-  cd node_modules/.pnpm/better-sqlite3@*/node_modules/better-sqlite3
-  npm run build-release
-  cd -
+  cd apps/backend
+  npm rebuild better-sqlite3
   ```
-- Or try: `pnpm rebuild better-sqlite3` from the root directory
+- This compiles the native bindings for your specific platform (e.g., darwin/arm64 on Mac M1/M2)
+- After rebuilding, `pnpm eval` should work without errors
+
+**Alternative approaches that DON'T work:**
+
+- `pnpm rebuild better-sqlite3` - pnpm still ignores build scripts
+- `pnpm approve-builds better-sqlite3` - reports "no packages awaiting approval"
+- Manual build in node_modules - gets wiped on next install
 
 **"API key not valid" or "GOOGLE_API_KEY not found"**
 
