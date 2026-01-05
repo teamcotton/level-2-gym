@@ -14,7 +14,7 @@ import { User } from '../../../src/domain/entities/user.js'
 import { Email } from '../../../src/domain/value-objects/email.js'
 import { Password } from '../../../src/domain/value-objects/password.js'
 import { Role } from '../../../src/domain/value-objects/role.js'
-import { UserId, type UserIdType } from '../../../src/domain/value-objects/userID.js'
+import { UserId } from '../../../src/domain/value-objects/userID.js'
 import { InternalErrorException } from '../../../src/shared/exceptions/internal-error.exception.js'
 
 describe('GetAllUsersUseCase', () => {

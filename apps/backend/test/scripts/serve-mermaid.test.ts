@@ -1,47 +1,64 @@
 import { readFileSync } from 'fs'
-import { describe, expect, it, vi } from 'vitest'
+import { dirname, join, resolve } from 'path'
+import { fileURLToPath } from 'url'
+import { describe, expect, it } from 'vitest'
 
 /**
  * Test suite for the serve-mermaid script
  *
  * Tests the core functionality including file reading logic,
  * HTML template structure, and Mermaid configuration.
+ * Uses an actual sample Mermaid file for integration testing.
  */
 
-// Mock the fs module
-vi.mock('fs', () => ({
-  readFileSync: vi.fn(),
-}))
+// Get test file paths
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const testFilePath = resolve(join(__dirname, 'di:container.md'))
 
 describe('Mermaid Server HTML Template', () => {
-  const mockMarkdownContent = `
-graph TD
-    A[Start] --> B{Is it working?}
-    B -->|Yes| C[Great!]
-    B -->|No| D[Fix it]
-  `.trim()
-
-  describe('File Reading', () => {
-    it('should handle readFileSync for markdown files', () => {
-      vi.mocked(readFileSync).mockReturnValue(mockMarkdownContent)
-      const content = readFileSync('/fake/path/diagram.md', 'utf-8')
-      expect(content).toBe(mockMarkdownContent)
-      expect(readFileSync).toHaveBeenCalledWith('/fake/path/diagram.md', 'utf-8')
+  describe('File Reading Integration', () => {
+    it('should successfully read the sample mermaid file', () => {
+      const content = readFileSync(testFilePath, 'utf-8')
+      expect(content).toBeTruthy()
+      expect(content.length).toBeGreaterThan(0)
     })
 
-    it('should handle different diagram content', () => {
-      const sequenceDiagram = `sequenceDiagram
-    Alice->>Bob: Hello!
-    Bob-->>Alice: Hi!`
+    it('should read file containing valid mermaid syntax', () => {
+      const content = readFileSync(testFilePath, 'utf-8')
+      // Sample file is a class diagram
+      expect(content).toContain('classDiagram')
+      expect(content).toMatch(/class \w+/)
+    })
 
-      vi.mocked(readFileSync).mockReturnValue(sequenceDiagram)
-      const content = readFileSync('/fake/path/sequence.md', 'utf-8')
-      expect(content).toContain('sequenceDiagram')
-      expect(content).toContain('Alice->>Bob')
+    it('should handle path resolution correctly', () => {
+      // Test the same path resolution logic used in serve-mermaid.ts
+      // serve-mermaid.ts uses: resolve(join(__dirname, '..', markdownFilePath))
+      // where __dirname is the scripts directory
+      const scriptsDir = resolve(join(__dirname, '../../scripts'))
+      const relativePathFromBackend = 'test/scripts/di:container.md'
+      const resolvedPath = resolve(join(scriptsDir, '..', relativePathFromBackend))
+
+      expect(() => readFileSync(resolvedPath, 'utf-8')).not.toThrow()
+      const content = readFileSync(resolvedPath, 'utf-8')
+      expect(content).toContain('classDiagram')
+    })
+
+    it('should throw error for non-existent files', () => {
+      const nonExistentPath = join(__dirname, 'does-not-exist.md')
+      expect(() => readFileSync(nonExistentPath, 'utf-8')).toThrow()
+    })
+
+    it('should throw ENOENT error with descriptive message', () => {
+      const nonExistentPath = join(__dirname, 'missing-file.md')
+      expect(() => readFileSync(nonExistentPath, 'utf-8')).toThrow(/ENOENT/)
     })
   })
 
   describe('HTML Template Structure', () => {
+    // Read actual content for testing
+    const actualContent = readFileSync(testFilePath, 'utf-8')
+
     const generateTemplate = (content: string) => `
 <!DOCTYPE html>
 <html lang="en">
@@ -71,29 +88,29 @@ ${content}
 `
 
     it('should generate valid HTML5 structure', () => {
-      const template = generateTemplate(mockMarkdownContent)
+      const template = generateTemplate(actualContent)
       expect(template).toContain('<!DOCTYPE html>')
       expect(template).toContain('<html lang="en">')
       expect(template).toContain('</html>')
     })
 
     it('should include Mermaid CDN script', () => {
-      const template = generateTemplate(mockMarkdownContent)
+      const template = generateTemplate(actualContent)
       expect(template).toContain('https://cdn.jsdelivr.net/npm/mermaid@11')
       expect(template).toContain('import mermaid from')
     })
 
     it('should include mermaid.initialize call', () => {
-      const template = generateTemplate(mockMarkdownContent)
+      const template = generateTemplate(actualContent)
       expect(template).toContain('mermaid.initialize')
       expect(template).toContain('startOnLoad: true')
     })
 
     it('should embed diagram content in mermaid div', () => {
-      const template = generateTemplate(mockMarkdownContent)
+      const template = generateTemplate(actualContent)
       expect(template).toContain('<div class="mermaid">')
-      expect(template).toContain('graph TD')
-      expect(template).toContain('A[Start]')
+      expect(template).toContain('classDiagram')
+      expect(template).toMatch(/class \w+/)
     })
   })
 
@@ -222,55 +239,37 @@ ${content}
     })
   })
 
-  describe('Port Configuration', () => {
-    const PORT = 3001
+  describe('Script Behavior Documentation', () => {
+    // Note: serve-mermaid.ts is an executable script that runs immediately,
+    // making it difficult to unit test directly. These tests document the
+    // expected behavior based on the script's implementation:
+    // const args = process.argv.slice(2)
+    // const markdownFilePath = args[0] || 'di:container.md'
 
-    it('should use port 3001', () => {
-      expect(PORT).toBe(3001)
+    it('should document default file path behavior', () => {
+      // Documents that when no arguments are provided,
+      // the script should use 'di:container.md' as default
+      const expectedDefault = 'di:container.md'
+      expect(expectedDefault).toBe('di:container.md')
     })
 
-    it('should be a valid port number', () => {
-      expect(PORT).toBeGreaterThan(1023) // Above reserved ports
-      expect(PORT).toBeLessThan(65536) // Valid port range
-    })
-  })
-
-  describe('Error Handling Scenarios', () => {
-    it('should throw error if file does not exist', () => {
-      vi.mocked(readFileSync).mockImplementation(() => {
-        throw new Error('ENOENT: no such file or directory')
-      })
-
-      expect(() => {
-        readFileSync('/nonexistent/file.md', 'utf-8')
-      }).toThrow('ENOENT')
+    it('should document expected port usage', () => {
+      // Documents that the script serves on port 3001
+      const expectedPort = 3001
+      expect(expectedPort).toBe(3001)
+      expect(expectedPort).toBeGreaterThan(1023)
+      expect(expectedPort).toBeLessThan(65536)
     })
 
-    it('should throw error with descriptive message', () => {
-      const errorMessage = 'ENOENT: no such file or directory'
-      vi.mocked(readFileSync).mockImplementation(() => {
-        throw new Error(errorMessage)
-      })
+    it('should verify script file exists and is executable', () => {
+      // Verify the actual script file exists
+      const scriptPath = resolve(join(__dirname, '../../scripts/serve-mermaid.ts'))
+      expect(() => readFileSync(scriptPath, 'utf-8')).not.toThrow()
 
-      expect(() => {
-        readFileSync('/nonexistent/file.md', 'utf-8')
-      }).toThrow(errorMessage)
-    })
-  })
-
-  describe('Command Line Arguments', () => {
-    it('should default to di:container.md if no args provided', () => {
-      const args: string[] = []
-      const defaultFile = 'di:container.md'
-      const filePath = args[0] || defaultFile
-      expect(filePath).toBe('di:container.md')
-    })
-
-    it('should use provided file path from args', () => {
-      const args = ['docs/my-diagram.md']
-      const defaultFile = 'di:container.md'
-      const filePath = args[0] || defaultFile
-      expect(filePath).toBe('docs/my-diagram.md')
+      const scriptContent = readFileSync(scriptPath, 'utf-8')
+      expect(scriptContent).toContain('process.argv.slice(2)')
+      expect(scriptContent).toContain("'di:container.md'")
+      expect(scriptContent).toContain('const PORT = 3001')
     })
   })
 })

@@ -504,7 +504,7 @@ describe('RegisterUserUseCase', () => {
         vi.mocked(mockUserRepository.save).mockResolvedValue(mockUserId)
         vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
 
-        const result = await useCase.execute(dto)
+        const _result = await useCase.execute(dto)
 
         expect(mockTokenGenerator.generateToken).toHaveBeenCalledWith({
           sub: mockUserId,
@@ -525,7 +525,7 @@ describe('RegisterUserUseCase', () => {
         vi.mocked(mockUserRepository.save).mockResolvedValue(mockUserId)
         vi.mocked(mockEmailService.sendWelcomeEmail).mockResolvedValue(undefined)
 
-        const result = await useCase.execute(dto)
+        const _result = await useCase.execute(dto)
 
         expect(mockTokenGenerator.generateToken).toHaveBeenCalledWith({
           sub: mockUserId,

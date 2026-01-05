@@ -2,33 +2,23 @@
 import { readFileSync } from 'fs'
 import { createServer } from 'http'
 import { dirname, join, resolve } from 'path'
-import { fileURLToPath } from 'url'
+import { fileURLToPath, pathToFileURL } from 'url'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-// Get the markdown file path from command line arguments
-const args = process.argv.slice(2)
-const markdownFilePath = args[0] || 'di:container.md'
-
-// Resolve the path relative to the backend directory
-const fullPath = resolve(join(__dirname, '..', markdownFilePath))
-
-console.log(`📖 Reading file: ${fullPath}`)
-
-// Read the markdown/mermaid file
-let markdownContent: string
-try {
-  markdownContent = readFileSync(fullPath, 'utf-8')
-} catch (error) {
-  console.error(
-    `❌ Error reading file: ${error instanceof Error ? error.message : 'Unknown error'}`
-  )
-  process.exit(1)
+/**
+ * Escapes HTML special characters in a string
+ */
+export function escapeHtml(str: string): string {
+  return str.replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
-// Create HTML template with Mermaid support
-const htmlTemplate = `
+/**
+ * Generates the HTML template for displaying a Mermaid diagram
+ */
+export function generateHtmlTemplate(markdownContent: string, markdownFilePath: string): string {
+  return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -40,7 +30,8 @@ const htmlTemplate = `
     mermaid.initialize({ 
       startOnLoad: true,
       theme: 'default',
-      securityLevel: 'loose',
+       // from diagram content. Only relax this if all diagrams are fully trusted.
+      securityLevel: 'strict',
       flowchart: { 
         useMaxWidth: false, 
         htmlLabels: true,
@@ -217,7 +208,7 @@ ${markdownContent}
       </div>
     </div>
 
-    <pre id="source"><code>${markdownContent.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre>
+    <pre id="source"><code>${escapeHtml(markdownContent)}</code></pre>
 
     <div class="footer">
       Powered by <a href="https://mermaid.js.org/" target="_blank">Mermaid.js</a>
@@ -327,39 +318,127 @@ ${markdownContent}
       wrapper.scrollTop = scrollTop - walkY;
     });
 
-    // Apply initial zoom after page loads
+     // Apply initial zoom after page loads, once Mermaid has rendered
     window.addEventListener('load', () => {
-      setTimeout(updateZoom, 500);
+      const waitForMermaidAndZoom = () => {
+        const svg = document.querySelector('.mermaid svg');
+        if (svg) {
+          updateZoom();
+        } else {
+          window.requestAnimationFrame(waitForMermaidAndZoom);
+        }
+      };
+      window.requestAnimationFrame(waitForMermaidAndZoom);
     });
   </script>
 </body>
 </html>
 `
+}
 
-// Create HTTP server
-const PORT = 3001
-const server = createServer((req, res) => {
-  if (req.url === '/' || req.url === '/index.html') {
-    res.writeHead(200, { 'Content-Type': 'text/html' })
-    res.end(htmlTemplate)
-  } else {
-    res.writeHead(404, { 'Content-Type': 'text/plain' })
-    res.end('Not Found')
+/**
+ * Reads markdown content from a file path
+ */
+export function readMarkdownFile(fullPath: string): string {
+  try {
+    return readFileSync(fullPath, 'utf-8')
+  } catch (error) {
+    throw new Error(
+      `Error reading file: ${error instanceof Error ? error.message : 'Unknown error'}`
+    )
   }
-})
+}
 
-server.listen(PORT, () => {
-  console.log(`\n✨ Mermaid viewer is running!`)
-  console.log(`📊 Open your browser at: http://localhost:${PORT}`)
-  console.log(`📝 Viewing: ${markdownFilePath}`)
-  console.log(`\n🛑 Press Ctrl+C to stop the server\n`)
-})
+/**
+ * Resolves the full path to a markdown file relative to the backend directory
+ */
+export function resolveMarkdownPath(markdownFilePath: string, scriptDir: string): string {
+  return resolve(join(scriptDir, '..', markdownFilePath))
+}
 
-// Handle graceful shutdown
-process.on('SIGINT', () => {
-  console.log('\n\n👋 Shutting down server...')
-  server.close(() => {
-    console.log('✅ Server closed')
-    process.exit(0)
+/**
+ * Gets the markdown file path from command line arguments or returns default
+ */
+export function getMarkdownFilePath(args: string[]): string {
+  return args[0] || 'di:container.md'
+}
+
+/**
+ * Configuration constants for zoom functionality
+ */
+export const ZOOM_CONFIG = {
+  currentZoom: 2.5,
+  minZoom: 0.5,
+  maxZoom: 10,
+  zoomStep: 0.25,
+} as const
+
+/**
+ * Mermaid configuration object
+ */
+export const MERMAID_CONFIG = {
+  startOnLoad: true,
+  theme: 'default',
+  securityLevel: 'loose',
+  flowchart: {
+    useMaxWidth: false,
+    htmlLabels: true,
+    padding: 20,
+  },
+} as const
+
+/**
+ * Server port configuration
+ */
+export const PORT = 3001
+
+// Only run the server if this module is the main module
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  // Get the markdown file path from command line arguments
+  const args = process.argv.slice(2)
+  const markdownFilePath = getMarkdownFilePath(args)
+
+  // Resolve the path relative to the backend directory
+  const fullPath = resolveMarkdownPath(markdownFilePath, __dirname)
+
+  console.log(`📖 Reading file: ${fullPath}`)
+
+  // Read the markdown/mermaid file
+  let markdownContent: string
+  try {
+    markdownContent = readMarkdownFile(fullPath)
+  } catch (error) {
+    console.error(`❌ ${error instanceof Error ? error.message : 'Unknown error'}`)
+    process.exit(1)
+  }
+
+  // Create HTML template with Mermaid support
+  const htmlTemplate = generateHtmlTemplate(markdownContent, markdownFilePath)
+
+  // Create HTTP server
+  const server = createServer((req, res) => {
+    if (req.url === '/' || req.url === '/index.html') {
+      res.writeHead(200, { 'Content-Type': 'text/html' })
+      res.end(htmlTemplate)
+    } else {
+      res.writeHead(404, { 'Content-Type': 'text/plain' })
+      res.end('Not Found')
+    }
   })
-})
+
+  server.listen(PORT, () => {
+    console.log(`\n✨ Mermaid viewer is running!`)
+    console.log(`📊 Open your browser at: http://localhost:${PORT}`)
+    console.log(`📝 Viewing: ${markdownFilePath}`)
+    console.log(`\n🛑 Press Ctrl+C to stop the server\n`)
+  })
+
+  // Handle graceful shutdown
+  process.on('SIGINT', () => {
+    console.log('\n\n👋 Shutting down server...')
+    server.close(() => {
+      console.log('✅ Server closed')
+      process.exit(0)
+    })
+  })
+}

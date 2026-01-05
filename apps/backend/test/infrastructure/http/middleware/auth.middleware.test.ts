@@ -2,7 +2,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
 import { uuidv7 } from 'uuidv7'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { UserId, type UserIdType } from '../../../../src/domain/value-objects/userID.js'
+import { UserId } from '../../../../src/domain/value-objects/userID.js'
 import { authMiddleware } from '../../../../src/infrastructure/http/middleware/auth.middleware.js'
 import { JwtUtil } from '../../../../src/infrastructure/security/jwt.util.js'
 import { ErrorCode } from '../../../../src/shared/constants/error-codes.js'

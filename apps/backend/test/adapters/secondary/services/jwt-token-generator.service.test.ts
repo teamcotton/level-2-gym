@@ -2,7 +2,7 @@ import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { JwtTokenGeneratorService } from '../../../../src/adapters/secondary/services/jwt-token-generator.service.js'
-import { UserId, type UserIdType } from '../../../../src/domain/value-objects/userID.js'
+import { UserId } from '../../../../src/domain/value-objects/userID.js'
 import { JwtUtil } from '../../../../src/infrastructure/security/jwt.util.js'
 import type { JwtUserClaims } from '../../../../src/shared/types/index.js'
 

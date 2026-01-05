@@ -2,7 +2,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { UserId, type UserIdType } from '../../../../src/domain/value-objects/userID.js'
+import { UserId } from '../../../../src/domain/value-objects/userID.js'
 import { requireRole } from '../../../../src/infrastructure/http/middleware/role.middleware.js'
 import type { JwtUserClaims } from '../../../../src/shared/types/index.js'
 
