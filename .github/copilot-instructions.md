@@ -212,6 +212,7 @@ Hooks are managed by Husky and located in `.husky/` directory.
 - **Frontend Unit tests (Vitest)**: Located in `frontend/src/test/`, use `@testing-library/jest-dom`
 - **Frontend E2E tests (Playwright)**: Located in `frontend/e2e/`, run against dev server on port 4321
 - **Backend Unit tests (Vitest)**: Located in `backend/test/`, test Fastify routes using `app.inject()`
+- \*\*Backend AI evals testing(evalite): Located in `backend/evals/`, use Vitest for evaluation scripts
 - Tests excluded from coverage: `node_modules`, `dist`, `e2e` directories
 - Playwright config runs chromium/firefox/webkit with retry logic in CI
 - Backend uses Fastify's built-in testing utilities for route testing
