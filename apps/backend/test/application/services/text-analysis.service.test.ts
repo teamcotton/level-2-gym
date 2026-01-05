@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+
 import { TextAnalysisService } from '../../../src/application/services/text-analysis.service.js'
 
 describe('TextAnalysisService', () => {
