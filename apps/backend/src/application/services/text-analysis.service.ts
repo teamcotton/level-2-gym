@@ -56,7 +56,10 @@ export class TextAnalysisService {
   /**
    * Create a new TextAnalysisService
    *
-   * @param domainMapping - Optional domain-specific keyword mappings to enhance extraction accuracy
+   * @param domainMapping - Optional domain-specific keyword mappings to enhance extraction accuracy.
+   *                        When provided, the service will add additional relevant keywords based on
+   *                        trigger words found in questions, improving context retrieval for
+   *                        domain-specific content (e.g., literary texts, technical documentation).
    */
   constructor(domainMapping?: DomainKeywordMapping) {
     this.domainMapping = domainMapping
