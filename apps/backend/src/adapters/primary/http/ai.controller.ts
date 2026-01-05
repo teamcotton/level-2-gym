@@ -13,6 +13,7 @@ import { HeartOfDarknessTool } from '../../../infrastructure/ai/tools/heart-of-d
 import { SaveChatUseCase } from '../../../application/use-cases/save-chat.use-case.js'
 import { GetChatUseCase } from '../../../application/use-cases/get-chat.use-case.js'
 import { ChatId } from '../../../domain/value-objects/chatID.js'
+import { SYSTEM_PROMPT } from '../../../shared/constants/ai-constants.js'
 
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
@@ -108,8 +109,6 @@ export class AIController {
       this.logger.info('Chat exists, appending most recent message', { id })
     }
 
-    const SYSTEM_PROMPT = `You must respond in a neutral, polite tone. Make sure responses are concise but comprehensive. Only answer factual questions about the novella when using the heartOfDarknessQA tool. Do not use other sources. In your first response please introduce yourself as an AI assistant familiar with the novella Heart of Darkness by Joseph Conrad and offer help to the user. If the user asks a question that is not related to the novella, politely inform them that you can only assist with questions about Heart of Darkness.`
-
     if (!EnvConfig.MODEL_NAME) {
       this.logger.error('MODEL_NAME environment variable is not configured')
       return reply
@@ -120,10 +119,7 @@ export class AIController {
     const result = streamText({
       model: google(EnvConfig.MODEL_NAME),
       messages: convertToModelMessages(messages as UIMessage[]),
-      system: ` ${SYSTEM_PROMPT}
-      You have access to the following tools:
-      - heartOfDarknessQA (for answering questions about the novella Heart of Darkness)
-    `,
+      system: `${SYSTEM_PROMPT}`,
       tools: {
         heartOfDarknessQA: this.heartOfDarknessTool.getTool(),
       },
