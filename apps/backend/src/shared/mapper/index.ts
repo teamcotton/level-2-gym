@@ -161,14 +161,10 @@ export const mapDBPartToUIMessagePart = (part: MyDBUIMessagePartSelect): MyUIMes
           errorText: part.toolHeartOfDarknessQAErrorText!,
         }
       } else {
-        // If no state is stored or unknown state, return output-available with null output
-        // This handles cases where the tool was called but state wasn't properly saved
-        return {
-          ...baseToolPart,
-          state: 'output-available' as const,
-          input: part.toolHeartOfDarknessQAInput,
-          output: part.toolHeartOfDarknessQAOutput ?? null,
-        }
+        // Treat missing or unknown tool state as a data integrity error
+        throw new Error(
+          `Invalid tool state for heartOfDarknessQA: ${String(part.toolState)}`
+        )
       }
     }
     default:
