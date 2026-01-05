@@ -188,7 +188,7 @@ const STOPWORDS = new Set([
  * Minimum word length for keyword extraction.
  * Words shorter than this are filtered out as they typically
  * don't carry significant semantic meaning.
- * 
+ *
  * This value (4) was determined through eval testing to optimize
  * keyword matching accuracy while filtering out noise words.
  * See commit efe7b45 for comprehensive stopword filtering implementation.
