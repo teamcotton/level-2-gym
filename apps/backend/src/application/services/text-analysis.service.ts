@@ -156,8 +156,8 @@ export class TextAnalysisService {
 
     const allKeywords = [...new Set([...keywords, ...additionalKeywords])]
 
-    // Find passages containing keywords
-    const passages: { start: number; end: number; score: number }[] = []
+    // Step 1: Collect all keyword matches as intervals (O(n) per keyword)
+    const intervals: { start: number; end: number }[] = []
     const textLower = fullText.toLowerCase()
 
     for (const keyword of allKeywords) {
@@ -169,23 +169,31 @@ export class TextAnalysisService {
         const start = Math.max(0, idx - this.PASSAGE_WINDOW / 2)
         const end = Math.min(fullText.length, idx + keyword.length + this.PASSAGE_WINDOW / 2)
 
-        // Check if this overlaps with existing passages
-        let merged = false
-        for (const existing of passages) {
-          if (start <= existing.end && end >= existing.start) {
-            existing.start = Math.min(existing.start, start)
-            existing.end = Math.max(existing.end, end)
-            existing.score += 1
-            merged = true
-            break
-          }
-        }
-
-        if (!merged) {
-          passages.push({ start, end, score: 1 })
-        }
-
+        intervals.push({ start, end })
         searchStart = idx + keyword.length
+      }
+    }
+
+    // Step 2: Sort intervals by start position for efficient merging
+    intervals.sort((a, b) => a.start - b.start)
+
+    // Step 3: Merge overlapping intervals and count overlaps (O(n))
+    const passages: { start: number; end: number; score: number }[] = []
+
+    for (const interval of intervals) {
+      if (passages.length === 0) {
+        passages.push({ ...interval, score: 1 })
+      } else {
+        const last = passages[passages.length - 1]
+        // TypeScript: last is guaranteed to exist since passages.length > 0
+        if (last && interval.start <= last.end) {
+          // Overlapping intervals: merge and increment score
+          last.end = Math.max(last.end, interval.end)
+          last.score += 1
+        } else {
+          // Non-overlapping: add as new passage
+          passages.push({ ...interval, score: 1 })
+        }
       }
     }
 
