@@ -162,9 +162,7 @@ export const mapDBPartToUIMessagePart = (part: MyDBUIMessagePartSelect): MyUIMes
         }
       } else {
         // Treat missing or unknown tool state as a data integrity error
-        throw new Error(
-          `Invalid tool state for heartOfDarknessQA: ${String(part.toolState)}`
-        )
+        throw new Error(`Invalid tool state for heartOfDarknessQA: ${String(part.toolState)}`)
       }
     }
     default:
