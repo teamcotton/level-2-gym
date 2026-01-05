@@ -10,17 +10,33 @@ import { EnvConfig } from '../../src/infrastructure/config/env.config.js'
  * Simple console logger for eval tests
  */
 class SimpleLogger implements LoggerPort {
-  info(message: string): void {
-    console.log(`[INFO] ${message}`)
+  info(message: string, meta?: unknown): void {
+    if (meta !== undefined) {
+      console.log(`[INFO] ${message}`, meta)
+    } else {
+      console.log(`[INFO] ${message}`)
+    }
   }
-  error(message: string): void {
-    console.error(`[ERROR] ${message}`)
+  error(message: string, meta?: unknown): void {
+    if (meta !== undefined) {
+      console.error(`[ERROR] ${message}`, meta)
+    } else {
+      console.error(`[ERROR] ${message}`)
+    }
   }
-  warn(message: string): void {
-    console.warn(`[WARN] ${message}`)
+  warn(message: string, meta?: unknown): void {
+    if (meta !== undefined) {
+      console.warn(`[WARN] ${message}`, meta)
+    } else {
+      console.warn(`[WARN] ${message}`)
+    }
   }
-  debug(message: string): void {
-    console.debug(`[DEBUG] ${message}`)
+  debug(message: string, meta?: unknown): void {
+    if (meta !== undefined) {
+      console.debug(`[DEBUG] ${message}`, meta)
+    } else {
+      console.debug(`[DEBUG] ${message}`)
+    }
   }
 }
 
