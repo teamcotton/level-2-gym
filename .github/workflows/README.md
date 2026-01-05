@@ -24,7 +24,7 @@ If you need more control or can't enable the above setting:
 1. Create a Personal Access Token (classic):
    - Go to GitHub **Settings** → **Developer settings** → **Personal access tokens** → **Tokens (classic)**
    - Click **Generate new token (classic)**
-   - Give it a descriptive name like "Norbert-Spark Auto-Updates"
+   - Give it a descriptive name like "Auto-Updates"
    - Select scopes: `repo` (all), `workflow`
    - Generate and copy the token
 
