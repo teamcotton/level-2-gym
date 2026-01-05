@@ -39,6 +39,12 @@ vi.mock('../../../../src/infrastructure/ai/tools/getText.js', () => {
   }
 })
 
+// Mock cache service
+let mockCacheService: { get: any; set: any } | null = null
+vi.mock('../../../../src/infrastructure/ai/middleware/cache.middleware.js', () => ({
+  createCacheService: vi.fn(() => mockCacheService),
+}))
+
 describe('AIController', () => {
   let controller: AIController
   let mockGetChatUseCase: GetChatUseCase
@@ -51,6 +57,9 @@ describe('AIController', () => {
   beforeEach(() => {
     // Reset all mocks before each test
     vi.clearAllMocks()
+
+    // Reset cache service to null by default
+    mockCacheService = null
 
     // Create mock use cases
     mockGetChatUseCase = {
@@ -86,6 +95,7 @@ describe('AIController', () => {
       status: vi.fn().mockReturnThis(),
       send: vi.fn().mockReturnThis(),
       code: vi.fn().mockReturnThis(),
+      type: vi.fn().mockReturnThis(),
     } as any
 
     // Create mock Fastify request
@@ -463,6 +473,166 @@ describe('AIController', () => {
 
         expect(result).toBeDefined()
         expect(result).toHaveProperty('status')
+      })
+    })
+
+    describe('cache behavior', () => {
+      beforeEach(() => {
+        // Reset cache mock before each test in this section
+        mockCacheService = {
+          get: vi.fn(),
+          set: vi.fn(),
+        }
+      })
+
+      it('should persist assistant message when returning cached response', async () => {
+        const chatId = uuidv7()
+        const cachedResponse = 'This is a cached response about Heart of Darkness.'
+        
+        mockRequest.body = {
+          id: chatId,
+          messages: [
+            {
+              id: '1',
+              role: 'user',
+              parts: [{ type: 'text', text: 'Tell me about Heart of Darkness' }],
+            },
+          ],
+          trigger: 'user-input',
+        }
+
+        vi.mocked(mockGetChatUseCase.execute).mockResolvedValue({
+          id: chatId,
+          userId: 'user-123',
+          messages: [],
+        } as any)
+
+        // Mock cache service to return a cached response
+        mockCacheService!.get = vi.fn().mockResolvedValue(cachedResponse)
+
+        await controller.chat(mockRequest, mockReply)
+
+        // Verify appendChatUseCase was called twice:
+        // 1. Once for the user message (line 109)
+        // 2. Once for the assistant message from cache (line 143)
+        expect(mockAppendChatUseCase.execute).toHaveBeenCalledTimes(2)
+
+        // Verify the second call persisted the assistant message
+        const secondCall = vi.mocked(mockAppendChatUseCase.execute).mock.calls[1]
+        expect(secondCall).toBeDefined()
+        expect(secondCall![0]).toBe(chatId) // chatId
+        expect(secondCall![1]).toEqual([
+          expect.objectContaining({
+            role: 'assistant',
+            parts: [
+              expect.objectContaining({
+                type: 'text',
+                text: cachedResponse,
+                state: 'done',
+              }),
+            ],
+          }),
+        ])
+      })
+
+      it('should return cached response as plain text', async () => {
+        const chatId = uuidv7()
+        const cachedResponse = 'Cached AI response text'
+        
+        mockRequest.body = {
+          id: chatId,
+          messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
+          trigger: 'user-input',
+        }
+
+        vi.mocked(mockGetChatUseCase.execute).mockResolvedValue({
+          id: chatId,
+          userId: 'user-123',
+          messages: [],
+        } as any)
+
+        mockCacheService!.get = vi.fn().mockResolvedValue(cachedResponse)
+
+        await controller.chat(mockRequest, mockReply)
+
+        expect(mockReply.status).toHaveBeenCalledWith(200)
+        expect(mockReply.send).toHaveBeenCalledWith(cachedResponse)
+      })
+
+      it('should log cache hit when returning cached response', async () => {
+        const chatId = uuidv7()
+        const cachedResponse = 'Cached response'
+        
+        mockRequest.body = {
+          id: chatId,
+          messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Test' }] }],
+          trigger: 'user-input',
+        }
+
+        vi.mocked(mockGetChatUseCase.execute).mockResolvedValue({
+          id: chatId,
+          userId: 'user-123',
+          messages: [],
+        } as any)
+
+        mockCacheService!.get = vi.fn().mockResolvedValue(cachedResponse)
+
+        await controller.chat(mockRequest, mockReply)
+
+        expect(mockLogger.info).toHaveBeenCalledWith('Returning cached AI response', { chatId })
+        expect(mockLogger.debug).toHaveBeenCalledWith('Persisted cached assistant message', {
+          chatId,
+        })
+      })
+
+      it('should proceed with streaming when cache miss', async () => {
+        const chatId = uuidv7()
+        
+        mockRequest.body = {
+          id: chatId,
+          messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
+          trigger: 'user-input',
+        }
+
+        vi.mocked(mockGetChatUseCase.execute).mockResolvedValue({
+          id: chatId,
+          userId: 'user-123',
+          messages: [],
+        } as any)
+
+        // Mock cache miss
+        mockCacheService!.get = vi.fn().mockResolvedValue(null)
+
+        await controller.chat(mockRequest, mockReply)
+
+        // Should proceed with streaming (not return early)
+        const { streamText } = await import('ai')
+        expect(streamText).toHaveBeenCalled()
+      })
+
+      it('should handle null cache service gracefully', async () => {
+        const chatId = uuidv7()
+        
+        mockRequest.body = {
+          id: chatId,
+          messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
+          trigger: 'user-input',
+        }
+
+        vi.mocked(mockGetChatUseCase.execute).mockResolvedValue({
+          id: chatId,
+          userId: 'user-123',
+          messages: [],
+        } as any)
+
+        // Set cache service to null (Redis not configured)
+        mockCacheService = null
+
+        await controller.chat(mockRequest, mockReply)
+
+        // Should proceed with streaming
+        const { streamText } = await import('ai')
+        expect(streamText).toHaveBeenCalled()
       })
     })
 
