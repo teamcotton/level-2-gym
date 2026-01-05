@@ -6,7 +6,7 @@ import { UserController } from '../../../../src/adapters/primary/http/user.contr
 import { RegisterUserDto } from '../../../../src/application/dtos/register-user.dto.js'
 import { GetAllUsersUseCase } from '../../../../src/application/use-cases/get-all-users.use-case.js'
 import { RegisterUserUseCase } from '../../../../src/application/use-cases/register-user.use-case.js'
-import { UserId, type UserIdType } from '../../../../src/domain/value-objects/userID.js'
+import { UserId } from '../../../../src/domain/value-objects/userID.js'
 import { ValidationException } from '../../../../src/shared/exceptions/validation.exception.js'
 
 // Helper function to create mock user with proper UserIdType

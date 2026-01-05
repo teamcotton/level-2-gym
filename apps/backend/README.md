@@ -101,6 +101,22 @@ openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -node
 - `pnpm typecheck` - Run TypeScript type checking
 - `pnpm lint` - Run ESLint
 - `pnpm format` - Format code with Prettier
+- `pnpm mermaid` - Serve Mermaid diagrams (see [MERMAID_VIEWER.md](./MERMAID_VIEWER.md))
+- `pnpm mermaid:di` - View DI container diagram at http://localhost:3001
+
+## Viewing Diagrams
+
+The backend includes a built-in Mermaid diagram viewer for visualizing architecture and documentation:
+
+```bash
+# View the DI container diagram
+pnpm mermaid:di
+
+# View any Mermaid file
+pnpm mermaid docs/architecture-flow.md
+```
+
+See [MERMAID_VIEWER.md](./MERMAID_VIEWER.md) for full documentation.
 
 ## Database Management
 

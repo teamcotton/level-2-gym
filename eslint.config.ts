@@ -45,7 +45,10 @@ const config: Linter.Config[] = [
       'import/named': 'off',
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
       semi: ['error', 'never'],
       'simple-import-sort/imports': 'error',
       'simple-import-sort/exports': 'error',

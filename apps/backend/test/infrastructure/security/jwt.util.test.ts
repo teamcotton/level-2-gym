@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { UserId, type UserIdType } from '../../../src/domain/value-objects/userID.js'
+import { UserId } from '../../../src/domain/value-objects/userID.js'
 import { EnvConfig } from '../../../src/infrastructure/config/env.config.js'
 import { JwtUtil } from '../../../src/infrastructure/security/jwt.util.js'
 import { ErrorCode } from '../../../src/shared/constants/error-codes.js'

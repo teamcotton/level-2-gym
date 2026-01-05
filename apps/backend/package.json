@@ -24,7 +24,9 @@
     "db:push": "drizzle-kit push",
     "db:drop": "docker exec -i norbertsSpark-postgres psql -U postgres -d norbertsSpark < drizzle/drop_all_tables.sql",
     "db:reset": "pnpm db:drop && pnpm db:push",
-    "seed:users": "tsx scripts/seed-users.ts"
+    "seed:users": "tsx scripts/seed-users.ts",
+    "mermaid": "tsx scripts/serve-mermaid.ts",
+    "mermaid:di": "tsx scripts/serve-mermaid.ts di:container.md"
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.51",

@@ -6,7 +6,7 @@ import { User } from '../../../../src/domain/entities/user.js'
 import { Email } from '../../../../src/domain/value-objects/email.js'
 import { Password } from '../../../../src/domain/value-objects/password.js'
 import { Role } from '../../../../src/domain/value-objects/role.js'
-import { UserId, type UserIdType } from '../../../../src/domain/value-objects/userID.js'
+import { UserId } from '../../../../src/domain/value-objects/userID.js'
 // Import db after mocking
 import { db } from '../../../../src/infrastructure/database/index.js'
 import { POSTGRES_ERROR_CODE } from '../../../../src/shared/constants/error-codes.js'
