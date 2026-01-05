@@ -61,6 +61,7 @@ export function useAIChat({ id }: UseAIChatProps = {}) {
     }),
     onError: (error) => {
       logger.error('Chat transport error', error)
+      setErrorMessage(error.message || 'An error occurred while communicating with the AI service')
     },
   })
 

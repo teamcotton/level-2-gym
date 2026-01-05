@@ -18,7 +18,6 @@ import {
   ListItemIcon,
   ListItemText,
   Paper,
-  Snackbar,
   Stack,
 } from '@mui/material'
 import type { UIDataTypes, UIMessagePart, UITools } from 'ai'
@@ -186,6 +185,12 @@ export function AIChatView({
             </IconButton>
           </Box>
 
+          {errorMessage && (
+            <Alert severity="error" onClose={onErrorClose} sx={{ m: 2 }}>
+              {errorMessage}
+            </Alert>
+          )}
+
           <Box
             sx={{
               flex: 1,
@@ -264,16 +269,6 @@ export function AIChatView({
           />
         </Paper>
       </Box>
-      <Snackbar
-        open={!!errorMessage}
-        autoHideDuration={6000}
-        onClose={onErrorClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert onClose={onErrorClose} severity="error" sx={{ width: '100%' }}>
-          {errorMessage}
-        </Alert>
-      </Snackbar>
     </Wrapper>
   )
 }
