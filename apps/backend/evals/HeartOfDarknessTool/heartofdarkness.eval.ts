@@ -11,7 +11,7 @@ import { generateText, type CoreUserMessage, stepCountIs } from 'ai'
 import { google } from '@ai-sdk/google'
 import { HeartOfDarknessTool } from '../../src/infrastructure/ai/tools/heart-of-darkness.tool.js'
 import type { LoggerPort } from '../../src/application/ports/logger.port.js'
-
+import { SYSTEM_PROMPT } from '../../src/shared/constants/ai-constants.js'
 /**
  * Simple console logger for eval tests
  */
@@ -136,11 +136,7 @@ async function getAgentResponse(question: string): Promise<string> {
   ]
 
   // System prompt that forces tool usage for accurate answers from the text
-  const evalSystemPrompt = `You are a literary expert on Joseph Conrad's "Heart of Darkness".
-
-IMPORTANT: You MUST use the heartOfDarknessQA tool to look up the answer in the actual text.
-Do NOT answer from memory - always consult the tool first.
-After receiving the tool result, provide a direct, concise answer (1-3 sentences) based on the text.`
+  const evalSystemPrompt = SYSTEM_PROMPT
 
   try {
     const result = await generateText({
