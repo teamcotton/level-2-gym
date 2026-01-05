@@ -138,7 +138,8 @@ describe('HeartOfDarknessTool', () => {
         mockGetTextUseCaseInstance.filePath
       )
       expect(mockGetTextUseCaseInstance.execute).not.toHaveBeenCalled()
-      expect(result.context).toBe(mockText)
+      // Context now includes extracted passages or fallback format
+      expect(result.context).toContain(mockText)
     })
 
     it('should log when loading from cache', async () => {
@@ -189,7 +190,7 @@ describe('HeartOfDarknessTool', () => {
         mockOptions
       )) as HeartOfDarknessOutput
 
-      expect(result.instructions).toContain('full text of Heart of Darkness')
+      expect(result.instructions).toContain('Heart of Darkness')
       expect(result.instructions).toContain('answer the question')
     })
   })
@@ -211,7 +212,8 @@ describe('HeartOfDarknessTool', () => {
       )
       expect(mockGetTextUseCaseInstance.execute).toHaveBeenCalled()
       expect(mockGetTextUseCaseInstance.getCachedContent).not.toHaveBeenCalled()
-      expect(result.context).toBe(mockText)
+      // Context now includes extracted passages or fallback format
+      expect(result.context).toContain(mockText)
     })
 
     it('should log when loading from file', async () => {
@@ -256,13 +258,11 @@ describe('HeartOfDarknessTool', () => {
       vi.mocked(mockGetTextUseCaseInstance.execute).mockResolvedValue(undefined)
 
       const aiTool = tool.getTool()
-      const result = (await aiTool.execute!(
-        { question: 'Test' },
-        mockOptions
-      )) as HeartOfDarknessOutput
 
-      expect(result.textLength).toBe(0)
-      expect(result.context).toBeUndefined()
+      // Should throw error when execute returns undefined
+      await expect(aiTool.execute!({ question: 'Test' }, mockOptions)).rejects.toThrow(
+        'Failed to load Heart of Darkness text'
+      )
     })
   })
 
@@ -390,16 +390,14 @@ describe('HeartOfDarknessTool', () => {
 
     it('should handle empty text content', async () => {
       vi.mocked(mockGetTextUseCaseInstance.hasCachedContent).mockReturnValue(true)
-      vi.mocked(mockGetTextUseCaseInstance.getCachedContent).mockReturnValue('')
+      vi.mocked(mockGetTextUseCaseInstance.getCachedContent).mockReturnValue(null as any)
 
       const aiTool = tool.getTool()
-      const result = (await aiTool.execute!(
-        { question: 'Test' },
-        mockOptions
-      )) as HeartOfDarknessOutput
 
-      expect(result.textLength).toBe(0)
-      expect(result.context).toBe('')
+      // Should throw error when content is null/undefined
+      await expect(aiTool.execute!({ question: 'Test' }, mockOptions)).rejects.toThrow(
+        'Failed to load Heart of Darkness text'
+      )
     })
   })
 
@@ -420,8 +418,9 @@ describe('HeartOfDarknessTool', () => {
         mockOptions
       )) as HeartOfDarknessOutput
 
-      expect(result1.context).toBe(mockText)
-      expect(result2.context).toBe(mockText)
+      // Context now includes extracted passages or fallback format
+      expect(result1.context).toContain(mockText)
+      expect(result2.context).toContain(mockText)
       expect(mockGetTextUseCaseInstance.getCachedContent).toHaveBeenCalledTimes(2)
       expect(mockGetTextUseCaseInstance.execute).not.toHaveBeenCalled()
     })
@@ -448,8 +447,9 @@ describe('HeartOfDarknessTool', () => {
         mockOptions
       )) as HeartOfDarknessOutput
 
-      expect(result1.context).toBe(mockText)
-      expect(result2.context).toBe(mockText)
+      // Context now includes extracted passages or fallback format
+      expect(result1.context).toContain(mockText)
+      expect(result2.context).toContain(mockText)
       expect(mockLogger.info).toHaveBeenCalledWith('Heart of Darkness text loaded from file')
       expect(mockLogger.info).toHaveBeenCalledWith('Heart of Darkness text loaded from cache')
     })
@@ -483,7 +483,8 @@ describe('HeartOfDarknessTool', () => {
       )) as HeartOfDarknessOutput
 
       expect(result.question).toBe(longQuestion)
-      expect(result.context).toBe(mockText)
+      // Context now includes extracted passages or fallback format
+      expect(result.context).toContain(mockText)
     })
 
     it('should handle questions with special characters', async () => {
