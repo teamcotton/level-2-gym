@@ -1,3 +1,5 @@
+import type { DomainKeywordMapping } from './domain-keyword-mapping.config.js'
+
 /**
  * Service for text analysis operations
  *
@@ -12,6 +14,14 @@
  * const textAnalysisService = new TextAnalysisService()
  * const relevantPassages = textAnalysisService.extractRelevantPassages(fullText, question)
  * ```
+ *
+ * @example With domain-specific keyword mappings
+ * ```typescript
+ * import { HEART_OF_DARKNESS_MAPPINGS } from './domain-keyword-mapping.config.js'
+ * const textAnalysisService = new TextAnalysisService(HEART_OF_DARKNESS_MAPPINGS)
+ * const relevantPassages = textAnalysisService.extractRelevantPassages(fullText, question)
+ * ```
+ *
  * @member MAX_CONTEXT_LENGTH
  * Token math: Most tokenizers average ~4 characters per token. 25,000 chars ÷ 4 ≈ 6,250 tokens
  * Model limits: Gemini models have context windows of 32K-1M tokens, so 6K tokens is very safe
@@ -41,6 +51,19 @@ export class TextAnalysisService {
   private readonly MAX_CONTEXT_LENGTH = 25000
   private readonly PASSAGE_WINDOW = 1500
   private readonly KEYWORD_LENGTH_THRESHOLD = 2
+  private readonly domainMapping?: DomainKeywordMapping
+
+  /**
+   * Create a new TextAnalysisService
+   *
+   * @param domainMapping - Optional domain-specific keyword mappings to enhance extraction accuracy.
+   *                        When provided, the service will add additional relevant keywords based on
+   *                        trigger words found in questions, improving context retrieval for
+   *                        domain-specific content (e.g., literary texts, technical documentation).
+   */
+  constructor(domainMapping?: DomainKeywordMapping) {
+    this.domainMapping = domainMapping
+  }
   /**
    * Extract relevant passages from the text based on question keywords
    * Uses a sliding window approach to find paragraphs containing key terms
@@ -130,28 +153,17 @@ export class TextAnalysisService {
       .split(/\s+/)
       .filter((word) => word.length > this.KEYWORD_LENGTH_THRESHOLD && !stopWords.has(word))
 
-    // Add domain-specific keywords based on question content
+    // Add domain-specific keywords based on configuration
     const additionalKeywords: string[] = []
-    if (question.toLowerCase().includes('river')) {
-      additionalKeywords.push('thames', 'congo', 'river', 'water')
-    }
-    if (question.toLowerCase().includes('position') || question.toLowerCase().includes('hired')) {
-      additionalKeywords.push('captain', 'steamboat', 'command', 'skipper', 'appointed')
-    }
-    if (question.toLowerCase().includes('kurtz')) {
-      additionalKeywords.push('kurtz', 'ivory', 'station', 'agent')
-    }
-    if (question.toLowerCase().includes('death') || question.toLowerCase().includes('words')) {
-      additionalKeywords.push('horror', 'died', 'death', 'last', 'whispered')
-    }
-    if (question.toLowerCase().includes('attack')) {
-      additionalKeywords.push('arrows', 'natives', 'spears', 'attack', 'savages')
-    }
-    if (question.toLowerCase().includes('repair') || question.toLowerCase().includes('steamboat')) {
-      additionalKeywords.push('rivets', 'repair', 'boiler', 'steam', 'wreck')
-    }
-    if (question.toLowerCase().includes('poles') || question.toLowerCase().includes('station')) {
-      additionalKeywords.push('heads', 'skulls', 'poles', 'ornamental')
+    if (this.domainMapping) {
+      const questionLower = question.toLowerCase()
+      for (const rule of this.domainMapping.rules) {
+        // Check if any trigger is present in the question
+        const hasMatch = rule.triggers.some((trigger) => questionLower.includes(trigger))
+        if (hasMatch) {
+          additionalKeywords.push(...rule.keywords)
+        }
+      }
     }
 
     const allKeywords = [...new Set([...keywords, ...additionalKeywords])]

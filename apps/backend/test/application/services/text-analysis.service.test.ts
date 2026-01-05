@@ -1,12 +1,15 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
+import { HEART_OF_DARKNESS_MAPPINGS } from '../../../src/application/services/domain-keyword-mapping.config.js'
 import { TextAnalysisService } from '../../../src/application/services/text-analysis.service.js'
 
 describe('TextAnalysisService', () => {
   let service: TextAnalysisService
+  let serviceWithDomainMappings: TextAnalysisService
 
   beforeEach(() => {
     service = new TextAnalysisService()
+    serviceWithDomainMappings = new TextAnalysisService(HEART_OF_DARKNESS_MAPPINGS)
   })
 
   describe('extractRelevantPassages', () => {
@@ -44,7 +47,7 @@ describe('TextAnalysisService', () => {
       `
       const question = 'What about the river?'
 
-      const result = service.extractRelevantPassages(fullText, question)
+      const result = serviceWithDomainMappings.extractRelevantPassages(fullText, question)
 
       // Should include passages about rivers (thames, congo, river, water)
       expect(result.length).toBeGreaterThan(0)
@@ -58,7 +61,7 @@ describe('TextAnalysisService', () => {
       `
       const question = 'Tell me about Kurtz'
 
-      const result = service.extractRelevantPassages(fullText, question)
+      const result = serviceWithDomainMappings.extractRelevantPassages(fullText, question)
 
       // Should include passages about Kurtz, ivory, station, agent
       expect(result).toContain('Kurtz')
@@ -157,7 +160,7 @@ describe('TextAnalysisService', () => {
       `
       const question = 'What were his last words?'
 
-      const result = service.extractRelevantPassages(fullText, question)
+      const result = serviceWithDomainMappings.extractRelevantPassages(fullText, question)
 
       // Should find passages about death, horror, whispered, died, last
       expect(result).toMatch(/horror|died|death|last|whispered/i)
@@ -170,7 +173,7 @@ describe('TextAnalysisService', () => {
       `
       const question = 'What happened during the attack?'
 
-      const result = service.extractRelevantPassages(fullText, question)
+      const result = serviceWithDomainMappings.extractRelevantPassages(fullText, question)
 
       // Should find passages about arrows, natives, spears, attack, savages
       expect(result).toMatch(/arrows|natives|spears|attack|savages/i)
@@ -183,7 +186,7 @@ describe('TextAnalysisService', () => {
       `
       const question = 'How was the steamboat repaired?'
 
-      const result = service.extractRelevantPassages(fullText, question)
+      const result = serviceWithDomainMappings.extractRelevantPassages(fullText, question)
 
       // Should find passages about rivets, repair, boiler, steam, wreck
       expect(result).toMatch(/rivets|repair|boiler|steam|wreck/i)
@@ -196,7 +199,7 @@ describe('TextAnalysisService', () => {
       `
       const question = 'What was at the station with the poles?'
 
-      const result = service.extractRelevantPassages(fullText, question)
+      const result = serviceWithDomainMappings.extractRelevantPassages(fullText, question)
 
       // Should find passages about heads, skulls, poles, ornamental
       expect(result).toMatch(/heads|skulls|poles|ornamental/i)

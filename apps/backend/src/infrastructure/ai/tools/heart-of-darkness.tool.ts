@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { GetTextUseCase } from '../../../application/use-cases/get-text.use-case.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
 import { TextAnalysisService } from '../../../application/services/text-analysis.service.js'
+import { HEART_OF_DARKNESS_MAPPINGS } from '../../../application/services/domain-keyword-mapping.config.js'
 
 /**
  * AI tool for answering questions about Joseph Conrad's "Heart of Darkness"
@@ -26,7 +27,7 @@ export class HeartOfDarknessTool {
   constructor(logger: LoggerPort) {
     this.logger = logger
     this.getTextUseCase = new GetTextUseCase('data', 'heart-of-darkness.txt')
-    this.textAnalysisService = new TextAnalysisService()
+    this.textAnalysisService = new TextAnalysisService(HEART_OF_DARKNESS_MAPPINGS)
   }
 
   /**
