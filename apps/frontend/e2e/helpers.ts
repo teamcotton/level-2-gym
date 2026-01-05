@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test'
+import { type BrowserContext, expect, type Page } from '@playwright/test'
 
 /**
  * Sign in with the test admin user and navigate to the chat page
@@ -9,7 +9,7 @@ import { expect, type Page } from '@playwright/test'
  */
 export async function signInAndNavigateToChat(
   page: Page,
-  options?: { clearCookies?: boolean; context?: { clearCookies: () => Promise<void> } }
+  options?: { clearCookies?: boolean; context?: BrowserContext }
 ) {
   // Clear cookies if context provided
   if (options?.clearCookies && options?.context) {
