@@ -76,7 +76,7 @@ Press `Ctrl+C` in the terminal to stop the server.
 
 1. Create a `.md` file with Mermaid syntax:
 
-```markdown
+```mermaid
 graph TD
 A[Start] --> B{Decision}
 B -->|Yes| C[Result 1]
