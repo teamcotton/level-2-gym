@@ -346,9 +346,8 @@ evalite('Heart of Darkness Agent Accuracy', {
         const keyTerms = extractKeywords(expected)
         const outputKeywords = extractKeywords(output)
 
-        const matchedTerms = keyTerms.filter((term: string) =>
-          outputKeywords.some((keyword) => keyword.includes(term) || term.includes(keyword))
-        )
+        // Use exact matching to avoid false positives from substring matches
+        const matchedTerms = keyTerms.filter((term: string) => outputKeywords.includes(term))
         const keywordScore = keyTerms.length > 0 ? matchedTerms.length / keyTerms.length : 0
 
         return {
