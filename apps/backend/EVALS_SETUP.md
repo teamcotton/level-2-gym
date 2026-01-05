@@ -19,13 +19,19 @@ This document provides a quick overview of the evaluation system for the Heart o
 **Critical:** Make sure your `.env` file in `apps/backend` contains:
 
 ```bash
-GOOGLE_API_KEY=your_google_api_key
-MODEL_NAME=gemini-2.0-flash-exp
+# Google AI SDK uses GOOGLE_API_KEY
+GOOGLE_API_KEY=your_google_api_key_here
+
+# Application uses GOOGLE_GENERATIVE_AI_API_KEY (same value)
+GOOGLE_GENERATIVE_AI_API_KEY=your_google_api_key_here
+
+# Model configuration
+MODEL_NAME=ggemini-1.5-flash
 ```
 
-You can copy from `.env.example` if it exists, or create a new `.env` file with these variables.
+**Important:** The AI SDK library (used by evalite) looks for `GOOGLE_API_KEY` in the environment, while the application code uses `GOOGLE_GENERATIVE_AI_API_KEY`. You need to set both to the same value.
 
-**Without a valid `GOOGLE_API_KEY`, the evals will fail immediately.**
+**Without a valid `GOOGLE_API_KEY`, the evals will fail immediately with "API key not valid" errors.**
 
 ### 2. Rebuild Native Dependencies (One-time setup)
 

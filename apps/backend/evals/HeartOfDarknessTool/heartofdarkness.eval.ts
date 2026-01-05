@@ -1,10 +1,16 @@
+// Load environment variables FIRST before any other imports
+import dotenv from 'dotenv'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+dotenv.config({ path: path.resolve(__dirname, '../../.env'), override: true })
+
 import { evalite } from 'evalite'
-import { streamText, type CoreUserMessage, stepCountIs } from 'ai'
+import { generateText, type CoreUserMessage, stepCountIs } from 'ai'
 import { google } from '@ai-sdk/google'
 import { HeartOfDarknessTool } from '../../src/infrastructure/ai/tools/heart-of-darkness.tool.js'
-import { SYSTEM_PROMPT } from '../../src/shared/constants/ai-constants.js'
 import type { LoggerPort } from '../../src/application/ports/logger.port.js'
-import { EnvConfig } from '../../src/infrastructure/config/env.config.js'
 
 /**
  * Simple console logger for eval tests
@@ -102,11 +108,11 @@ Evaluate accuracy (0.0-1.0):
 Respond with ONLY a number.`
 
   try {
-    const result = streamText({
-      model: google(EnvConfig.MODEL_NAME || 'gemini-2.0-flash-lite'),
+    const result = await generateText({
+      model: google(process.env.MODEL_NAME || 'gemini-2.5-flash'),
       prompt: judgePrompt,
     })
-    const text = await result.text
+    const text = result.text
     const score = parseFloat(text.trim())
     return isNaN(score) ? 0 : Math.max(0, Math.min(1, score))
   } catch (error) {
@@ -129,20 +135,34 @@ async function getAgentResponse(question: string): Promise<string> {
     },
   ]
 
+  // System prompt that forces tool usage for accurate answers from the text
+  const evalSystemPrompt = `You are a literary expert on Joseph Conrad's "Heart of Darkness".
+
+IMPORTANT: You MUST use the heartOfDarknessQA tool to look up the answer in the actual text.
+Do NOT answer from memory - always consult the tool first.
+After receiving the tool result, provide a direct, concise answer (1-3 sentences) based on the text.`
+
   try {
-    const result = streamText({
-      model: google(EnvConfig.MODEL_NAME || 'gemini-2.0-flash-exp'),
+    const result = await generateText({
+      model: google(process.env.MODEL_NAME || 'gemini-2.5-flash'),
       messages,
-      system: SYSTEM_PROMPT,
+      system: evalSystemPrompt,
       tools: {
         heartOfDarknessQA: heartOfDarknessTool.getTool(),
       },
-      stopWhen: [stepCountIs(10)],
+      stopWhen: stepCountIs(5),
     })
 
-    return await result.text
+    const text = result.text
+
+    if (!text || text.trim().length === 0) {
+      throw new Error('Agent returned empty response')
+    }
+
+    return text
   } catch (error) {
     console.error('Agent error:', error)
+    console.error('Question was:', question)
     throw error
   }
 }
