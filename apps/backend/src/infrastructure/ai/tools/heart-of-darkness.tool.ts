@@ -2,6 +2,7 @@ import { tool, type InferToolInput, type InferToolOutput } from 'ai'
 import { z } from 'zod'
 import { GetTextUseCase } from '../../../application/use-cases/get-text.use-case.js'
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
+import { KeywordExtractionUtil } from '../../../shared/utils/keyword-extraction.util.js'
 
 /**
  * AI tool for answering questions about Joseph Conrad's "Heart of Darkness"
@@ -86,71 +87,8 @@ export class HeartOfDarknessTool {
     const MAX_CONTEXT_LENGTH = 25000 // ~6,000 tokens - allow more context for accurate answers
     const PASSAGE_WINDOW = 1500 // Characters around each match
 
-    // Extract meaningful keywords from the question (exclude common words)
-    const stopWords = new Set([
-      'the',
-      'a',
-      'an',
-      'is',
-      'are',
-      'was',
-      'were',
-      'what',
-      'which',
-      'who',
-      'whom',
-      'when',
-      'where',
-      'why',
-      'how',
-      'does',
-      'do',
-      'did',
-      'has',
-      'have',
-      'had',
-      'in',
-      'on',
-      'at',
-      'to',
-      'for',
-      'of',
-      'with',
-      'by',
-      'from',
-      'about',
-      'into',
-      'during',
-      'his',
-      'her',
-      'their',
-      'its',
-      'that',
-      'this',
-      'these',
-      'those',
-      'and',
-      'or',
-      'but',
-      'if',
-      'then',
-      'else',
-      'just',
-      'before',
-      'after',
-      'upriver',
-      'start',
-      'begins',
-      'narrating',
-      'story',
-      'novella',
-    ])
-
-    const keywords = question
-      .toLowerCase()
-      .replace(/[?.,!]/g, '')
-      .split(/\s+/)
-      .filter((word) => word.length > 2 && !stopWords.has(word))
+    // Extract meaningful keywords from the question using shared utility
+    const keywords = KeywordExtractionUtil.extractKeywords(question)
 
     // Add domain-specific keywords based on question content
     const additionalKeywords: string[] = []
