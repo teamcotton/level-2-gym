@@ -43,7 +43,7 @@ function isRedisConfigured(): boolean {
  * Lazily initialize Redis client only when credentials are configured
  */
 let redisClient: Redis | null = null
-let isInitializing = false
+let initializationAttempted = false
 
 function getRedisClient(): Redis | null {
   // Return existing client if already initialized
@@ -51,18 +51,17 @@ function getRedisClient(): Redis | null {
     return redisClient
   }
 
-  // Prevent concurrent initialization
-  if (isInitializing) {
-    return null
-  }
-
   // Check if Redis is configured
   if (!isRedisConfigured()) {
     return null
   }
 
-  // Mark as initializing to prevent race conditions
-  isInitializing = true
+  // Only attempt initialization once to avoid repeated errors
+  if (initializationAttempted) {
+    return null
+  }
+
+  initializationAttempted = true
 
   try {
     redisClient = new Redis({
@@ -70,8 +69,9 @@ function getRedisClient(): Redis | null {
       token: obscured.value(EnvConfig.UPSTASH_REDIS_REST_TOKEN),
     })
     return redisClient
-  } finally {
-    isInitializing = false
+  } catch (error) {
+    console.error('Failed to initialize Redis client:', error)
+    return null
   }
 }
 
