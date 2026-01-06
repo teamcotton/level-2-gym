@@ -79,12 +79,22 @@ export class AIController {
 
       // Extract id and trigger from body
       id = body?.id
+
       trigger = body?.trigger
 
       if (!id || !trigger) {
         return reply.status(400).send({
           error: 'Invalid request body',
           details: 'id and trigger are required',
+        })
+      }
+
+      try {
+        id = new ChatId(id).getValue()
+      } catch {
+        return reply.status(400).send({
+          error: 'Invalid id format',
+          details: 'incorrect ChatId format',
         })
       }
 
