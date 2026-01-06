@@ -13,7 +13,7 @@ const { getAuthToken } = await import('@/lib/auth.js')
 
 describe('GET /api/users', () => {
   const mockEnv = {
-    BACKEND_AI_CALLBACK_URL_DEV: 'https://api.example.com',
+    BACKEND_AI_CALLBACK_URL: 'https://api.example.com',
   }
 
   const mockAccessToken = 'mock-jwt-token'
@@ -21,7 +21,7 @@ describe('GET /api/users', () => {
   beforeEach(() => {
     vi.resetAllMocks()
     global.fetch = vi.fn()
-    process.env.BACKEND_AI_CALLBACK_URL_DEV = mockEnv.BACKEND_AI_CALLBACK_URL_DEV
+    process.env.BACKEND_AI_CALLBACK_URL = mockEnv.BACKEND_AI_CALLBACK_URL
     // Mock successful authentication by default
     ;(getAuthToken as ReturnType<typeof vi.fn>).mockResolvedValue(mockAccessToken)
   })
@@ -101,8 +101,8 @@ describe('GET /api/users', () => {
       expect(global.fetch).not.toHaveBeenCalled()
     })
 
-    it('should use BACKEND_AI_CALLBACK_URL_DEV environment variable', async () => {
-      process.env.BACKEND_AI_CALLBACK_URL_DEV = 'https://custom-api.example.com'
+    it('should use BACKEND_AI_CALLBACK_URL environment variable', async () => {
+      process.env.BACKEND_AI_CALLBACK_URL = 'https://custom-api.example.com'
 
       const mockBackendResponse = {
         success: true,
@@ -307,8 +307,8 @@ describe('GET /api/users', () => {
   })
 
   describe('Error Handling', () => {
-    it('should return 500 when BACKEND_AI_CALLBACK_URL_DEV is not configured', async () => {
-      delete process.env.BACKEND_AI_CALLBACK_URL_DEV
+    it('should return 500 when BACKEND_AI_CALLBACK_URL is not configured', async () => {
+      delete process.env.BACKEND_AI_CALLBACK_URL
 
       const request = new Request('https://localhost:4321/api/users', {
         method: 'GET',
@@ -471,7 +471,7 @@ describe('GET /api/users', () => {
 
   describe('Local Development with Self-Signed Certificates', () => {
     it('should detect localhost HTTPS as local development', async () => {
-      process.env.BACKEND_AI_CALLBACK_URL_DEV = 'https://localhost:3001'
+      process.env.BACKEND_AI_CALLBACK_URL = 'https://localhost:3001'
 
       const mockBackendResponse = {
         success: true,
@@ -521,7 +521,7 @@ describe('GET /api/users', () => {
     })
 
     it('should detect 127.0.0.1 HTTPS as local development', async () => {
-      process.env.BACKEND_AI_CALLBACK_URL_DEV = 'https://127.0.0.1:3001'
+      process.env.BACKEND_AI_CALLBACK_URL = 'https://127.0.0.1:3001'
 
       const mockBackendResponse = {
         success: true,
@@ -571,7 +571,7 @@ describe('GET /api/users', () => {
     })
 
     it('should use regular fetch for non-local HTTPS URLs', async () => {
-      process.env.BACKEND_AI_CALLBACK_URL_DEV = 'https://api.example.com'
+      process.env.BACKEND_AI_CALLBACK_URL = 'https://api.example.com'
 
       const mockBackendResponse = {
         success: true,
@@ -606,7 +606,7 @@ describe('GET /api/users', () => {
     })
 
     it('should use regular fetch for localhost HTTP (not HTTPS)', async () => {
-      process.env.BACKEND_AI_CALLBACK_URL_DEV = 'http://localhost:3001'
+      process.env.BACKEND_AI_CALLBACK_URL = 'http://localhost:3001'
 
       const mockBackendResponse = {
         success: true,
@@ -772,7 +772,7 @@ describe('GET /api/users', () => {
 
   describe('Cache Control', () => {
     it('should use no-store cache directive for non-local requests', async () => {
-      process.env.BACKEND_AI_CALLBACK_URL_DEV = 'https://api.example.com'
+      process.env.BACKEND_AI_CALLBACK_URL = 'https://api.example.com'
 
       const mockBackendResponse = {
         success: true,

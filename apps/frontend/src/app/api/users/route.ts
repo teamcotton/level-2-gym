@@ -19,10 +19,7 @@ export async function GET(request: Request) {
       )
     }
 
-    const apiUrl =
-      process.env.NODE_ENV === 'production'
-        ? process.env.BACKEND_AI_CALLBACK_URL_PROD
-        : process.env.BACKEND_AI_CALLBACK_URL_DEV
+    const apiUrl = process.env.BACKEND_AI_CALLBACK_URL
 
     if (!apiUrl) {
       return Response.json(
