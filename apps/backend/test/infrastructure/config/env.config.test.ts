@@ -703,4 +703,181 @@ describe('EnvConfig', () => {
       expect(EnvConfig.UPSTASH_REDIS_REST_TOKEN.toString()).toBe('[OBSCURED]')
     })
   })
+
+  describe('REQUEST_TIMEOUT', () => {
+    it('should be a static readonly property', async () => {
+      process.env.REQUEST_TIMEOUT = '30000'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      const descriptor = Object.getOwnPropertyDescriptor(EnvConfig, 'REQUEST_TIMEOUT')
+      expect(descriptor).toBeDefined()
+      expect(descriptor?.configurable).toBe(true)
+      expect(descriptor?.enumerable).toBe(true)
+    })
+
+    it('should use REQUEST_TIMEOUT from environment when set', async () => {
+      process.env.REQUEST_TIMEOUT = '45000'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.REQUEST_TIMEOUT).toBe('45000')
+    })
+
+    it('should default to "30000" when REQUEST_TIMEOUT is not set', async () => {
+      delete process.env.REQUEST_TIMEOUT
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.REQUEST_TIMEOUT).toBe('30000')
+    })
+
+    it('should have type string', async () => {
+      process.env.REQUEST_TIMEOUT = '60000'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(typeof EnvConfig.REQUEST_TIMEOUT).toBe('string')
+      expect(EnvConfig.REQUEST_TIMEOUT).toBe('60000')
+    })
+
+    it('should not be obscured (plain string value)', async () => {
+      process.env.REQUEST_TIMEOUT = '20000'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // REQUEST_TIMEOUT should be a plain string, not obscured
+      expect(typeof EnvConfig.REQUEST_TIMEOUT).toBe('string')
+      expect(EnvConfig.REQUEST_TIMEOUT).toBe('20000')
+      // Should not have obscured behavior
+      expect(String(EnvConfig.REQUEST_TIMEOUT)).toBe('20000')
+    })
+  })
+
+  describe('CONNECTION_TIMEOUT', () => {
+    it('should be a static readonly property', async () => {
+      process.env.CONNECTION_TIMEOUT = '10000'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      const descriptor = Object.getOwnPropertyDescriptor(EnvConfig, 'CONNECTION_TIMEOUT')
+      expect(descriptor).toBeDefined()
+      expect(descriptor?.configurable).toBe(true)
+      expect(descriptor?.enumerable).toBe(true)
+    })
+
+    it('should use CONNECTION_TIMEOUT from environment when set', async () => {
+      process.env.CONNECTION_TIMEOUT = '15000'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.CONNECTION_TIMEOUT).toBe('15000')
+    })
+
+    it('should default to "10000" when CONNECTION_TIMEOUT is not set', async () => {
+      delete process.env.CONNECTION_TIMEOUT
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.CONNECTION_TIMEOUT).toBe('10000')
+    })
+
+    it('should have type string', async () => {
+      process.env.CONNECTION_TIMEOUT = '20000'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(typeof EnvConfig.CONNECTION_TIMEOUT).toBe('string')
+      expect(EnvConfig.CONNECTION_TIMEOUT).toBe('20000')
+    })
+
+    it('should not be obscured (plain string value)', async () => {
+      process.env.CONNECTION_TIMEOUT = '8000'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // CONNECTION_TIMEOUT should be a plain string, not obscured
+      expect(typeof EnvConfig.CONNECTION_TIMEOUT).toBe('string')
+      expect(EnvConfig.CONNECTION_TIMEOUT).toBe('8000')
+      // Should not have obscured behavior
+      expect(String(EnvConfig.CONNECTION_TIMEOUT)).toBe('8000')
+    })
+  })
+
+  describe('KEEP_ALIVE_TIMEOUT', () => {
+    it('should be a static readonly property', async () => {
+      process.env.KEEP_ALIVE_TIMEOUT = '65000'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      const descriptor = Object.getOwnPropertyDescriptor(EnvConfig, 'KEEP_ALIVE_TIMEOUT')
+      expect(descriptor).toBeDefined()
+      expect(descriptor?.configurable).toBe(true)
+      expect(descriptor?.enumerable).toBe(true)
+    })
+
+    it('should use KEEP_ALIVE_TIMEOUT from environment when set', async () => {
+      process.env.KEEP_ALIVE_TIMEOUT = '75000'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.KEEP_ALIVE_TIMEOUT).toBe('75000')
+    })
+
+    it('should default to "65000" when KEEP_ALIVE_TIMEOUT is not set', async () => {
+      delete process.env.KEEP_ALIVE_TIMEOUT
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(EnvConfig.KEEP_ALIVE_TIMEOUT).toBe('65000')
+    })
+
+    it('should have type string', async () => {
+      process.env.KEEP_ALIVE_TIMEOUT = '80000'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      expect(typeof EnvConfig.KEEP_ALIVE_TIMEOUT).toBe('string')
+      expect(EnvConfig.KEEP_ALIVE_TIMEOUT).toBe('80000')
+    })
+
+    it('should not be obscured (plain string value)', async () => {
+      process.env.KEEP_ALIVE_TIMEOUT = '60000'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
+      vi.resetModules()
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // KEEP_ALIVE_TIMEOUT should be a plain string, not obscured
+      expect(typeof EnvConfig.KEEP_ALIVE_TIMEOUT).toBe('string')
+      expect(EnvConfig.KEEP_ALIVE_TIMEOUT).toBe('60000')
+      // Should not have obscured behavior
+      expect(String(EnvConfig.KEEP_ALIVE_TIMEOUT)).toBe('60000')
+    })
+  })
 })

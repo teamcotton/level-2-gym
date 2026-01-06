@@ -3,11 +3,15 @@ import cors from '@fastify/cors'
 import swagger from '@fastify/swagger'
 import swaggerUI from '@fastify/swagger-ui'
 import { OpenAPI } from '@norberts-spark/shared'
+import { EnvConfig } from './infrastructure/config/env.config.js'
 
 export function buildApp(options?: FastifyServerOptions): FastifyInstance {
   const fastify = Fastify({
     logger: true,
     bodyLimit: 10 * 1024 * 1024, // 10MB
+    requestTimeout: Number.parseInt(EnvConfig.REQUEST_TIMEOUT),
+    connectionTimeout: Number.parseInt(EnvConfig.CONNECTION_TIMEOUT),
+    keepAliveTimeout: Number.parseInt(EnvConfig.KEEP_ALIVE_TIMEOUT),
     ...options,
   })
 
