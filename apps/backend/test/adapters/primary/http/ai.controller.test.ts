@@ -20,6 +20,12 @@ vi.mock('ai', () => ({
     })),
   })),
   tool: vi.fn((config) => config),
+  validateUIMessages: vi.fn(async ({ messages }) => {
+    if (!Array.isArray(messages)) {
+      throw new Error('messages must be an array')
+    }
+    return messages
+  }),
 }))
 
 vi.mock('@ai-sdk/google', () => ({
@@ -176,7 +182,7 @@ describe('AIController', () => {
 
   describe('chat()', () => {
     describe('validation', () => {
-      it('should return 400 if request body is invalid', async () => {
+      it('should return 400 if request body is missing required fields', async () => {
         mockRequest.body = {
           invalidField: 'test',
         }
@@ -186,27 +192,30 @@ describe('AIController', () => {
         expect(mockReply.status).toHaveBeenCalledWith(400)
         expect(mockReply.send).toHaveBeenCalledWith({
           error: 'Invalid request body',
-          details: expect.any(Array),
+          details: 'id and trigger are required',
         })
       })
 
       it('should return 400 if messages array is missing', async () => {
         mockRequest.body = {
           id: uuidv7(),
+          trigger: 'user-input',
         }
+
+        vi.mocked(mockGetChatUseCase.execute).mockResolvedValue(null)
 
         await controller.chat(mockRequest, mockReply)
 
         expect(mockReply.status).toHaveBeenCalledWith(400)
-        expect(mockReply.send).toHaveBeenCalledWith({
-          error: 'Invalid request body',
-          details: expect.any(Array),
-        })
+        expect(mockReply.send).toHaveBeenCalled()
+        // When messages is missing, validateUIMessages accepts empty array,
+        // then the controller checks for empty messages and returns "No messages provided"
       })
 
       it('should return 400 if id is missing', async () => {
         mockRequest.body = {
-          messages: [{ role: 'user', content: 'Hello' }],
+          messages: [{ role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
+          trigger: 'user-input',
         }
 
         await controller.chat(mockRequest, mockReply)
@@ -214,7 +223,7 @@ describe('AIController', () => {
         expect(mockReply.status).toHaveBeenCalledWith(400)
         expect(mockReply.send).toHaveBeenCalledWith({
           error: 'Invalid request body',
-          details: expect.any(Array),
+          details: 'id and trigger are required',
         })
       })
 
@@ -335,13 +344,17 @@ describe('AIController', () => {
         )
       })
 
-      it('should log debug message when sending to chat', async () => {
+      it('should log debug message when processing chat', async () => {
         const chatId = uuidv7()
         const userId = uuidv7()
         mockRequest.body = {
           id: chatId,
           messages: [{ id: '1', role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
           trigger: 'user-input',
+        }
+        mockRequest.user = {
+          sub: new UserId(userId).getValue(),
+          email: 'user@example.com',
         }
 
         vi.mocked(mockGetChatUseCase.execute).mockResolvedValue({
@@ -353,11 +366,10 @@ describe('AIController', () => {
         await controller.chat(mockRequest, mockReply)
 
         expect(mockLogger.debug).toHaveBeenCalledWith('Received chat request')
-        expect(mockLogger.debug).toHaveBeenCalledWith('Parsed AI chat request body', {
-          parsed: expect.objectContaining({
-            id: chatId,
-            messages: expect.any(Array),
-          }),
+        expect(mockLogger.debug).toHaveBeenCalledWith('Validated messages', {
+          messageCount: 1,
+          id: chatId,
+          trigger: 'user-input',
         })
       })
 
@@ -467,10 +479,14 @@ describe('AIController', () => {
     })
 
     describe('error handling', () => {
-      it('should handle Zod validation errors', async () => {
+      it('should handle validateUIMessages errors', async () => {
+        const { validateUIMessages } = await import('ai')
+        vi.mocked(validateUIMessages).mockRejectedValueOnce(new Error('Invalid message format'))
+
         mockRequest.body = {
-          id: 123, // Should be string
+          id: uuidv7(),
           messages: 'invalid', // Should be array
+          trigger: 'user-input',
         }
 
         await controller.chat(mockRequest, mockReply)
@@ -478,7 +494,7 @@ describe('AIController', () => {
         expect(mockReply.status).toHaveBeenCalledWith(400)
         expect(mockReply.send).toHaveBeenCalledWith({
           error: 'Invalid request body',
-          details: expect.any(Array),
+          details: 'Invalid message format',
         })
       })
 

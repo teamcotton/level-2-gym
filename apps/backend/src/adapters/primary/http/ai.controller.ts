@@ -1,11 +1,15 @@
 import type { LoggerPort } from '../../../application/ports/logger.port.js'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
-import { AIReturnedResponseSchema } from '@norberts-spark/shared'
 import { FastifyUtil } from '../../../shared/utils/fastify.utils.js'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
 
-import { z } from 'zod'
-import { convertToModelMessages, stepCountIs, streamText, type UIMessage } from 'ai'
+import {
+  convertToModelMessages,
+  stepCountIs,
+  streamText,
+  type UIMessage,
+  validateUIMessages,
+} from 'ai'
 import { google } from '@ai-sdk/google'
 import { AppendedChatUseCase } from '../../../application/use-cases/append-chat.use-case.js'
 import { EnvConfig } from '../../../infrastructure/config/env.config.js'
@@ -54,19 +58,53 @@ export class AIController {
    */
   async chat(request: FastifyRequest, reply: FastifyReply) {
     this.logger.debug('Received chat request')
-    let parsed
+
+    let messages: UIMessage[]
+    let id: string
+    let trigger: string
+
     try {
-      const body = request.body
-      parsed = AIReturnedResponseSchema.parse(body)
-      this.logger.debug('Parsed AI chat request body', { parsed })
+      const body = request.body as any
+
+      this.logger.info('Request body:', {
+        id: body?.id,
+        trigger: body?.trigger,
+        messages: body?.messages,
+      })
+
+      // Validate messages using validateUIMessages from 'ai' package
+      messages = await validateUIMessages({
+        messages: body?.messages || [],
+      })
+
+      // Extract id and trigger from body
+      id = body?.id
+
+      trigger = body?.trigger
+
+      if (!id || !trigger) {
+        return reply.status(400).send({
+          error: 'Invalid request body',
+          details: 'id and trigger are required',
+        })
+      }
+
+      try {
+        id = new ChatId(id).getValue()
+      } catch {
+        return reply.status(400).send({
+          error: 'Invalid id format',
+          details: 'incorrect ChatId format',
+        })
+      }
+
+      this.logger.debug('Validated messages', { messageCount: messages.length, id, trigger })
     } catch (e) {
       return reply.status(400).send({
         error: 'Invalid request body',
-        details: e instanceof z.ZodError ? e.issues : e,
+        details: e instanceof Error ? e.message : e,
       })
     }
-
-    const { messages, id } = parsed
 
     if (!request.user?.sub) {
       return reply.status(401).send(FastifyUtil.createResponse('User not authenticated', 401))
@@ -85,7 +123,12 @@ export class AIController {
       messageCount: messages.length,
     })
 
-    const chat = await this.getChatUseCase.execute(chatId, messages)
+    // Filter out system messages as they're not stored in the database
+    const userAndAssistantMessages = messages.filter(
+      (msg) => msg.role === 'user' || msg.role === 'assistant'
+    ) as any[]
+
+    const chat = await this.getChatUseCase.execute(chatId, userAndAssistantMessages)
 
     this.logger.info('Received chat', { chat: chat ?? null })
 
@@ -123,7 +166,7 @@ export class AIController {
       tools: {
         heartOfDarknessQA: this.heartOfDarknessTool.getTool(),
       },
-      stopWhen: [stepCountIs(10)],
+      stopWhen: [stepCountIs(5)],
       onChunk({ chunk }) {
         // Called for each partial piece of output
         if (chunk.type === 'text-delta') {

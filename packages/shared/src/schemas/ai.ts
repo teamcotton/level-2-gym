@@ -156,9 +156,10 @@ export const MessagePartSchema = z.object({
     'source_document',
     'step-start',
     'data',
+    'tool-heartOfDarknessQA',
   ]),
   text: z.string().optional(),
-  state: z.enum(['done']).optional(),
+  state: z.enum(['done', 'output-available']).optional(),
 })
 
 export const MessageSchema = z.object({
