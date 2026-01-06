@@ -1,4 +1,4 @@
-# @no/shared
+# @norberts-spark/shared
 
 Shared types and schemas for the monorepo.
 
