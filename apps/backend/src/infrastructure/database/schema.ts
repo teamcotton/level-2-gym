@@ -213,7 +213,7 @@ export const parts = pgTable(
     dataContent: jsonb('data_content'),
 
     // Provider metadata
-    providerOptions: jsonb('provider_metadata'),
+    providerMetadata: jsonb('provider_metadata'),
   },
   (table) => ({
     messageIdIdx: index('parts_message_id_idx').on(table.messageId),

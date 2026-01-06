@@ -1,4 +1,5 @@
-import { streamText, type CoreUserMessage } from 'ai'
+import { streamText } from 'ai'
+import type { ModelMessage } from 'ai'
 import { google } from '@ai-sdk/google'
 import { HeartOfDarknessTool } from './src/infrastructure/ai/tools/heart-of-darkness.tool.js'
 import type { LoggerPort } from './src/application/ports/logger.port.js'
@@ -31,7 +32,7 @@ async function testAgent() {
   const question =
     'At the start of the novella, on which river is Marlow aboard the Nellie when he begins narrating his story?'
 
-  const messages: CoreUserMessage[] = [
+  const messages: ModelMessage[] = [
     {
       role: 'user',
       content: question,

@@ -83,7 +83,7 @@ describe('Mapper', () => {
         toolHeartOfDarknessQAOutput: null,
         toolHeartOfDarknessQAErrorText: null,
         dataContent: null,
-        providerOptions: null,
+        providerMetadata: null,
       }
 
       const uiPart = mapDBPartToUIMessagePart(dbPart)

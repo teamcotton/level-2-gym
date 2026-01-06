@@ -193,8 +193,8 @@ describe('Database Schema', () => {
       })
 
       it('should have provider metadata column', () => {
-        expect(parts.providerOptions).toBeDefined()
-        expect(parts.providerOptions.name).toBe('provider_metadata')
+        expect(parts.providerMetadata).toBeDefined()
+        expect(parts.providerMetadata.name).toBe('provider_metadata')
       })
     })
 
