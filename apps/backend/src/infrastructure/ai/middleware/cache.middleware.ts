@@ -26,49 +26,66 @@ export const cacheMiddleware: LanguageModelV3Middleware = {
   wrapGenerate: async ({ doGenerate, params }) => {
     const cacheKey = JSON.stringify(params)
 
-    const cached = (await redis.get(cacheKey)) as Awaited<
-      ReturnType<LanguageModelV3['doGenerate']>
-    > | null
+    // Try to get from cache, but don't fail if Redis is unavailable
+    try {
+      const cached = (await redis.get(cacheKey)) as Awaited<
+        ReturnType<LanguageModelV3['doGenerate']>
+      > | null
 
-    if (cached !== null) {
-      return {
-        ...cached,
-        response: {
-          ...cached.response,
-          timestamp: cached?.response?.timestamp
-            ? new Date(cached?.response?.timestamp)
-            : undefined,
-        },
+      if (cached !== null) {
+        return {
+          ...cached,
+          response: {
+            ...cached.response,
+            timestamp: cached?.response?.timestamp
+              ? new Date(cached?.response?.timestamp)
+              : undefined,
+          },
+        }
       }
+    } catch (error) {
+      console.error('Cache read error in wrapGenerate:', error)
+      // Continue without cache - graceful degradation
     }
 
     const result = await doGenerate()
 
-    await redis.set(cacheKey, result)
+    // Try to cache the result, but don't fail if Redis is unavailable
+    try {
+      await redis.set(cacheKey, result)
+    } catch (error) {
+      console.error('Cache write error in wrapGenerate:', error)
+      // Continue without caching - graceful degradation
+    }
 
     return result
   },
   wrapStream: async ({ doStream, params }) => {
     const cacheKey = JSON.stringify(params)
 
-    // Check if the result is in the cache
-    const cached = await redis.get(cacheKey)
+    // Try to check if the result is in the cache
+    try {
+      const cached = await redis.get(cacheKey)
 
-    // If cached, return a simulated ReadableStream that yields the cached result
-    if (cached !== null) {
-      // Format the timestamps in the cached response
-      const formattedChunks = (cached as LanguageModelV3StreamPart[]).map((p) => {
-        if (p.type === 'response-metadata' && p.timestamp) {
-          return { ...p, timestamp: new Date(p.timestamp) }
-        } else return p
-      })
-      return {
-        stream: simulateReadableStream({
-          initialDelayInMs: 0,
-          chunkDelayInMs: 10,
-          chunks: formattedChunks,
-        }),
+      // If cached, return a simulated ReadableStream that yields the cached result
+      if (cached !== null) {
+        // Format the timestamps in the cached response
+        const formattedChunks = (cached as LanguageModelV3StreamPart[]).map((p) => {
+          if (p.type === 'response-metadata' && p.timestamp) {
+            return { ...p, timestamp: new Date(p.timestamp) }
+          } else return p
+        })
+        return {
+          stream: simulateReadableStream({
+            initialDelayInMs: 0,
+            chunkDelayInMs: 10,
+            chunks: formattedChunks,
+          }),
+        }
       }
+    } catch (error) {
+      console.error('Cache read error in wrapStream:', error)
+      // Continue without cache - graceful degradation
     }
 
     // If not cached, proceed with streaming
@@ -85,8 +102,13 @@ export const cacheMiddleware: LanguageModelV3Middleware = {
         controller.enqueue(chunk)
       },
       flush() {
-        // Store the full response in the cache after streaming is complete
-        redis.set(cacheKey, fullResponse)
+        // Try to store the full response in the cache after streaming is complete
+        try {
+          redis.set(cacheKey, fullResponse)
+        } catch (error) {
+          console.error('Cache write error in wrapStream flush:', error)
+          // Continue without caching - graceful degradation
+        }
       },
     })
 
