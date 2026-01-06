@@ -328,14 +328,15 @@ describe('useDashboard', () => {
   })
 
   describe('Return Value Structure', () => {
-    it('should return an object with exactly 3 properties', () => {
+    it('should return an object with exactly 4 properties', () => {
       const { result } = renderHook(() => useDashboard({ userRoles: ['user'] }))
 
       const keys = Object.keys(result.current)
-      expect(keys).toHaveLength(3)
+      expect(keys).toHaveLength(4)
       expect(keys).toContain('canAccessAdmin')
       expect(keys).toContain('handleNavigate')
       expect(keys).toContain('handleSignOut')
+      expect(keys).toContain('handleTestServerAction')
     })
 
     it('should return consistent types across different role configurations', () => {
@@ -347,6 +348,7 @@ describe('useDashboard', () => {
         expect(typeof result.current.canAccessAdmin).toBe('boolean')
         expect(typeof result.current.handleNavigate).toBe('function')
         expect(typeof result.current.handleSignOut).toBe('function')
+        expect(typeof result.current.handleTestServerAction).toBe('function')
       })
     })
   })
