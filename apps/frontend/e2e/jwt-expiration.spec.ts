@@ -9,8 +9,8 @@ test.describe('JWT Token Expiration', () => {
   })
 
   test('should redirect to signin when JWT expires during server action call', async ({
-    page,
     context,
+    page,
   }) => {
     // Step 1: Sign in with valid credentials
     await page.goto('/signin')
@@ -78,8 +78,8 @@ test.describe('JWT Token Expiration', () => {
   })
 
   test('should redirect to signin when accessing users list with expired JWT', async ({
-    page,
     context,
+    page,
   }) => {
     // Step 1: Sign in
     await page.goto('/signin')
@@ -151,5 +151,78 @@ test.describe('JWT Token Expiration', () => {
     await page.reload()
     await expect(page).toHaveURL('/dashboard')
     await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible()
+  })
+
+  test('should redirect to signin when server action is triggered with expired JWT', async ({
+    context,
+    page,
+  }) => {
+    // Step 1: Sign in with valid credentials
+    await page.goto('/signin')
+
+    const emailField = page.getByLabel(/email address/i)
+    const passwordField = page.getByLabel(/^password/i)
+    const submitButton = page.getByRole('button', { name: /^sign in$/i })
+
+    await emailField.fill(TEST_CREDENTIALS.email)
+    await passwordField.fill(TEST_CREDENTIALS.password)
+
+    // Submit form and wait for navigation
+    await Promise.all([page.waitForURL(/\/dashboard/, { timeout: 15000 }), submitButton.click()])
+
+    // Verify we're authenticated and page has loaded
+    await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible()
+
+    // Step 2: Get the current NextAuth session token cookie
+    const cookies = await context.cookies()
+    const sessionToken = cookies.find(
+      (cookie) =>
+        cookie.name === 'next-auth.session-token' ||
+        cookie.name === '__Secure-next-auth.session-token'
+    )
+
+    expect(sessionToken).toBeDefined()
+
+    // Step 3: Replace the JWT with an expired/invalid token
+    // This simulates what happens when a JWT expires or becomes invalid
+    if (sessionToken) {
+      const invalidToken = sessionToken.value.slice(0, -5) + 'xxxxx'
+      await context.addCookies([
+        {
+          ...sessionToken,
+          value: invalidToken,
+        },
+      ])
+    }
+
+    // Step 4: Click a button that triggers a server action
+    // This directly tests the server action's 401 handling, not just middleware
+    const testButton = page.getByTestId('test-server-action-button')
+
+    // Make the button visible for clicking (it's hidden by default)
+    await testButton.evaluate((el) => {
+      ;(el as HTMLElement).style.display = 'block'
+    })
+
+    // Click the button to trigger the server action
+    await testButton.click()
+
+    // Step 5: Wait for redirect to signin page due to 401 from server action
+    // The server action should detect the invalid JWT and redirect with session_expired error
+    await page.waitForURL(/\/signin/, { timeout: 10000 })
+
+    // Verify we're redirected to signin
+    expect(page.url()).toContain('/signin')
+
+    // Verify the session_expired error parameter is set
+    // This confirms the redirect came from the server action's 401 handling,
+    // not from the middleware (which would set callbackUrl instead)
+    const url = new URL(page.url())
+    const errorParam = url.searchParams.get('error')
+
+    expect(errorParam).toBe('session_expired')
+
+    // Verify signin page is displayed
+    await expect(page.getByRole('heading', { name: /welcome back/i })).toBeVisible()
   })
 })

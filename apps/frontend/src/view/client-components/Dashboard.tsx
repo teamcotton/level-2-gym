@@ -2,7 +2,15 @@
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import ChatIcon from '@mui/icons-material/Chat'
 import PersonIcon from '@mui/icons-material/Person'
-import { Box, Card, CardActionArea, CardContent, Container, Typography } from '@mui/material'
+import {
+  Box,
+  Button,
+  Card,
+  CardActionArea,
+  CardContent,
+  Container,
+  Typography,
+} from '@mui/material'
 
 import { PageHeader } from './PageHeader.js'
 
@@ -10,6 +18,7 @@ interface DashboardProps {
   canAccessAdmin: boolean
   onNavigate: (path: string) => void
   onSignOut: () => void
+  onTestServerAction?: () => void
 }
 
 /**
@@ -23,6 +32,7 @@ interface DashboardProps {
  * @param {boolean} props.canAccessAdmin - Whether the user can access the admin page
  * @param {(path: string) => void} props.onNavigate - Callback to navigate to a specific path
  * @param {() => void} props.onSignOut - Callback to handle sign out
+ * @param {() => void} [props.onTestServerAction] - Optional callback for E2E testing (triggers server action)
  *
  * @example
  * ```tsx
@@ -30,10 +40,16 @@ interface DashboardProps {
  *   canAccessAdmin={true}
  *   onNavigate={(path) => router.push(path)}
  *   onSignOut={() => router.push('/api/auth/signout')}
+ *   onTestServerAction={() => testServerAction()}
  * />
  * ```
  */
-export function Dashboard({ canAccessAdmin, onNavigate, onSignOut }: DashboardProps) {
+export function Dashboard({
+  canAccessAdmin,
+  onNavigate,
+  onSignOut,
+  onTestServerAction,
+}: DashboardProps) {
   return (
     <Container maxWidth="lg" sx={{ py: 8 }}>
       <header>
@@ -43,6 +59,20 @@ export function Dashboard({ canAccessAdmin, onNavigate, onSignOut }: DashboardPr
           onSignOut={onSignOut}
         />
       </header>
+
+      {/* Test button for E2E testing - only visible in tests via data-testid */}
+      {onTestServerAction && (
+        <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center' }}>
+          <Button
+            data-testid="test-server-action-button"
+            onClick={onTestServerAction}
+            variant="outlined"
+            sx={{ display: 'none' }} // Hidden by default, but accessible in tests
+          >
+            Test Server Action
+          </Button>
+        </Box>
+      )}
 
       <Box
         sx={{

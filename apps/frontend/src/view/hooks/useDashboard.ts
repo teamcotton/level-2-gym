@@ -1,5 +1,7 @@
 import { useRouter } from 'next/navigation.js'
 
+import { testFetchUsers } from '@/infrastructure/serverActions/testFetchUsers.server.js'
+
 interface UseDashboardProps {
   userRoles: string[]
 }
@@ -8,6 +10,7 @@ interface UseDashboardReturn {
   canAccessAdmin: boolean
   handleNavigate: (path: string) => void
   handleSignOut: () => void
+  handleTestServerAction: () => void
 }
 
 /**
@@ -44,9 +47,18 @@ export function useDashboard({ userRoles }: UseDashboardProps): UseDashboardRetu
     router.push('/api/auth/signout')
   }
 
+  /**
+   * Test server action handler for E2E testing
+   * Calls a server action that makes an authenticated backend request
+   */
+  const handleTestServerAction = async () => {
+    await testFetchUsers()
+  }
+
   return {
     canAccessAdmin,
     handleNavigate,
     handleSignOut,
+    handleTestServerAction,
   }
 }
