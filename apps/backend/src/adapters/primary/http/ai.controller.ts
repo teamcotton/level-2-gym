@@ -2,8 +2,6 @@ import type { LoggerPort } from '../../../application/ports/logger.port.js'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { FastifyUtil } from '../../../shared/utils/fastify.utils.js'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
-import { cacheMiddleware } from '../../../infrastructure/ai/middleware/cache.middleware.js'
-import { wrapLanguageModel } from 'ai'
 import {
   convertToModelMessages,
   stepCountIs,
