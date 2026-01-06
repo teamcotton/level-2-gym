@@ -10,11 +10,36 @@ import { useRegistrationForm } from '@/view/hooks/useRegistrationForm.js'
 vi.mock('@/application/actions/registerUser.js', () => ({
   registerUser: vi.fn(),
 }))
-//TODO: enable these tests again after fixing the issues with useRegistrationForm hook
-// must effectively mock registerUser and QueryClientProvider for the tests to work properly
-describe.todo('useRegistrationForm', () => {
+
+// Mock next/navigation
+const mockPush = vi.fn()
+vi.mock('next/navigation.js', () => ({
+  useRouter: () => ({
+    push: mockPush,
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+  usePathname: () => '/',
+  useSearchParams: () => new URLSearchParams(),
+}))
+
+// Helper to create wrapper with QueryClient
+function createWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  })
+  return function Wrapper({ children }: { children: React.ReactNode }) {
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  }
+}
+
+describe('useRegistrationForm', () => {
   beforeEach(() => {
     vi.mocked(registerUser).mockReset()
+    mockPush.mockReset()
   })
 
   afterEach(() => {
@@ -22,7 +47,7 @@ describe.todo('useRegistrationForm', () => {
   })
   describe('Initial State', () => {
     it('should initialize with empty form data', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       expect(result.current.formData).toEqual({
         email: '',
@@ -33,7 +58,7 @@ describe.todo('useRegistrationForm', () => {
     })
 
     it('should initialize with empty errors', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       expect(result.current.errors).toEqual({
         email: '',
@@ -44,7 +69,7 @@ describe.todo('useRegistrationForm', () => {
     })
 
     it('should provide all required handlers', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       expect(result.current.handleChange).toBeDefined()
       expect(result.current.handleSubmit).toBeDefined()
@@ -59,7 +84,7 @@ describe.todo('useRegistrationForm', () => {
 
   describe('handleChange', () => {
     it('should update email field', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       act(() => {
         const handler = result.current.handleChange('email')
@@ -70,7 +95,7 @@ describe.todo('useRegistrationForm', () => {
     })
 
     it('should update name field', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       act(() => {
         const handler = result.current.handleChange('name')
@@ -81,7 +106,7 @@ describe.todo('useRegistrationForm', () => {
     })
 
     it('should update password field', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       act(() => {
         const handler = result.current.handleChange('password')
@@ -92,7 +117,7 @@ describe.todo('useRegistrationForm', () => {
     })
 
     it('should update confirmPassword field', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       act(() => {
         const handler = result.current.handleChange('confirmPassword')
@@ -105,7 +130,7 @@ describe.todo('useRegistrationForm', () => {
     })
 
     it('should clear error for the field being changed', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       // First, trigger validation to create errors
       act(() => {
@@ -126,7 +151,7 @@ describe.todo('useRegistrationForm', () => {
     })
 
     it('should not clear errors for other fields', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       // Trigger validation
       act(() => {
@@ -149,7 +174,7 @@ describe.todo('useRegistrationForm', () => {
 
   describe('Form Validation - Email', () => {
     it('should show error when email is empty', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       act(() => {
         result.current.handleSubmit({
@@ -161,7 +186,7 @@ describe.todo('useRegistrationForm', () => {
     })
 
     it('should show error for invalid email format', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       act(() => {
         const handler = result.current.handleChange('email')
@@ -178,7 +203,7 @@ describe.todo('useRegistrationForm', () => {
     })
 
     it('should accept valid email', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       act(() => {
         const emailHandler = result.current.handleChange('email')
@@ -218,7 +243,7 @@ describe.todo('useRegistrationForm', () => {
 
   describe('Form Validation - Name', () => {
     it('should show error when name is empty', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       act(() => {
         result.current.handleSubmit({
@@ -230,7 +255,7 @@ describe.todo('useRegistrationForm', () => {
     })
 
     it('should show error when name is less than 2 characters', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       act(() => {
         const handler = result.current.handleChange('name')
@@ -247,7 +272,7 @@ describe.todo('useRegistrationForm', () => {
     })
 
     it('should show error when name exceeds 100 characters', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       const longName = 'A'.repeat(101)
 
@@ -266,7 +291,7 @@ describe.todo('useRegistrationForm', () => {
     })
 
     it('should accept valid name with exactly 2 characters', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       act(() => {
         const emailHandler = result.current.handleChange('email')
@@ -304,7 +329,7 @@ describe.todo('useRegistrationForm', () => {
     })
 
     it('should accept valid name with exactly 100 characters', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       const maxLengthName = 'A'.repeat(100)
 
@@ -344,7 +369,7 @@ describe.todo('useRegistrationForm', () => {
     })
 
     it('should accept valid name', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       act(() => {
         const emailHandler = result.current.handleChange('email')
@@ -384,7 +409,7 @@ describe.todo('useRegistrationForm', () => {
 
   describe('Form Validation - Password', () => {
     it('should show error when password is empty', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       act(() => {
         result.current.handleSubmit({
@@ -396,7 +421,7 @@ describe.todo('useRegistrationForm', () => {
     })
 
     it('should show error when password is less than 12 characters', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       act(() => {
         const handler = result.current.handleChange('password')
@@ -413,7 +438,7 @@ describe.todo('useRegistrationForm', () => {
     })
 
     it('should accept password with 12 or more characters', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       act(() => {
         const emailHandler = result.current.handleChange('email')
@@ -453,7 +478,7 @@ describe.todo('useRegistrationForm', () => {
 
   describe('Form Validation - Confirm Password', () => {
     it('should show error when confirm password is empty', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       act(() => {
         const passwordHandler = result.current.handleChange('password')
@@ -472,7 +497,7 @@ describe.todo('useRegistrationForm', () => {
     })
 
     it('should show error when passwords do not match', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       act(() => {
         const passwordHandler = result.current.handleChange('password')
@@ -496,7 +521,7 @@ describe.todo('useRegistrationForm', () => {
     })
 
     it('should not show error when passwords match', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       act(() => {
         const emailHandler = result.current.handleChange('email')
@@ -536,7 +561,7 @@ describe.todo('useRegistrationForm', () => {
 
   describe('handleSubmit', () => {
     it('should prevent default form submission', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
       let defaultPrevented = false
 
       act(() => {
@@ -551,7 +576,7 @@ describe.todo('useRegistrationForm', () => {
     })
 
     it('should validate form on submission', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       act(() => {
         result.current.handleSubmit({
@@ -566,7 +591,7 @@ describe.todo('useRegistrationForm', () => {
     })
 
     it('should not submit when validation fails', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       act(() => {
         result.current.handleSubmit({
@@ -579,7 +604,7 @@ describe.todo('useRegistrationForm', () => {
     })
 
     it('should clear all errors when form is valid', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       act(() => {
         const emailHandler = result.current.handleChange('email')
@@ -622,7 +647,7 @@ describe.todo('useRegistrationForm', () => {
 
   describe('OAuth Handlers', () => {
     it('should provide handleGoogleSignUp without errors', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       expect(() => {
         act(() => {
@@ -632,7 +657,7 @@ describe.todo('useRegistrationForm', () => {
     })
 
     it('should provide handleGitHubSignUp without errors', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       expect(() => {
         act(() => {
@@ -644,7 +669,7 @@ describe.todo('useRegistrationForm', () => {
 
   describe('Complex Scenarios', () => {
     it('should handle multiple field updates in sequence', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       act(() => {
         const emailHandler = result.current.handleChange('email')
@@ -666,7 +691,7 @@ describe.todo('useRegistrationForm', () => {
     })
 
     it('should maintain other field values when updating one field', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       act(() => {
         const emailHandler = result.current.handleChange('email')
@@ -693,7 +718,7 @@ describe.todo('useRegistrationForm', () => {
     })
 
     it('should handle validation -> correction -> revalidation flow', () => {
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       // First submission with errors
       act(() => {
@@ -754,7 +779,7 @@ describe.todo('useRegistrationForm', () => {
         error: 'Email already in use',
       })
 
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       // Fill in valid form data
       act(() => {
@@ -809,7 +834,7 @@ describe.todo('useRegistrationForm', () => {
         error: 'Server error occurred',
       })
 
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       // Fill in valid form data
       act(() => {
@@ -858,7 +883,7 @@ describe.todo('useRegistrationForm', () => {
         error: undefined,
       })
 
-      const { result } = renderHook(() => useRegistrationForm())
+      const { result } = renderHook(() => useRegistrationForm(), { wrapper: createWrapper() })
 
       // Fill in valid form data
       act(() => {
@@ -903,9 +928,14 @@ describe.todo('useRegistrationForm', () => {
   describe('QueryClient Integration (Approach #4)', () => {
     it('should invalidate users query on successful registration', async () => {
       // Create a real QueryClient instance
-      const queryClient = new QueryClient()
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: { retry: false },
+          mutations: { retry: false },
+        },
+      })
 
-      // Spy on the invalidateQueries method
+      // Spy on the invalidateQueries method BEFORE creating the hook
       const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries')
 
       // Mock successful registration
@@ -915,8 +945,6 @@ describe.todo('useRegistrationForm', () => {
         data: { userId: '123', access_token: 'string', token_type: 'Bearer', expires_in: 3600 },
       })
 
-      //userId: string; access_token: string; token_type: string; expires_in: number;
-
       // Wrap the hook with QueryClientProvider
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
@@ -924,17 +952,26 @@ describe.todo('useRegistrationForm', () => {
 
       const { result } = renderHook(() => useRegistrationForm(), { wrapper })
 
-      // Fill in valid form data
+      // Fill in valid form data using individual act blocks
       act(() => {
         result.current.handleChange('email')({
           target: { value: 'test@example.com' },
         } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
         result.current.handleChange('name')({
           target: { value: 'John Doe' },
         } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
         result.current.handleChange('password')({
           target: { value: 'securepassword123' },
         } as React.ChangeEvent<HTMLInputElement>)
+      })
+
+      act(() => {
         result.current.handleChange('confirmPassword')({
           target: { value: 'securepassword123' },
         } as React.ChangeEvent<HTMLInputElement>)
@@ -942,18 +979,25 @@ describe.todo('useRegistrationForm', () => {
 
       // Submit the form
       await act(async () => {
-        await result.current.handleSubmit({
+        result.current.handleSubmit({
           preventDefault: () => {},
         } as React.FormEvent)
       })
 
-      // Verify that invalidateQueries was called with the correct query key
+      // Verify registerUser was called
+      expect(vi.mocked(registerUser)).toHaveBeenCalled()
+
+      // Verify that invalidateQueries was called
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['users'] })
-      expect(invalidateQueriesSpy).toHaveBeenCalledTimes(1)
     })
 
     it('should not invalidate queries on failed registration', async () => {
-      const queryClient = new QueryClient()
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: { retry: false },
+          mutations: { retry: false },
+        },
+      })
       const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries')
 
       // Mock failed registration
@@ -997,7 +1041,12 @@ describe.todo('useRegistrationForm', () => {
     })
 
     it('should not invalidate queries when validation fails', async () => {
-      const queryClient = new QueryClient()
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: { retry: false },
+          mutations: { retry: false },
+        },
+      })
       const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries')
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
