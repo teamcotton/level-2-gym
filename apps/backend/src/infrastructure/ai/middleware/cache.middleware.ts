@@ -10,10 +10,72 @@ import { EnvConfig } from '../../config/env.config.js'
 import { simulateReadableStream } from 'ai'
 import { TransformStream } from 'node:stream/web'
 
-const redis = new Redis({
-  url: obscured.value(EnvConfig.UPSTASH_REDIS_REST_URL),
-  token: obscured.value(EnvConfig.UPSTASH_REDIS_REST_TOKEN),
-})
+/**
+ * Cache the evaluated Redis configuration to avoid repeated obscured.value() calls
+ */
+let isConfiguredCache: boolean | null = null
+let cachedRedisUrl: string | undefined
+let cachedRedisToken: string | undefined
+
+/**
+ * Check if Redis credentials are properly configured
+ */
+function isRedisConfigured(): boolean {
+  // Return cached result if already computed
+  if (isConfiguredCache !== null) {
+    return isConfiguredCache
+  }
+
+  cachedRedisUrl = obscured.value(EnvConfig.UPSTASH_REDIS_REST_URL)
+  cachedRedisToken = obscured.value(EnvConfig.UPSTASH_REDIS_REST_TOKEN)
+
+  // Check if credentials exist and are not obscured placeholder values
+  isConfiguredCache =
+    !!cachedRedisUrl &&
+    !!cachedRedisToken &&
+    cachedRedisUrl !== '[OBSCURED]' &&
+    cachedRedisToken !== '[OBSCURED]' &&
+    cachedRedisUrl !== 'undefined' &&
+    cachedRedisToken !== 'undefined'
+
+  return isConfiguredCache
+}
+
+/**
+ * Lazily initialize Redis client only when credentials are configured
+ */
+let redisClient: Redis | null = null
+let initializationAttempted = false
+
+function getRedisClient(): Redis | null {
+  // Return existing client if already initialized
+  if (redisClient !== null) {
+    return redisClient
+  }
+
+  // Check if Redis is configured
+  if (!isRedisConfigured()) {
+    return null
+  }
+
+  // Only attempt initialization once to avoid repeated errors
+  if (initializationAttempted) {
+    return null
+  }
+
+  initializationAttempted = true
+
+  try {
+    redisClient = new Redis({
+      url: cachedRedisUrl!,
+      token: cachedRedisToken!,
+    })
+    return redisClient
+  } catch (error) {
+    console.error('Failed to initialize Redis client:', error)
+    return null
+  }
+}
 
 /**
  * LanguageModelMiddleware has two methods: wrapGenerate and wrapStream. wrapGenerate is called when using generateText and generateObject, while wrapStream is called when using streamText and streamObject.
@@ -25,67 +87,75 @@ export const cacheMiddleware: LanguageModelV3Middleware = {
   specificationVersion: 'v3',
   wrapGenerate: async ({ doGenerate, params }) => {
     const cacheKey = JSON.stringify(params)
+    const redis = getRedisClient()
 
-    // Try to get from cache, but don't fail if Redis is unavailable
-    try {
-      const cached = (await redis.get(cacheKey)) as Awaited<
-        ReturnType<LanguageModelV3['doGenerate']>
-      > | null
+    // Try to get from cache if Redis is configured
+    if (redis) {
+      try {
+        const cached = (await redis.get(cacheKey)) as Awaited<
+          ReturnType<LanguageModelV3['doGenerate']>
+        > | null
 
-      if (cached !== null) {
-        return {
-          ...cached,
-          response: {
-            ...cached.response,
-            timestamp: cached?.response?.timestamp
-              ? new Date(cached?.response?.timestamp)
-              : undefined,
-          },
+        if (cached !== null) {
+          return {
+            ...cached,
+            response: {
+              ...cached.response,
+              timestamp: cached?.response?.timestamp
+                ? new Date(cached?.response?.timestamp)
+                : undefined,
+            },
+          }
         }
+      } catch (error) {
+        console.error('Cache read error in wrapGenerate:', error)
+        // Continue without cache - graceful degradation
       }
-    } catch (error) {
-      console.error('Cache read error in wrapGenerate:', error)
-      // Continue without cache - graceful degradation
     }
 
     const result = await doGenerate()
 
-    // Try to cache the result, but don't fail if Redis is unavailable
-    try {
-      await redis.set(cacheKey, result)
-    } catch (error) {
-      console.error('Cache write error in wrapGenerate:', error)
-      // Continue without caching - graceful degradation
+    // Try to cache the result if Redis is configured
+    if (redis) {
+      try {
+        await redis.set(cacheKey, result)
+      } catch (error) {
+        console.error('Cache write error in wrapGenerate:', error)
+        // Continue without caching - graceful degradation
+      }
     }
 
     return result
   },
   wrapStream: async ({ doStream, params }) => {
     const cacheKey = JSON.stringify(params)
+    const redis = getRedisClient()
 
-    // Try to check if the result is in the cache
-    try {
-      const cached = await redis.get(cacheKey)
+    // Try to check if the result is in the cache if Redis is configured
+    if (redis) {
+      try {
+        const cached = await redis.get(cacheKey)
 
-      // If cached, return a simulated ReadableStream that yields the cached result
-      if (cached !== null) {
-        // Format the timestamps in the cached response
-        const formattedChunks = (cached as LanguageModelV3StreamPart[]).map((p) => {
-          if (p.type === 'response-metadata' && p.timestamp) {
-            return { ...p, timestamp: new Date(p.timestamp) }
-          } else return p
-        })
-        return {
-          stream: simulateReadableStream({
-            initialDelayInMs: 0,
-            chunkDelayInMs: 10,
-            chunks: formattedChunks,
-          }),
+        // If cached, return a simulated ReadableStream that yields the cached result
+        if (cached !== null) {
+          // Format the timestamps in the cached response
+          const formattedChunks = (cached as LanguageModelV3StreamPart[]).map((p) => {
+            if (p.type === 'response-metadata' && p.timestamp) {
+              return { ...p, timestamp: new Date(p.timestamp) }
+            } else return p
+          })
+          return {
+            stream: simulateReadableStream({
+              initialDelayInMs: 0,
+              chunkDelayInMs: 10,
+              chunks: formattedChunks,
+            }),
+          }
         }
+      } catch (error) {
+        console.error('Cache read error in wrapStream:', error)
+        // Continue without cache - graceful degradation
       }
-    } catch (error) {
-      console.error('Cache read error in wrapStream:', error)
-      // Continue without cache - graceful degradation
     }
 
     // If not cached, proceed with streaming
@@ -102,12 +172,14 @@ export const cacheMiddleware: LanguageModelV3Middleware = {
         controller.enqueue(chunk)
       },
       async flush() {
-        // Try to store the full response in the cache after streaming is complete
-        try {
-          await redis.set(cacheKey, fullResponse)
-        } catch (error) {
-          console.error('Cache write error in wrapStream flush:', error)
-          // Continue without caching - graceful degradation
+        // Try to store the full response in the cache after streaming is complete if Redis is configured
+        if (redis) {
+          try {
+            await redis.set(cacheKey, fullResponse)
+          } catch (error) {
+            console.error('Cache write error in wrapStream flush:', error)
+            // Continue without caching - graceful degradation
+          }
         }
       },
     })

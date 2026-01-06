@@ -69,7 +69,7 @@ const mockLogger = {
   error: vi.fn(),
 }
 
-describe('createCacheService', () => {
+describe('cacheMiddleware', () => {
   beforeEach(() => {
     // Reset mock values
     mockRedisUrl = undefined
@@ -83,8 +83,8 @@ describe('createCacheService', () => {
     vi.clearAllMocks()
   })
 
-  describe('Service Creation', () => {
-    it('should create cache service when Redis credentials are configured', async () => {
+  describe('Redis Client Initialization', () => {
+    it('should initialize cacheMiddleware when Redis credentials are configured', async () => {
       mockRedisUrl = 'https://test-redis.upstash.io'
       mockRedisToken = 'test-token-12345'
 
@@ -92,6 +92,39 @@ describe('createCacheService', () => {
         await import('../../../../src/infrastructure/ai/middleware/cache.middleware.js')
 
       expect(cacheMiddleware).toBeDefined()
+      expect(cacheMiddleware.specificationVersion).toBe('v3')
+      expect(cacheMiddleware.wrapGenerate).toBeDefined()
+      expect(cacheMiddleware.wrapStream).toBeDefined()
+    })
+
+    it('should not create Redis client when credentials are missing', async () => {
+      mockRedisUrl = undefined
+      mockRedisToken = undefined
+
+      // Clear module cache to test fresh import
+      vi.resetModules()
+
+      const { cacheMiddleware } =
+        await import('../../../../src/infrastructure/ai/middleware/cache.middleware.js')
+
+      expect(cacheMiddleware).toBeDefined()
+      // Redis client should not be instantiated when credentials are missing
+      expect(mockRedis).not.toHaveBeenCalled()
+    })
+
+    it('should not create Redis client when credentials are obscured placeholders', async () => {
+      mockRedisUrl = '[OBSCURED]'
+      mockRedisToken = '[OBSCURED]'
+
+      // Clear module cache to test fresh import
+      vi.resetModules()
+
+      const { cacheMiddleware } =
+        await import('../../../../src/infrastructure/ai/middleware/cache.middleware.js')
+
+      expect(cacheMiddleware).toBeDefined()
+      // Redis client should not be instantiated when credentials are obscured
+      expect(mockRedis).not.toHaveBeenCalled()
     })
   })
 })
