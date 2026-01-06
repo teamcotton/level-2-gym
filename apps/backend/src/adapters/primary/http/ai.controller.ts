@@ -2,7 +2,8 @@ import type { LoggerPort } from '../../../application/ports/logger.port.js'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { FastifyUtil } from '../../../shared/utils/fastify.utils.js'
 import { authMiddleware } from '../../../infrastructure/http/middleware/auth.middleware.js'
-
+import { cacheMiddleware } from '../../../infrastructure/ai/middleware/cache.middleware.js'
+import { wrapLanguageModel } from 'ai'
 import {
   convertToModelMessages,
   stepCountIs,
@@ -159,8 +160,13 @@ export class AIController {
         .send(FastifyUtil.createResponse('AI service configuration error', 500))
     }
 
-    const result = streamText({
+    const wrappedModel = wrapLanguageModel({
       model: google(EnvConfig.MODEL_NAME),
+      middleware: cacheMiddleware,
+    })
+
+    const result = streamText({
+      model: wrappedModel,
       messages: await convertToModelMessages(messages as UIMessage[]),
       system: `${SYSTEM_PROMPT}`,
       tools: {

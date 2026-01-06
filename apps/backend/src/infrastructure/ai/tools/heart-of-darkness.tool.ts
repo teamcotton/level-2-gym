@@ -42,6 +42,7 @@ export class HeartOfDarknessTool {
       inputSchema: z.object({
         question: z.string().describe('The question to answer about Heart of Darkness'),
       }),
+      strict: true,
       execute: async ({ question }) => {
         try {
           // Read the Heart of Darkness text file using the use case instance

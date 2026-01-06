@@ -84,6 +84,9 @@ importers:
       '@ai-sdk/google':
         specifier: ^3.0.3
         version: 3.0.3(zod@4.3.5)
+      '@ai-sdk/provider':
+        specifier: ^3.0.1
+        version: 3.0.1
       '@fastify/cors':
         specifier: ^11.2.0
         version: 11.2.0
