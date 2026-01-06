@@ -41,6 +41,9 @@ export class EnvConfig {
   static readonly API_VERSION = process.env.API_VERSION || 'v1'
   static readonly UPSTASH_REDIS_REST_URL = obscured.make(process.env.UPSTASH_REDIS_REST_URL)
   static readonly UPSTASH_REDIS_REST_TOKEN = obscured.make(process.env.UPSTASH_REDIS_REST_TOKEN)
+  static readonly REQUEST_TIMEOUT = process.env.REQUEST_TIMEOUT || '30000'
+  static readonly CONNECTION_TIMEOUT = process.env.CONNECTION_TIMEOUT || '10000'
+  static readonly KEEP_ALIVE_TIMEOUT = process.env.KEEP_ALIVE_TIMEOUT || '65000'
 
   static validate(): void {
     const missing = requiredEnvs.filter((key) => !process.env[key])
