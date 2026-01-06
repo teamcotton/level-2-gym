@@ -6,12 +6,20 @@ const logger = new UnifiedLogger({ prefix: '[registerUser]' })
 export async function registerUser(data: RegisterUserData): Promise<RegisterUserResponse> {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://localhost:4321'
+
+    // Only send required fields to the server (exclude confirmPassword)
+    const payload = {
+      email: data.email,
+      name: data.name,
+      password: data.password,
+    }
+
     const response = await fetch(`${baseUrl}/api/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     })
 
     const result = (await response.json()) as RegisterUserResponse
