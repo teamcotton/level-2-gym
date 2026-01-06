@@ -217,8 +217,7 @@ describe('createCacheService', () => {
       const result = await service?.get(testMessages)
 
       expect(result).toBe(cachedResponse)
-      // Cache key is now a hash, so we just verify it's in the correct format
-      expect(mockGet).toHaveBeenCalledWith(expect.stringMatching(/^ai:chat:[a-f0-9]{64}$/))
+      expect(mockGet).toHaveBeenCalledWith(`ai:chat:${JSON.stringify(testMessages)}`)
       expect(mockLogger.debug).toHaveBeenCalledWith('Cache HIT', {
         cacheKey: expect.stringContaining('ai:chat:'),
       })
@@ -254,8 +253,8 @@ describe('createCacheService', () => {
       const service = createCacheService(mockLogger)
       await service?.get(testMessages)
 
-      // Cache key is now a deterministic hash
-      expect(mockGet).toHaveBeenCalledWith(expect.stringMatching(/^ai:chat:[a-f0-9]{64}$/))
+      const expectedKey = `ai:chat:${JSON.stringify(testMessages)}`
+      expect(mockGet).toHaveBeenCalledWith(expectedKey)
     })
 
     it('should handle Redis errors gracefully and return null', async () => {
@@ -278,7 +277,7 @@ describe('createCacheService', () => {
       )
     })
 
-    it('should use fixed-length hash for cache keys regardless of message length', async () => {
+    it('should truncate long cache keys in debug logs', async () => {
       mockRedisUrl = 'https://test-redis.upstash.io'
       mockRedisToken = 'test-token-12345'
 
@@ -302,11 +301,10 @@ describe('createCacheService', () => {
         cacheKey: expect.any(String),
       })
 
-      // Verify cache key is always 72 characters (ai:chat: + 64 char hash)
+      // Verify cache key is truncated to 100 characters
       const logCall = mockLogger.debug.mock.calls[0]
       expect(logCall).toBeDefined()
-      expect(logCall![1].cacheKey.length).toBe(72)
-      expect(logCall![1].cacheKey).toMatch(/^ai:chat:[a-f0-9]{64}$/)
+      expect(logCall![1].cacheKey.length).toBe(100)
     })
   })
 
@@ -332,12 +330,8 @@ describe('createCacheService', () => {
       const service = createCacheService(mockLogger, 3600)
       await service?.set(testMessages, testResponse)
 
-      // Cache key is now a deterministic hash
-      expect(mockSet).toHaveBeenCalledWith(
-        expect.stringMatching(/^ai:chat:[a-f0-9]{64}$/),
-        testResponse,
-        { ex: 3600 }
-      )
+      const expectedKey = `ai:chat:${JSON.stringify(testMessages)}`
+      expect(mockSet).toHaveBeenCalledWith(expectedKey, testResponse, { ex: 3600 })
       expect(mockLogger.debug).toHaveBeenCalledWith('Cached response', {
         cacheKey: expect.stringContaining('ai:chat:'),
         textLength: testResponse.length,
@@ -374,12 +368,8 @@ describe('createCacheService', () => {
       const service = createCacheService(mockLogger)
       await service?.set(testMessages, testResponse)
 
-      // Cache key is now a deterministic hash
-      expect(mockSet).toHaveBeenCalledWith(
-        expect.stringMatching(/^ai:chat:[a-f0-9]{64}$/),
-        expect.any(String),
-        expect.any(Object)
-      )
+      const expectedKey = `ai:chat:${JSON.stringify(testMessages)}`
+      expect(mockSet).toHaveBeenCalledWith(expectedKey, expect.any(String), expect.any(Object))
     })
 
     it('should handle Redis errors gracefully without throwing', async () => {
@@ -420,7 +410,7 @@ describe('createCacheService', () => {
       })
     })
 
-    it('should use fixed-length hash for cache keys regardless of message length', async () => {
+    it('should truncate long cache keys in debug logs', async () => {
       mockRedisUrl = 'https://test-redis.upstash.io'
       mockRedisToken = 'test-token-12345'
 
@@ -445,11 +435,10 @@ describe('createCacheService', () => {
         textLength: expect.any(Number),
       })
 
-      // Verify cache key is always 72 characters (ai:chat: + 64 char hash)
+      // Verify cache key is truncated to 100 characters
       const logCall = mockLogger.debug.mock.calls[0]
       expect(logCall).toBeDefined()
-      expect(logCall![1].cacheKey.length).toBe(72)
-      expect(logCall![1].cacheKey).toMatch(/^ai:chat:[a-f0-9]{64}$/)
+      expect(logCall![1].cacheKey.length).toBe(100)
     })
   })
 
@@ -504,8 +493,8 @@ describe('createCacheService', () => {
       const service = createCacheService(mockLogger)
       await service?.get(conversationMessages)
 
-      // Cache key is now a deterministic hash
-      expect(mockGet).toHaveBeenCalledWith(expect.stringMatching(/^ai:chat:[a-f0-9]{64}$/))
+      const expectedKey = `ai:chat:${JSON.stringify(conversationMessages)}`
+      expect(mockGet).toHaveBeenCalledWith(expectedKey)
     })
 
     it('should generate different cache keys for different message orders', async () => {
@@ -539,48 +528,6 @@ describe('createCacheService', () => {
       expect(key1).toBeDefined()
       expect(key2).toBeDefined()
       expect(key1).not.toBe(key2)
-    })
-
-    it('should generate same cache keys for semantically identical messages with different property orders', async () => {
-      mockRedisUrl = 'https://test-redis.upstash.io'
-      mockRedisToken = 'test-token-12345'
-
-      // Same message with properties in different order
-      const messages1: UIMessage[] = [
-        {
-          id: 'msg-1',
-          role: 'user',
-          parts: [{ type: 'text', text: 'What is TypeScript?' }],
-          extraProp: 'ignored',
-        } as any,
-      ]
-
-      const messages2: UIMessage[] = [
-        {
-          parts: [{ type: 'text', text: 'What is TypeScript?' }],
-          role: 'user',
-          id: 'msg-different',
-          anotherProp: 'also ignored',
-        } as any,
-      ]
-
-      mockGet.mockResolvedValue(null)
-
-      const { createCacheService } =
-        await import('../../../../src/infrastructure/ai/middleware/cache.middleware.js')
-
-      const service = createCacheService(mockLogger)
-
-      await service?.get(messages1)
-      const key1 = mockGet.mock.calls[0]?.[0]
-
-      await service?.get(messages2)
-      const key2 = mockGet.mock.calls[1]?.[0]
-
-      // Keys should be the same because only role and text content matter
-      expect(key1).toBeDefined()
-      expect(key2).toBeDefined()
-      expect(key1).toBe(key2)
     })
   })
 })

@@ -117,6 +117,19 @@ export class AIController {
         .send(FastifyUtil.createResponse('AI service configuration error', 500))
     }
 
+    // Create cache service instance
+    const cacheService = createCacheService(this.logger)
+
+    // Check cache first - if found, return cached text directly
+    if (cacheService) {
+      const cached = await cacheService.get(messages as UIMessage[])
+      if (cached) {
+        this.logger.info('Returning cached AI response', { chatId })
+        // Return plain text response for cached content
+        return reply.status(200).type('text/plain').send(cached)
+      }
+    }
+
     const result = streamText({
       model: google(EnvConfig.MODEL_NAME),
       messages: convertToModelMessages(messages as UIMessage[]),
