@@ -42,7 +42,7 @@ export const POST = async (req: Request): Promise<Response> => {
   const messages: UIMessage[] = body.messages
   const id = body.id
 
-  const modelMessages: ModelMessage[] = convertToModelMessages(messages)
+  const modelMessages: ModelMessage[] = await convertToModelMessages(messages)
 
   const SYSTEM_PROMPT = `You must respond in the same style of Charles Marlow the narrator in Joseph Conrad's The Heart of Darkness novella. Only answer factual questions about the novella when using the heartOfDarknessQA tool. Do not use other sources.
 `

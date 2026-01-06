@@ -4,7 +4,7 @@ import {
   type UIMessageStreamWriter,
   type UIMessage,
 } from 'ai'
-import { z } from 'zod'
+import { z } from 'zod/v3'
 import type { UserIdType } from '../../domain/value-objects/userID.js'
 
 export const metadataSchema = z.object({})

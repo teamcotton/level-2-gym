@@ -47,7 +47,7 @@ Provide direct, concise answers based only on the text.`
     console.log('Question:', question)
     console.log('\nCalling agent...\n')
 
-    const result = await streamText({
+    const result = streamText({
       model: google(EnvConfig.MODEL_NAME || 'ggemini-1.5-flash'),
       messages,
       system: evalSystemPrompt,

@@ -23,8 +23,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ai-sdk/google": "^2.0.51",
-    "@ai-sdk/react": "^2.0.118",
+    "@ai-sdk/google": "^3.0.3",
+    "@ai-sdk/react": "^3.0.11",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.3.6",
@@ -39,7 +39,7 @@
     "@types/react-dom": "^19.2.3",
     "@upstash/ratelimit": "^0.4.4",
     "@upstash/redis": "^1.36.0",
-    "ai": "^5.0.116",
+    "ai": "^6.0.11",
     "appwrite": "^21.5.0",
     "modern-normalize": "^3.0.1",
     "next": "^16.1.1",

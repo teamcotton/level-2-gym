@@ -7,7 +7,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 dotenv.config({ path: path.resolve(__dirname, '../../.env'), override: true })
 
 import { evalite } from 'evalite'
-import { generateText, type CoreUserMessage, stepCountIs } from 'ai'
+import { generateText, stepCountIs } from 'ai'
+import type { ModelMessage } from 'ai'
 import { google } from '@ai-sdk/google'
 import { HeartOfDarknessTool } from '../../src/infrastructure/ai/tools/heart-of-darkness.tool.js'
 import type { LoggerPort } from '../../src/application/ports/logger.port.js'
@@ -128,7 +129,7 @@ async function getAgentResponse(question: string): Promise<string> {
   const logger = new SimpleLogger()
   const heartOfDarknessTool = new HeartOfDarknessTool(logger)
 
-  const messages: CoreUserMessage[] = [
+  const messages: ModelMessage[] = [
     {
       role: 'user',
       content: question,

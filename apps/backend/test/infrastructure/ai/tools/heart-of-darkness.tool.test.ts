@@ -1,4 +1,4 @@
-import type { ToolCallOptions } from 'ai'
+import type { ToolExecutionOptions } from 'ai'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { LoggerPort } from '../../../../src/application/ports/logger.port.js'
@@ -31,7 +31,7 @@ vi.mock('../../../../src/application/use-cases/get-text.use-case.js', () => {
 describe('HeartOfDarknessTool', () => {
   let tool: HeartOfDarknessTool
   let mockLogger: LoggerPort
-  let mockOptions: ToolCallOptions
+  let mockOptions: ToolExecutionOptions
 
   beforeEach(() => {
     vi.clearAllMocks()

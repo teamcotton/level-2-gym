@@ -161,7 +161,7 @@ export class AIController {
 
     const result = streamText({
       model: google(EnvConfig.MODEL_NAME),
-      messages: convertToModelMessages(messages as UIMessage[]),
+      messages: await convertToModelMessages(messages as UIMessage[]),
       system: `${SYSTEM_PROMPT}`,
       tools: {
         heartOfDarknessQA: this.heartOfDarknessTool.getTool(),

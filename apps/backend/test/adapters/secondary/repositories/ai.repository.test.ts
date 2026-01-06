@@ -462,7 +462,9 @@ describe('AIRepository', () => {
             { type: 'text', text: 'Question with file' },
             {
               type: 'file',
-              mediaType: 'image/png',
+              file: {
+                mediaType: 'image/png',
+              },
               filename: 'screenshot.png',
               url: 'https://example.com/img.png',
             },
@@ -472,7 +474,7 @@ describe('AIRepository', () => {
           id: 'msg-2',
           role: 'assistant',
           parts: [
-            { type: 'reasoning', text: 'Let me analyze this...', providerMetadata: {} },
+            { type: 'reasoning', text: 'Let me analyze this...', providerOptions: {} },
             { type: 'text', text: 'Here is my response' },
           ],
         } as any,

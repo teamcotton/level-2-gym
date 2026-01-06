@@ -126,7 +126,7 @@ export const aiOptions = pgTable(
       .notNull()
       .references(() => messages.id, { onDelete: 'cascade' }),
     prompt: text('prompt').notNull(),
-    maxTokens: integer('max_tokens').notNull(),
+    maxOutputTokens: integer('max_tokens').notNull(),
     temperature: numeric('temperature').notNull(),
     topP: numeric('top_p').notNull(),
     frequencyPenalty: numeric('frequency_penalty').notNull(),
@@ -137,7 +137,7 @@ export const aiOptions = pgTable(
   },
   (table) => ({
     messageIdIdx: index('ai_options_message_id_idx').on(table.messageId),
-    maxTokensCheck: check('max_tokens_check', sql`${table.maxTokens} > 0`),
+    maxTokensCheck: check('max_tokens_check', sql`${table.maxOutputTokens} > 0`),
     temperatureRange: check(
       'temperature_range',
       sql`${table.temperature} >= 0 AND ${table.temperature} <= 2`
@@ -213,7 +213,7 @@ export const parts = pgTable(
     dataContent: jsonb('data_content'),
 
     // Provider metadata
-    providerMetadata: jsonb('provider_metadata'),
+    providerOptions: jsonb('provider_metadata'),
   },
   (table) => ({
     messageIdIdx: index('parts_message_id_idx').on(table.messageId),

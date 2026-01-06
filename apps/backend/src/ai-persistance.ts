@@ -97,7 +97,7 @@ export const POST = async (req: Request): Promise<Response> => {
 
   const result = streamText({
     model: google('gemini-2.0-flash-001'),
-    messages: convertToModelMessages(messages as UIMessage[]),
+    messages: await convertToModelMessages(messages as UIMessage[]),
     system: ` ${SYSTEM_PROMPT}
       You have access to the following tools:
       - heartOfDarknessQA (for answering questions about the novella Heart of Darkness)

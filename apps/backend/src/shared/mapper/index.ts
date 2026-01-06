@@ -30,7 +30,6 @@ export const mapUIMessagePartsToDBParts = (
           order: index,
           type: part.type,
           reasoningText: part.text,
-          providerMetadata: part.providerMetadata,
         }
       case 'file':
         return {
@@ -50,7 +49,6 @@ export const mapUIMessagePartsToDBParts = (
           sourceDocumentMediaType: part.mediaType,
           sourceDocumentTitle: part.title,
           sourceDocumentFilename: part.filename,
-          providerMetadata: part.providerMetadata,
         }
       case 'source-url':
         return {
@@ -60,7 +58,6 @@ export const mapUIMessagePartsToDBParts = (
           sourceUrlSourceId: part.sourceId,
           sourceUrlUrl: part.url,
           sourceUrlTitle: part.title,
-          providerMetadata: part.providerMetadata,
         }
       case 'step-start':
         return {
@@ -102,7 +99,6 @@ export const mapDBPartToUIMessagePart = (part: MyDBUIMessagePartSelect): MyUIMes
       return {
         type: part.type,
         text: part.reasoningText!,
-        providerMetadata: part.providerMetadata as any,
       }
     case 'file':
       return {
@@ -118,7 +114,6 @@ export const mapDBPartToUIMessagePart = (part: MyDBUIMessagePartSelect): MyUIMes
         mediaType: part.sourceDocumentMediaType!,
         title: part.sourceDocumentTitle!,
         filename: part.sourceDocumentFilename!,
-        providerMetadata: part.providerMetadata as any,
       }
     case 'source-url':
       return {
@@ -126,7 +121,6 @@ export const mapDBPartToUIMessagePart = (part: MyDBUIMessagePartSelect): MyUIMes
         sourceId: part.sourceUrlSourceId!,
         url: part.sourceUrlUrl!,
         title: part.sourceUrlTitle!,
-        providerMetadata: part.providerMetadata as any,
       }
     case 'step-start':
       return {
