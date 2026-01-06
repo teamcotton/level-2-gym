@@ -67,7 +67,7 @@ export function Dashboard({
             data-testid="test-server-action-button"
             onClick={onTestServerAction}
             variant="outlined"
-            sx={{ display: 'none' }} // Hidden by default, but accessible in tests
+            sx={{ visibility: 'hidden', position: 'absolute', left: '-9999px' }}
           >
             Test Server Action
           </Button>

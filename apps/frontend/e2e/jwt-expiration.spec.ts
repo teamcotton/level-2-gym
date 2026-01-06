@@ -201,7 +201,9 @@ test.describe('JWT Token Expiration', () => {
 
     // Make the button visible for clicking (it's hidden by default)
     await testButton.evaluate((el) => {
-      ;(el as HTMLElement).style.display = 'block'
+      const htmlEl = el as HTMLElement
+      htmlEl.style.visibility = 'visible'
+      htmlEl.style.position = 'static'
     })
 
     // Click the button to trigger the server action
