@@ -1,6 +1,15 @@
 import { type BrowserContext, expect, type Page } from '@playwright/test'
 
 /**
+ * Test credentials for E2E tests
+ * These credentials match the seeded users in global-setup.ts
+ */
+export const TEST_CREDENTIALS = {
+  email: 'james.smith@gmail.com',
+  password: 'Admin123!',
+} as const
+
+/**
  * Sign in with the test admin user and navigate to the chat page
  * @param page - Playwright Page object
  * @param options - Configuration options
@@ -24,8 +33,8 @@ export async function signInAndNavigateToChat(
   const passwordField = page.getByLabel(/^password/i)
   const submitButton = page.getByRole('button', { name: /^sign in$/i })
 
-  await emailField.fill('james.smith@gmail.com')
-  await passwordField.fill('Admin123!')
+  await emailField.fill(TEST_CREDENTIALS.email)
+  await passwordField.fill(TEST_CREDENTIALS.password)
   await submitButton.click()
 
   // Wait for redirect to dashboard

@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test'
 
+import { TEST_CREDENTIALS } from './helpers.js'
+
 test.describe('Dashboard Sign Out', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to sign in page
@@ -10,8 +12,8 @@ test.describe('Dashboard Sign Out', () => {
     const passwordField = page.getByLabel(/^password/i)
     const submitButton = page.getByRole('button', { name: /^sign in$/i })
 
-    await emailField.fill('james.smith@gmail.com')
-    await passwordField.fill('Admin123!')
+    await emailField.fill(TEST_CREDENTIALS.email)
+    await passwordField.fill(TEST_CREDENTIALS.password)
     await submitButton.click()
 
     // Wait for redirect to dashboard

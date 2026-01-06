@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test'
 
+import { TEST_CREDENTIALS } from './helpers.js'
+
 test.describe('Sign In Page', () => {
   test.describe.configure({ mode: 'serial' })
 
@@ -189,8 +191,8 @@ test.describe('Sign In Page', () => {
       const submitButton = page.getByRole('button', { name: /^sign in$/i })
 
       // Fill in valid credentials (admin user seeded in global-setup)
-      await emailField.fill('james.smith@gmail.com')
-      await passwordField.fill('Admin123!')
+      await emailField.fill(TEST_CREDENTIALS.email)
+      await passwordField.fill(TEST_CREDENTIALS.password)
 
       // Submit form
       await submitButton.click()
@@ -208,8 +210,8 @@ test.describe('Sign In Page', () => {
       const submitButton = page.getByRole('button', { name: /^sign in$/i })
 
       // Login with admin user
-      await emailField.fill('james.smith@gmail.com')
-      await passwordField.fill('Admin123!')
+      await emailField.fill(TEST_CREDENTIALS.email)
+      await passwordField.fill(TEST_CREDENTIALS.password)
       await submitButton.click()
 
       // Wait for redirect to dashboard
@@ -277,7 +279,7 @@ test.describe('Sign In Page', () => {
       const submitButton = page.getByRole('button', { name: /^sign in$/i })
 
       // Use valid email but wrong password
-      await emailField.fill('james.smith@gmail.com')
+      await emailField.fill(TEST_CREDENTIALS.email)
       await passwordField.fill('WrongPassword123!')
       await submitButton.click()
 
@@ -308,9 +310,9 @@ test.describe('Sign In Page', () => {
 
       // Clear fields and try again with valid credentials
       await emailField.clear()
-      await emailField.fill('james.smith@gmail.com')
+      await emailField.fill(TEST_CREDENTIALS.email)
       await passwordField.clear()
-      await passwordField.fill('Admin123!')
+      await passwordField.fill(TEST_CREDENTIALS.password)
       await submitButton.click()
 
       // Should redirect to dashboard
@@ -364,8 +366,8 @@ test.describe('Sign In Page', () => {
       const passwordField = page.getByLabel(/^password/i)
 
       // Fill in credentials
-      await emailField.fill('james.smith@gmail.com')
-      await passwordField.fill('Admin123!')
+      await emailField.fill(TEST_CREDENTIALS.email)
+      await passwordField.fill(TEST_CREDENTIALS.password)
 
       // Press Enter in password field and wait for navigation
       await Promise.all([
@@ -383,8 +385,8 @@ test.describe('Sign In Page', () => {
       const submitButton = page.getByRole('button', { name: /^sign in$/i })
 
       // Fill in credentials
-      await emailField.fill('james.smith@gmail.com')
-      await passwordField.fill('Admin123!')
+      await emailField.fill(TEST_CREDENTIALS.email)
+      await passwordField.fill(TEST_CREDENTIALS.password)
 
       // Check button is enabled before submission
       await expect(submitButton).toBeEnabled()

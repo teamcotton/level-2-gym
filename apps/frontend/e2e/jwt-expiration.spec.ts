@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test'
 
+import { TEST_CREDENTIALS } from './helpers.js'
+
 test.describe('JWT Token Expiration', () => {
   test.beforeEach(async ({ context }) => {
     // Clear cookies before each test
@@ -17,8 +19,8 @@ test.describe('JWT Token Expiration', () => {
     const passwordField = page.getByLabel(/^password/i)
     const submitButton = page.getByRole('button', { name: /^sign in$/i })
 
-    await emailField.fill('james.smith@gmail.com')
-    await passwordField.fill('Admin123!')
+    await emailField.fill(TEST_CREDENTIALS.email)
+    await passwordField.fill(TEST_CREDENTIALS.password)
 
     // Submit form and wait for navigation
     await Promise.all([page.waitForURL(/\/dashboard/, { timeout: 15000 }), submitButton.click()])
@@ -86,8 +88,8 @@ test.describe('JWT Token Expiration', () => {
     const passwordField = page.getByLabel(/^password/i)
     const submitButton = page.getByRole('button', { name: /^sign in$/i })
 
-    await emailField.fill('james.smith@gmail.com')
-    await passwordField.fill('Admin123!')
+    await emailField.fill(TEST_CREDENTIALS.email)
+    await passwordField.fill(TEST_CREDENTIALS.password)
 
     // Submit form and wait for navigation
     await Promise.all([page.waitForURL(/\/dashboard/, { timeout: 15000 }), submitButton.click()])
@@ -132,8 +134,8 @@ test.describe('JWT Token Expiration', () => {
     const passwordField = page.getByLabel(/^password/i)
     const submitButton = page.getByRole('button', { name: /^sign in$/i })
 
-    await emailField.fill('james.smith@gmail.com')
-    await passwordField.fill('Admin123!')
+    await emailField.fill(TEST_CREDENTIALS.email)
+    await passwordField.fill(TEST_CREDENTIALS.password)
 
     // Submit form and wait for navigation
     await Promise.all([page.waitForURL(/\/dashboard/, { timeout: 15000 }), submitButton.click()])
