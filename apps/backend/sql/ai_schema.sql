@@ -37,7 +37,7 @@ CREATE TABLE ai_options (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     message_id UUID NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
     prompt TEXT NOT NULL,
-    max_output_tokens INTEGER NOT NULL CHECK (max_output_tokens > 0),
+    max_tokens INTEGER NOT NULL CHECK (max_tokens > 0),
     temperature NUMERIC NOT NULL CHECK (temperature >= 0 AND temperature <= 2),
     top_p NUMERIC NOT NULL CHECK (top_p >= 0 AND top_p <= 1),
     frequency_penalty NUMERIC NOT NULL CHECK (frequency_penalty >= -2 AND frequency_penalty <= 2),
