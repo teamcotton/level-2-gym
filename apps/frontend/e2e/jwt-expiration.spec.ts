@@ -77,7 +77,7 @@ test.describe('JWT Token Expiration', () => {
     await expect(page.getByRole('heading', { name: /welcome back/i })).toBeVisible()
   })
 
-  test('should redirect to signin when accessing users list with expired JWT', async ({
+  test('should redirect to signin when accessing /dashboard with expired JWT', async ({
     page,
     context,
   }) => {
