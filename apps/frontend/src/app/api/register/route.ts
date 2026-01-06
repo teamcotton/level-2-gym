@@ -7,13 +7,7 @@ export async function POST(request: Request) {
   try {
     const body = (await request.json()) as RegisterUserData
 
-    // Prefer the un-suffixed BACKEND_AI_CALLBACK_URL when provided (e.g. by test runners).
-    // Fall back to the environment-specific variables for compatibility.
-    const apiUrl =
-      process.env.BACKEND_AI_CALLBACK_URL ??
-      (process.env.NODE_ENV === 'production'
-        ? process.env.BACKEND_AI_CALLBACK_URL_PROD
-        : process.env.BACKEND_AI_CALLBACK_URL_DEV)
+    const apiUrl = process.env.BACKEND_AI_CALLBACK_URL
 
     if (!apiUrl) {
       return Response.json(
