@@ -192,7 +192,7 @@ describe('AIController', () => {
         expect(mockReply.status).toHaveBeenCalledWith(400)
         expect(mockReply.send).toHaveBeenCalledWith({
           error: 'Invalid request body',
-          details: 'id and trigger are required',
+          details: 'Id is required and must be a string',
         })
       })
 
@@ -223,7 +223,22 @@ describe('AIController', () => {
         expect(mockReply.status).toHaveBeenCalledWith(400)
         expect(mockReply.send).toHaveBeenCalledWith({
           error: 'Invalid request body',
-          details: 'id and trigger are required',
+          details: 'Id is required and must be a string',
+        })
+      })
+
+      it('should return 400 if trigger is missing', async () => {
+        mockRequest.body = {
+          id: uuidv7(),
+          messages: [{ role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
+        }
+
+        await controller.chat(mockRequest, mockReply)
+
+        expect(mockReply.status).toHaveBeenCalledWith(400)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          error: 'Invalid request body',
+          details: 'Trigger is required and must be a string',
         })
       })
 
