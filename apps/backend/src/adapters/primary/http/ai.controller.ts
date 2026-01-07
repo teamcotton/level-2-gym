@@ -253,14 +253,15 @@ export class AIController {
    * ```typescript
    * // Route: GET /ai/chats/:userId
    * // Example request: GET /ai/chats/01935e8a-7890-7123-b456-123456789abc
-   * // Example response: ["01935e8a-1234-7abc-b456-111111111111", "01935e8a-5678-7def-b456-222222222222"]
+   * // Example response:
+   * // {
+   * //   "success": true,
+   * //   "data": ["01935e8a-1234-7abc-b456-111111111111", "01935e8a-5678-7def-b456-222222222222"]
+   * // }
    * ```
    */
 
-  async getAIChatsByUserId(
-    request: FastifyRequest,
-    reply: FastifyReply
-  ): Promise<ChatIdType[] | void> {
+  async getAIChatsByUserId(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     this.logger.debug('Received getAIChatsByUserId request')
 
     const params = request.params as Record<string, unknown>
@@ -309,7 +310,11 @@ export class AIController {
     }
 
     try {
-      return await this.getChatsByUserIdUseCase.execute(userId)
+      const chatIds = await this.getChatsByUserIdUseCase.execute(userId)
+      reply.code(200).send({
+        success: true,
+        data: chatIds,
+      })
     } catch (error) {
       if (error instanceof Error) {
         this.logger.error(
