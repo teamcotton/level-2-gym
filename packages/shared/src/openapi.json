@@ -584,12 +584,24 @@
         }
       },
       "AIUserIdResponse": {
-        "type": "array",
-        "description": "Array of UUID strings for previous AI chats",
-        "items": {
-          "type": "string",
-          "format": "uuid",
-          "example": "019b659a-2ad2-7fd8-9f32-35624caef900"
+        "type": "object",
+        "description": "Structured response containing array of chat IDs for a user",
+        "required": ["success", "data"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indicates if the request was successful",
+            "example": true
+          },
+          "data": {
+            "type": "array",
+            "description": "Array of UUID strings for previous AI chats",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "example": "019b659a-2ad2-7fd8-9f32-35624caef900"
+            }
+          }
         }
       },
       "AIRequest": {

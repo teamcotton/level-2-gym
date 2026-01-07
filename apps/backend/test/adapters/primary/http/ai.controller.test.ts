@@ -555,9 +555,13 @@ describe('AIController', () => {
         }
         vi.mocked(mockGetChatsByUserIdUseCase.execute).mockResolvedValue(mockChats)
 
-        const result = await controller.getAIChatsByUserId(mockRequest, mockReply)
+        await controller.getAIChatsByUserId(mockRequest, mockReply)
 
-        expect(result).toEqual(mockChats)
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: true,
+          data: mockChats,
+        })
         expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(userId)
         expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledTimes(1)
         expect(mockLogger.debug).toHaveBeenCalledWith('Received getAIChatsByUserId request')
@@ -575,9 +579,13 @@ describe('AIController', () => {
         }
         vi.mocked(mockGetChatsByUserIdUseCase.execute).mockResolvedValue(mockChats)
 
-        const result = await controller.getAIChatsByUserId(mockRequest, mockReply)
+        await controller.getAIChatsByUserId(mockRequest, mockReply)
 
-        expect(result).toEqual([])
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: true,
+          data: [],
+        })
         expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(userId)
       })
 
@@ -593,9 +601,13 @@ describe('AIController', () => {
         }
         vi.mocked(mockGetChatsByUserIdUseCase.execute).mockResolvedValue(mockChats)
 
-        const result = await controller.getAIChatsByUserId(mockRequest, mockReply)
+        await controller.getAIChatsByUserId(mockRequest, mockReply)
 
-        expect(result).toHaveLength(10)
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: true,
+          data: mockChats,
+        })
         expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(userId)
       })
     })
@@ -715,9 +727,13 @@ describe('AIController', () => {
         }
         vi.mocked(mockGetChatsByUserIdUseCase.execute).mockResolvedValue(mockChats)
 
-        const result = await controller.getAIChatsByUserId(mockRequest, mockReply)
+        await controller.getAIChatsByUserId(mockRequest, mockReply)
 
-        expect(result).toEqual(mockChats)
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: true,
+          data: mockChats,
+        })
         expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(userId)
         expect(mockReply.status).not.toHaveBeenCalledWith(403)
       })
@@ -735,9 +751,13 @@ describe('AIController', () => {
         }
         vi.mocked(mockGetChatsByUserIdUseCase.execute).mockResolvedValue(mockChats)
 
-        const result = await controller.getAIChatsByUserId(mockRequest, mockReply)
+        await controller.getAIChatsByUserId(mockRequest, mockReply)
 
-        expect(result).toEqual(mockChats)
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: true,
+          data: mockChats,
+        })
         expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(targetUserId)
         expect(mockReply.status).not.toHaveBeenCalledWith(403)
       })
@@ -755,9 +775,13 @@ describe('AIController', () => {
         }
         vi.mocked(mockGetChatsByUserIdUseCase.execute).mockResolvedValue(mockChats)
 
-        const result = await controller.getAIChatsByUserId(mockRequest, mockReply)
+        await controller.getAIChatsByUserId(mockRequest, mockReply)
 
-        expect(result).toEqual(mockChats)
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: true,
+          data: mockChats,
+        })
         expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(targetUserId)
         expect(mockReply.status).not.toHaveBeenCalledWith(403)
       })
@@ -828,9 +852,13 @@ describe('AIController', () => {
         }
         vi.mocked(mockGetChatsByUserIdUseCase.execute).mockResolvedValue(mockChats)
 
-        const result = await controller.getAIChatsByUserId(mockRequest, mockReply)
+        await controller.getAIChatsByUserId(mockRequest, mockReply)
 
-        expect(result).toEqual(mockChats)
+        expect(mockReply.code).toHaveBeenCalledWith(200)
+        expect(mockReply.send).toHaveBeenCalledWith({
+          success: true,
+          data: mockChats,
+        })
         expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(targetUserId)
         expect(mockReply.status).not.toHaveBeenCalledWith(403)
       })
