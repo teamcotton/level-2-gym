@@ -244,14 +244,34 @@ export class AIController {
       return reply.status(400).send(FastifyUtil.createResponse('Invalid userId parameter', 400))
     }
 
+    let userId: string
+
     try {
-      const userId = new UserId(userIdParam).getValue()
-      return this.getChatsByUserIdUseCase.execute(userId)
+      userId = new UserId(userIdParam).getValue()
     } catch (error) {
       if (error instanceof Error) {
-        this.logger.error(`Invalid userId format in getAIChatsByUserId: ${userIdParam}`, error)
+        this.logger.error(
+          `Invalid userId format in getAIChatsByUserId: ${userIdParam}`,
+          error
+        )
       }
-      return reply.status(500).send(FastifyUtil.createResponse('Internal server error', 500))
+      return reply
+        .status(400)
+        .send(FastifyUtil.createResponse('Invalid userId format', 400))
+    }
+
+    try {
+      return await this.getChatsByUserIdUseCase.execute(userId)
+    } catch (error) {
+      if (error instanceof Error) {
+        this.logger.error(
+          `Error while fetching chats for userId in getAIChatsByUserId: ${userId}`,
+          error
+        )
+      }
+      return reply
+        .status(500)
+        .send(FastifyUtil.createResponse('Internal server error', 500))
     }
   }
 }
