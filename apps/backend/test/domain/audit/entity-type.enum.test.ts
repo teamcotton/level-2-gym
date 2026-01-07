@@ -81,6 +81,7 @@ describe('EntityType Enum', () => {
           [EntityType.PART]: 'Part',
           [EntityType.AI_OPTIONS]: 'AI Options',
         }
+        // eslint-disable-next-line security/detect-object-injection
         return labels[type]
       }
 
@@ -267,6 +268,7 @@ describe('AuditAction Enum', () => {
           [AuditAction.PASSWORD_CHANGE]: 'Password Changed',
           [AuditAction.EMAIL_CHANGE]: 'Email Changed',
         }
+        // eslint-disable-next-line security/detect-object-injection
         return labels[action]
       }
 

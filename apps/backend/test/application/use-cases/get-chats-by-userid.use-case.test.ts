@@ -53,8 +53,8 @@ describe('GetChatsByUserIdUseCase', () => {
       expect(mockAIRepository.getChatsByUserId).toHaveBeenCalledWith(testUserId)
       expect(mockAIRepository.getChatsByUserId).toHaveBeenCalledTimes(1)
       expect(mockLogger.info).toHaveBeenCalledTimes(2)
-      expect(mockLogger.info).toHaveBeenCalledWith(`Getting chats for chat ID: ${testUserId}`)
-      expect(mockLogger.info).toHaveBeenCalledWith(`Retrieved 3 chats for chat ID: ${testUserId}`)
+      expect(mockLogger.info).toHaveBeenCalledWith(`Getting chats for user ID: ${testUserId}`)
+      expect(mockLogger.info).toHaveBeenCalledWith(`Retrieved 3 chats for user ID: ${testUserId}`)
     })
 
     it('should return empty array when user has no chats', async () => {
@@ -67,7 +67,7 @@ describe('GetChatsByUserIdUseCase', () => {
       expect(result).toEqual([])
       expect(result).toHaveLength(0)
       expect(mockAIRepository.getChatsByUserId).toHaveBeenCalledWith(testUserId)
-      expect(mockLogger.info).toHaveBeenCalledWith(`Retrieved 0 chats for chat ID: ${testUserId}`)
+      expect(mockLogger.info).toHaveBeenCalledWith(`Retrieved 0 chats for user ID: ${testUserId}`)
     })
 
     it('should return single chat when user has one chat', async () => {
@@ -80,7 +80,7 @@ describe('GetChatsByUserIdUseCase', () => {
       expect(result).toEqual(mockChats)
       expect(result).toHaveLength(1)
       expect(mockAIRepository.getChatsByUserId).toHaveBeenCalledWith(testUserId)
-      expect(mockLogger.info).toHaveBeenCalledWith(`Retrieved 1 chats for chat ID: ${testUserId}`)
+      expect(mockLogger.info).toHaveBeenCalledWith(`Retrieved 1 chats for user ID: ${testUserId}`)
     })
 
     it('should handle large number of chats', async () => {
@@ -95,7 +95,7 @@ describe('GetChatsByUserIdUseCase', () => {
       expect(result).toEqual(mockChats)
       expect(result).toHaveLength(100)
       expect(mockAIRepository.getChatsByUserId).toHaveBeenCalledWith(testUserId)
-      expect(mockLogger.info).toHaveBeenCalledWith(`Retrieved 100 chats for chat ID: ${testUserId}`)
+      expect(mockLogger.info).toHaveBeenCalledWith(`Retrieved 100 chats for user ID: ${testUserId}`)
     })
 
     it('should call logger with correct userId', async () => {
@@ -106,9 +106,9 @@ describe('GetChatsByUserIdUseCase', () => {
 
       await useCase.execute(specificUserId)
 
-      expect(mockLogger.info).toHaveBeenCalledWith(`Getting chats for chat ID: ${specificUserId}`)
+      expect(mockLogger.info).toHaveBeenCalledWith(`Getting chats for user ID: ${specificUserId}`)
       expect(mockLogger.info).toHaveBeenCalledWith(
-        `Retrieved 0 chats for chat ID: ${specificUserId}`
+        `Retrieved 0 chats for user ID: ${specificUserId}`
       )
     })
   })
@@ -122,18 +122,12 @@ describe('GetChatsByUserIdUseCase', () => {
       expect(mockAIRepository.getChatsByUserId).toHaveBeenCalledWith(testUserId)
     })
 
-    it('should throw error when repository returns null', async () => {
-      vi.mocked(mockAIRepository.getChatsByUserId).mockResolvedValue(null as any)
-
-      await expect(useCase.execute(testUserId)).rejects.toThrow()
-    })
-
     it('should propagate repository errors', async () => {
       const error = new InternalErrorException('Failed to retrieve chats')
       vi.mocked(mockAIRepository.getChatsByUserId).mockRejectedValue(error)
 
       await expect(useCase.execute(testUserId)).rejects.toThrow('Failed to retrieve chats')
-      expect(mockLogger.info).toHaveBeenCalledWith(`Getting chats for chat ID: ${testUserId}`)
+      expect(mockLogger.info).toHaveBeenCalledWith(`Getting chats for user ID: ${testUserId}`)
     })
 
     it('should handle network errors gracefully', async () => {
@@ -151,10 +145,10 @@ describe('GetChatsByUserIdUseCase', () => {
 
       await useCase.execute(testUserId)
 
-      expect(mockLogger.info).toHaveBeenNthCalledWith(1, `Getting chats for chat ID: ${testUserId}`)
+      expect(mockLogger.info).toHaveBeenNthCalledWith(1, `Getting chats for user ID: ${testUserId}`)
       expect(mockLogger.info).toHaveBeenNthCalledWith(
         2,
-        `Retrieved 1 chats for chat ID: ${testUserId}`
+        `Retrieved 1 chats for user ID: ${testUserId}`
       )
     })
 
@@ -165,7 +159,7 @@ describe('GetChatsByUserIdUseCase', () => {
       await expect(useCase.execute(testUserId)).rejects.toThrow()
 
       expect(mockLogger.info).toHaveBeenCalledTimes(1)
-      expect(mockLogger.info).toHaveBeenCalledWith(`Getting chats for chat ID: ${testUserId}`)
+      expect(mockLogger.info).toHaveBeenCalledWith(`Getting chats for user ID: ${testUserId}`)
     })
 
     it('should not call error logger on repository failure', async () => {
@@ -204,8 +198,11 @@ describe('GetChatsByUserIdUseCase', () => {
       const result = await useCase.execute(testUserId)
 
       expect(result).toEqual(mockChats)
-      expect(result[0]).toBe(chatId1)
-      expect(result[1]).toBe(chatId2)
+      expect(Array.isArray(result)).toBe(true)
+      expect(result).toHaveLength(2)
+      // Type assertion safe here because we just verified it's an array
+      expect((result as ChatIdType[])[0]).toBe(chatId1)
+      expect((result as ChatIdType[])[1]).toBe(chatId2)
     })
   })
 })

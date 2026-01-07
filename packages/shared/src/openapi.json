@@ -381,7 +381,7 @@
     "/ai/chats/{userId}": {
       "get": {
         "summary": "Get AI response by UserId",
-        "description": "Retrieves previous chat by UserId",
+        "description": "Retrieves previous chats by UserId",
         "operationId": "getAIChatsByUserId",
         "tags": ["ai"],
         "security": [{ "bearerAuth": [] }],
