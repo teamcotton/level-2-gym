@@ -251,7 +251,7 @@ export class AIController {
       if (error instanceof Error) {
         this.logger.error(`Invalid userId format in getAIChatsByUserId: ${userIdParam}`, error)
       }
-      return reply.status(400).send(FastifyUtil.createResponse('Invalid userId format', 400))
+      return reply.status(500).send(FastifyUtil.createResponse('Internal server error', 500))
     }
   }
 }
