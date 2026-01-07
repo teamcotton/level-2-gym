@@ -12,8 +12,8 @@ import { getChatsByUserIdAction } from '@/infrastructure/serverActions/getChatsB
  *
  * @param userId - The identifier of the user whose chats should be fetched; if `null`,
  *   the query is disabled and no request is made.
- * @returns A React Query result object whose `data` field contains an array of chat IDs
- *   for the user when the query succeeds.
+ * @returns The full React Query query result object (as returned by `useQuery`), whose
+ *   `data` field contains an array of chat IDs for the user when the query succeeds.
  */
 export function useUserChats(userId: string | null) {
   const ONE_MINUTE_MS = 60_000
