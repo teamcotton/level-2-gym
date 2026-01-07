@@ -41,11 +41,11 @@ export function useRegistrationForm() {
   const router = useRouter()
 
   const togglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev)
+    setShowPassword((prev: boolean) => !prev)
   }
 
   const toggleConfirmPasswordVisibility = () => {
-    setShowConfirmPassword((prev) => !prev)
+    setShowConfirmPassword((prev: boolean) => !prev)
   }
 
   const handleSignIn = () => {
@@ -130,7 +130,7 @@ export function useRegistrationForm() {
 
           // Check if error is about duplicate email (handles both backend messages)
           if (result.status === 409) {
-            setErrors((prev) => ({
+            setErrors((prev: FormErrors) => ({
               ...prev,
               email: 'This email is already registered. Please use a different email.',
             }))
