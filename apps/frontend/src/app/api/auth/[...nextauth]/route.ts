@@ -2,6 +2,7 @@ import NextAuth from 'next-auth'
 
 import { authOptions } from '@/lib/auth-config.js'
 
-const handler = NextAuth.default(authOptions)
+// @ts-expect-error - NextAuth types issue with App Router
+const handler = NextAuth(authOptions)
 
 export { handler as GET, handler as POST }

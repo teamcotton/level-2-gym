@@ -33,14 +33,14 @@ export function useSignInForm() {
   const [showPassword, setShowPassword] = useState(false)
 
   const togglePasswordVisibility = () => {
-    setShowPassword((prev: boolean) => !prev)
+    setShowPassword((prev) => !prev)
   }
 
   const [isLoading, setIsLoading] = useState(false)
 
   const handleChange = (field: keyof FormData) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev: FormData) => ({ ...prev, [field]: event.target.value }))
-    setErrors((prev: FormErrors) => ({ ...prev, [field]: '' }))
+    setFormData((prev) => ({ ...prev, [field]: event.target.value }))
+    setErrors((prev) => ({ ...prev, [field]: '' }))
   }
 
   const validateForm = (): boolean => {
@@ -74,7 +74,7 @@ export function useSignInForm() {
     }
 
     setIsLoading(true)
-    setErrors((prev: typeof errors) => ({ ...prev, general: '' }))
+    setErrors((prev) => ({ ...prev, general: '' }))
 
     try {
       logger.info('[useSignInForm] Calling Server Action for authentication')
@@ -92,7 +92,7 @@ export function useSignInForm() {
 
       if (!authResult.success) {
         logger.error('[useSignInForm] Authentication failed:', authResult.error)
-        setErrors((prev: FormErrors) => ({
+        setErrors((prev) => ({
           ...prev,
           general: authResult.error || 'Invalid email or password',
         }))
@@ -121,7 +121,7 @@ export function useSignInForm() {
 
       if (sessionResult?.error) {
         logger.error('[useSignInForm] Session establishment failed:', sessionResult.error)
-        setErrors((prev: FormErrors) => ({
+        setErrors((prev) => ({
           ...prev,
           general: 'Authentication succeeded but session creation failed. Please try again.',
         }))
@@ -145,14 +145,14 @@ export function useSignInForm() {
         router.refresh()
       } else {
         logger.error('[useSignInForm] Session establishment explicitly failed')
-        setErrors((prev: FormErrors) => ({
+        setErrors((prev) => ({
           ...prev,
           general: 'An unexpected error occurred during sign in. Please try again.',
         }))
       }
     } catch (error) {
       logger.error('[useSignInForm] Exception:', error)
-      setErrors((prev: FormErrors) => ({
+      setErrors((prev) => ({
         ...prev,
         general: 'An unexpected error occurred. Please try again.',
       }))
