@@ -33,13 +33,19 @@ interface UseAIChatProps {
   id?: string
 }
 
-export function processUserUUID(id: string | Buffer) {
+export function isValidUUIDv7(id: string | Buffer) {
   if (!isValidUUID(id)) {
     return false
   }
   return uuidVersionValidation(id) === 'v7'
 }
 
+/**
+ * @deprecated Use isValidUUIDv7 instead. This wrapper is kept for backward compatibility.
+ */
+export function processUserUUID(id: string | Buffer) {
+  return isValidUUIDv7(id)
+}
 export function useAIChat({ id }: UseAIChatProps = {}) {
   const router = useRouter()
   const { data: session } = useSession()
