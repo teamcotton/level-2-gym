@@ -9,7 +9,7 @@ export class GetChatsByUserIdUseCase {
     private readonly logger: LoggerPort
   ) {}
 
-  async execute(userId: UserIdType): Promise<ChatIdType[] | undefined> {
+  async execute(userId: UserIdType): Promise<ChatIdType[]> {
     this.logger.info(`Getting chats for user ID: ${userId}`)
     const chats = await this.aiRepository.getChatsByUserId(userId)
     this.logger.info(`Retrieved ${chats?.length} chats for user ID: ${userId}`)

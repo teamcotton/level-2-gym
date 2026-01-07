@@ -118,18 +118,16 @@ export class AIRepository implements AIServicePort {
     return chatId
   }
 
-  async getChatsByUserId(userId: UserIdType): Promise<ChatIdType[] | undefined> {
-    try {
-      const result = await db
-        .select({
-          id: chats.id,
-        })
-        .from(chats)
-        .where(eq(chats.userId, userId))
-        .orderBy(desc(chats.id))
+  async getChatsByUserId(userId: UserIdType): Promise<ChatIdType[]> {
+    const result = await db
+      .select({
+        id: chats.id,
+      })
+      .from(chats)
+      .where(eq(chats.userId, userId))
+      .orderBy(desc(chats.id))
 
-      return result.map((row) => row.id as ChatIdType) || []
-    } catch (_error) {}
+    return result.map((row) => row.id as ChatIdType) || []
   }
 
   async getChatResponse(chatId: ChatIdType): Promise<ChatResponseResult | null> {

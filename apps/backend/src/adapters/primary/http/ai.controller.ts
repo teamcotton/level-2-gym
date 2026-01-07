@@ -231,10 +231,7 @@ export class AIController {
     })
   }
 
-  async getAIChatsByUserId(
-    request: FastifyRequest,
-    reply: FastifyReply
-  ): Promise<ChatIdType[] | undefined> {
+  async getAIChatsByUserId(request: FastifyRequest, reply: FastifyReply): Promise<ChatIdType[]> {
     this.logger.debug('Received getAIChatsByUserId request')
 
     const params = request.params as Record<string, unknown>
