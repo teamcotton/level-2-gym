@@ -128,7 +128,7 @@ export function AIChatView({
           {isLoadingChats ? (
             <ListItem>
               <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', py: 2 }}>
-                <CircularProgress size={24} />
+                <CircularProgress size={24} aria-label="Loading chat history" />
               </Box>
             </ListItem>
           ) : isError ? (
@@ -304,7 +304,7 @@ export function AIChatView({
                     <Avatar sx={{ bgcolor: 'secondary.main', color: 'text.primary' }}>
                       <SmartToyIcon />
                     </Avatar>
-                    <CircularProgress size={24} />
+                    <CircularProgress size={24} aria-label="Loading chat history" />
                   </Box>
                 )}
                 <div ref={messagesEndRef} />
