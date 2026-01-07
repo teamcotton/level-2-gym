@@ -57,7 +57,8 @@ interface CredentialsInput {
  */
 export const authOptions: NextAuthOptions = {
   providers: [
-    CredentialsProvider.default({
+    // @ts-expect-error - NextAuth v4 ESM/CommonJS interop issue with credentials provider
+    CredentialsProvider({
       name: 'Credentials',
       credentials: {
         email: { label: 'Email', type: 'email', placeholder: 'user@example.com' },
