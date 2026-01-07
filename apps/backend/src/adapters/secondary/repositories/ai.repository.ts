@@ -125,7 +125,7 @@ export class AIRepository implements AIServicePort {
       })
       .from(chats)
       .where(eq(chats.userId, userId))
-      .orderBy(desc(chats.id))
+      .orderBy(desc(chats.updatedAt))
 
     return result.map((row) => row.id as ChatIdType)
   }
