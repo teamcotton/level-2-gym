@@ -13,7 +13,7 @@ export class GetChatsByUserIdUseCase {
     this.logger.info(`Getting chats for user ID: ${userId}`)
     const chats = await this.aiRepository.getChatsByUserId(userId)
     this.logger.info(
-      `Retrieved ${chats?.length} chat${chats?.length === 1 ? '' : 's'} for user ID: ${userId}`
+      `Retrieved ${chats.length} chat${chats.length === 1 ? '' : 's'} for user ID: ${userId}`
     )
     return chats
   }
