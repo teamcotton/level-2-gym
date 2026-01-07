@@ -310,7 +310,8 @@ export class AIController {
       )
       return reply.code(403).send({
         success: false,
-        error: 'Access denied. You can only access your own chat history or must have admin/moderator role',
+        error:
+          'Access denied. You can only access your own chat history or must have admin/moderator role',
       })
     }
 

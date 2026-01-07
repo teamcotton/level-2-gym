@@ -820,7 +820,8 @@ describe('AIController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(403)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Access denied. You can only access your own chat history or must have admin/moderator role',
+          error:
+            'Access denied. You can only access your own chat history or must have admin/moderator role',
         })
         expect(mockGetChatsByUserIdUseCase.execute).not.toHaveBeenCalled()
         expect(mockLogger.warn).toHaveBeenCalled()
@@ -842,7 +843,8 @@ describe('AIController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(403)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Access denied. You can only access your own chat history or must have admin/moderator role',
+          error:
+            'Access denied. You can only access your own chat history or must have admin/moderator role',
         })
         expect(mockGetChatsByUserIdUseCase.execute).not.toHaveBeenCalled()
       })
