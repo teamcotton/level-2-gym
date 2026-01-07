@@ -15,8 +15,12 @@ import { EnvConfig } from '../../../infrastructure/config/env.config.js'
 import { HeartOfDarknessTool } from '../../../infrastructure/ai/tools/heart-of-darkness.tool.js'
 import { SaveChatUseCase } from '../../../application/use-cases/save-chat.use-case.js'
 import { GetChatUseCase } from '../../../application/use-cases/get-chat.use-case.js'
+import type { ChatIdType } from '../../../domain/value-objects/chatID.js'
+import type { UserIdType } from '../../../domain/value-objects/userID.js'
+import { UserId } from '../../../domain/value-objects/userID.js'
 import { ChatId } from '../../../domain/value-objects/chatID.js'
 import { SYSTEM_PROMPT } from '../../../shared/constants/ai-constants.js'
+import { GetChatsByUserIdUseCase } from '../../../application/use-cases/get-chats-by-userid.use-case.js'
 
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
@@ -25,7 +29,8 @@ export class AIController {
     private readonly getChatUseCase: GetChatUseCase,
     private readonly logger: LoggerPort,
     private readonly appendChatUseCase: AppendedChatUseCase,
-    private readonly saveChatUseCase: SaveChatUseCase
+    private readonly saveChatUseCase: SaveChatUseCase,
+    private readonly getChatsByUserIdUseCase: GetChatsByUserIdUseCase
   ) {
     this.heartOfDarknessTool = new HeartOfDarknessTool(this.logger)
   }
@@ -37,6 +42,13 @@ export class AIController {
         preHandler: [authMiddleware],
       },
       this.chat.bind(this)
+    )
+    app.get(
+      '/ai/chats/:userId',
+      {
+        preHandler: [authMiddleware],
+      },
+      this.getAIChatsByUserId.bind(this)
     )
   }
 
@@ -218,5 +230,108 @@ export class AIController {
         await this.appendChatUseCase.execute(chatId, [responseMessage])
       },
     })
+  }
+
+  /**
+   * Retrieves all chat IDs associated with a specific user.
+   *
+   * This endpoint implements authorization checks to ensure users can only access their own chat history
+   * unless they have admin or moderator privileges. The authorization flow is:
+   * 1. User can access their own chat history (userId matches authenticated user's ID)
+   * 2. Admin or moderator can access any user's chat history
+   *
+   * @param request - The Fastify request object containing the userId parameter and authenticated user info
+   * @param reply - The Fastify reply object for sending responses
+   * @returns A promise that resolves to an array of ChatIdType or void if an error response is sent
+   *
+   * @throws {400} When userId parameter is missing or has invalid format (not a valid UUID v7)
+   * @throws {401} When user is not authenticated
+   * @throws {403} When user attempts to access another user's chat history without admin/moderator role
+   * @throws {500} When an error occurs while fetching chats from the repository
+   *
+   * @example
+   * ```typescript
+   * // Route: GET /ai/chats/:userId
+   * // Example request: GET /ai/chats/01935e8a-7890-7123-b456-123456789abc
+   * // Example response:
+   * // {
+   * //   "success": true,
+   * //   "data": ["01935e8a-1234-7abc-b456-111111111111", "01935e8a-5678-7def-b456-222222222222"]
+   * // }
+   * ```
+   */
+
+  async getAIChatsByUserId(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    this.logger.debug('Received getAIChatsByUserId request')
+
+    const params = request.params as Record<string, unknown>
+    const userIdParam = params.userId as string
+
+    if (!userIdParam) {
+      return reply.code(400).send({
+        success: false,
+        error: 'Invalid userId parameter',
+      })
+    }
+
+    let userId: UserIdType
+
+    try {
+      userId = new UserId(userIdParam).getValue()
+    } catch (error) {
+      if (error instanceof Error) {
+        this.logger.error(`Invalid userId format in getAIChatsByUserId: ${userIdParam}`, error)
+      }
+      return reply.code(400).send({
+        success: false,
+        error: 'Invalid userId format',
+      })
+    }
+
+    // Authorization check: User can only access their own chat history unless they have admin/moderator role
+    const authenticatedUserId = request.user?.sub
+    const userRoles = request.user?.roles || []
+
+    if (!authenticatedUserId) {
+      this.logger.warn('Authorization check failed: User not authenticated')
+      return reply.code(401).send({
+        success: false,
+        error: 'Authentication required',
+      })
+    }
+
+    // Check if user is accessing their own data OR has admin/moderator role
+    const isOwnData = authenticatedUserId === userId
+    const hasElevatedRole = userRoles.includes('admin') || userRoles.includes('moderator')
+
+    if (!isOwnData && !hasElevatedRole) {
+      this.logger.warn(
+        `Authorization check failed: User ${authenticatedUserId} attempted to access chats for user ${userId} without required permissions`
+      )
+      return reply.code(403).send({
+        success: false,
+        error:
+          'Access denied. You can only access your own chat history or must have admin/moderator role',
+      })
+    }
+
+    try {
+      const chatIds = await this.getChatsByUserIdUseCase.execute(userId)
+      reply.code(200).send({
+        success: true,
+        data: chatIds,
+      })
+    } catch (error) {
+      if (error instanceof Error) {
+        this.logger.error(
+          `Error while fetching chats for userId in getAIChatsByUserId: ${userId}`,
+          error
+        )
+      }
+      return reply.code(500).send({
+        success: false,
+        error: 'Internal server error',
+      })
+    }
   }
 }

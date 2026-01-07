@@ -62,7 +62,7 @@ vi.mock('obscured', () => {
 })
 
 // Mock logger
-const mockLogger = {
+const _mockLogger = {
   info: vi.fn(),
   warn: vi.fn(),
   debug: vi.fn(),
