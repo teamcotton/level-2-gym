@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/aria-role */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 /* eslint-disable security/detect-non-literal-regexp */
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'

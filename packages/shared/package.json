@@ -10,7 +10,7 @@
     "src"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && pnpm run build:openapi",
     "test": "pnpm run test:node && pnpm run test:browser",
     "test:node": "vitest run --config vitest.config.node.ts",
     "test:browser": "vitest run --config vitest.config.browser.ts",
@@ -21,7 +21,8 @@
     "lint:api": "spectral lint --verbose ./src/openapi.json --ruleset ./src/.spectral.yaml",
     "lint:api:json": "spectral lint ./src/openapi.json --ruleset ./src/.spectral.yaml --format json",
     "docs:api": "redoc-cli serve ./src/openapi.json --watch --port 8080",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:openapi": "openapi-typescript ./src/openapi.json --output ./dist/generated/openapi-types.ts"
   },
   "dependencies": {
     "zod": "^4.3.5"
@@ -30,6 +31,10 @@
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./openapi-types": {
+      "import": "./dist/generated/openapi-types.js",
+      "types": "./dist/generated/openapi-types.d.ts"
     }
   },
   "devDependencies": {
@@ -37,6 +42,7 @@
     "@stoplight/spectral-cli": "^6.15.0",
     "@vitest/coverage-v8": "^4.0.16",
     "jsdom": "^27.4.0",
+    "openapi-typescript": "^7.10.1",
     "redoc-cli": "^0.13.21",
     "typescript": "^5.9.3",
     "vitest": "^4.0.16"

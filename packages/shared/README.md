@@ -18,6 +18,13 @@ Usage (frontend or backend):
 import { LoginSchema, LoginDTO } from '@norberts-spark/shared'
 ```
 
+to import generated OpenAPI types:
+
+```ts
+import type { components } from '@norberts-spark/shared/openapi-types'
+type UserResponse = components['schemas']['UserResponse']
+```
+
 Notes:
 
 - This package already includes a `build` script and `exports` in `package.json`.
