@@ -302,9 +302,9 @@ export class AIController {
 
     // Check if user is accessing their own data OR has admin/moderator role
     const isOwnData = authenticatedUserId === userId
-    const hasAdminRole = userRoles.includes('admin') || userRoles.includes('moderator')
+    const hasElevatedRole = userRoles.includes('admin') || userRoles.includes('moderator')
 
-    if (!isOwnData && !hasAdminRole) {
+    if (!isOwnData && !hasElevatedRole) {
       this.logger.warn(
         `Authorization check failed: User ${authenticatedUserId} attempted to access chats for user ${userId} without required permissions`
       )
