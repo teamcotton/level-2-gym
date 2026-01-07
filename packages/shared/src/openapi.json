@@ -380,8 +380,8 @@
     },
     "/ai/chats/{userId}": {
       "get": {
-        "summary": "Get AI response by UserId",
-        "description": "Retrieves previous chats by UserId",
+        "summary": "Get chat IDs for user",
+        "description": "Retrieves a list of chat IDs associated with the specified user",
         "operationId": "getAIChatsByUserId",
         "tags": ["ai"],
         "security": [{ "bearerAuth": [] }],
