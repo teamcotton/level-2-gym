@@ -17,6 +17,8 @@ import { SaveChatUseCase } from '../../../application/use-cases/save-chat.use-ca
 import { GetChatUseCase } from '../../../application/use-cases/get-chat.use-case.js'
 import { ChatId } from '../../../domain/value-objects/chatID.js'
 import { SYSTEM_PROMPT } from '../../../shared/constants/ai-constants.js'
+import { GetChatsByUserIdUseCase } from '../../../application/use-cases/get-chats-by-userid.use-case.js'
+import type { UserIdType } from '../../../domain/value-objects/userID.js'
 
 export class AIController {
   private readonly heartOfDarknessTool: HeartOfDarknessTool
@@ -25,7 +27,8 @@ export class AIController {
     private readonly getChatUseCase: GetChatUseCase,
     private readonly logger: LoggerPort,
     private readonly appendChatUseCase: AppendedChatUseCase,
-    private readonly saveChatUseCase: SaveChatUseCase
+    private readonly saveChatUseCase: SaveChatUseCase,
+    private readonly getChatsByUserIdUseCase: GetChatsByUserIdUseCase
   ) {
     this.heartOfDarknessTool = new HeartOfDarknessTool(this.logger)
   }
@@ -37,6 +40,13 @@ export class AIController {
         preHandler: [authMiddleware],
       },
       this.chat.bind(this)
+    )
+    app.get(
+      `/ai/chats/{userId}`,
+      {
+        preHandler: [authMiddleware],
+      },
+      this.getAIChatsByUserId.bind(this)
     )
   }
 
@@ -218,5 +228,16 @@ export class AIController {
         await this.appendChatUseCase.execute(chatId, [responseMessage])
       },
     })
+  }
+
+  async getAIChatsByUserId(request: FastifyRequest, reply: FastifyReply) {
+    this.logger.debug('Received getAIChatsByUserId request')
+
+    const params = request.params as Record<string, unknown>
+    const userId = params.userId as UserIdType
+    if (!userId) {
+      return reply.status(400).send(FastifyUtil.createResponse('Invalid userId parameter', 400))
+    }
+    return this.getChatsByUserIdUseCase.execute(userId)
   }
 }

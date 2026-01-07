@@ -6,6 +6,7 @@ import { AIController } from '../../../../src/adapters/primary/http/ai.controlle
 import type { LoggerPort } from '../../../../src/application/ports/logger.port.js'
 import type { AppendedChatUseCase } from '../../../../src/application/use-cases/append-chat.use-case.js'
 import type { GetChatUseCase } from '../../../../src/application/use-cases/get-chat.use-case.js'
+import type { GetChatsByUserIdUseCase } from '../../../../src/application/use-cases/get-chats-by-userid.use-case.js'
 import type { SaveChatUseCase } from '../../../../src/application/use-cases/save-chat.use-case.js'
 import { UserId } from '../../../../src/domain/value-objects/userID.js'
 
@@ -50,6 +51,7 @@ describe('AIController', () => {
   let mockGetChatUseCase: GetChatUseCase
   let mockAppendChatUseCase: AppendedChatUseCase
   let mockSaveChatUseCase: SaveChatUseCase
+  let mockGetChatsByUserIdUseCase: GetChatsByUserIdUseCase
   let mockLogger: LoggerPort
   let mockRequest: FastifyRequest
   let mockReply: FastifyReply
@@ -71,6 +73,10 @@ describe('AIController', () => {
       execute: vi.fn(),
     } as any
 
+    mockGetChatsByUserIdUseCase = {
+      execute: vi.fn(),
+    } as any
+
     // Create mock logger
     mockLogger = {
       info: vi.fn(),
@@ -84,7 +90,8 @@ describe('AIController', () => {
       mockGetChatUseCase,
       mockLogger,
       mockAppendChatUseCase,
-      mockSaveChatUseCase
+      mockSaveChatUseCase,
+      mockGetChatsByUserIdUseCase
     )
 
     // Create mock Fastify reply with chainable methods
@@ -112,7 +119,8 @@ describe('AIController', () => {
         mockGetChatUseCase,
         mockLogger,
         mockAppendChatUseCase,
-        mockSaveChatUseCase
+        mockSaveChatUseCase,
+        mockGetChatsByUserIdUseCase
       )
 
       expect(instance).toBeInstanceOf(AIController)
@@ -124,7 +132,8 @@ describe('AIController', () => {
         mockGetChatUseCase,
         mockLogger,
         mockAppendChatUseCase,
-        mockSaveChatUseCase
+        mockSaveChatUseCase,
+        mockGetChatsByUserIdUseCase
       )
 
       expect(instance).toBeDefined()

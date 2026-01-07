@@ -1,5 +1,5 @@
 import type { AIServicePort } from 'apps/backend/src/application/ports/ai.port.js'
-import { eq } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
 import { db } from '../../../infrastructure/database/index.js'
 import {
   chats,
@@ -116,6 +116,22 @@ export class AIRepository implements AIServicePort {
     await this.insertMessagesWithParts(chatId, messagesToAppend)
 
     return chatId
+  }
+
+  async getChatsByUserId(userId: UserIdType): Promise<ChatIdType[]> {
+    try {
+      const result = await db
+        .select({
+          id: chats.id,
+        })
+        .from(chats)
+        .where(eq(chats.userId, userId))
+        .orderBy(desc(chats.id))
+
+      return result.map((row) => row.id as ChatIdType)
+    } catch (error) {
+      throw error
+    }
   }
 
   async getChatResponse(chatId: ChatIdType): Promise<ChatResponseResult | null> {
