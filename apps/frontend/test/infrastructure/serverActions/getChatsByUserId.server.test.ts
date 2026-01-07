@@ -47,7 +47,11 @@ describe('getChatsByUserIdAction', () => {
     it('should return chat IDs when authentication is successful', async () => {
       const mockResponse: AIUserIdResponseSchemaType = {
         success: true,
-        data: ['chat-id-1', 'chat-id-2', 'chat-id-3'],
+        data: [
+          '01942f8e-67a3-7b2c-9d4e-5f6a7b8c9d0e',
+          '01942f8e-67a4-7c3d-8e5f-6a7b8c9d0e1f',
+          '01942f8e-67a5-7d4e-9f6a-7b8c9d0e1f2a',
+        ],
       }
 
       mockGetAuthToken.mockResolvedValue(TEST_TOKEN)

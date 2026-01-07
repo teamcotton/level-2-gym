@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react'
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 
 import { fileToDataURL } from '@/application/services/fileToDataURL.service.js'
-import { useAIChat } from '@/view/hooks/useAIChat.js'
+import { processUserUUID, useAIChat } from '@/view/hooks/useAIChat.js'
 
 // Mock dependencies
 vi.mock('next/navigation.js', () => ({
@@ -32,6 +32,72 @@ vi.mock('@/infrastructure/logging/logger.js', () => ({
     debug: vi.fn(),
   })),
 }))
+
+describe('processUserUUID', () => {
+  describe('valid UUIDv7', () => {
+    it('should return true for a valid UUIDv7 string', () => {
+      const validUuidV7 = '01942f8e-67a3-7b2c-9d4e-5f6a7b8c9d0e'
+      const result = processUserUUID(validUuidV7)
+      expect(result).toBe(true)
+    })
+
+    it('should return true for another valid UUIDv7 string', () => {
+      const validUuidV7 = '01942f8e-67a4-7c3d-8e5f-6a7b8c9d0e1f'
+      const result = processUserUUID(validUuidV7)
+      expect(result).toBe(true)
+    })
+  })
+
+  describe('invalid UUIDs', () => {
+    it('should return false for an invalid UUID format', () => {
+      const invalidUuid = 'not-a-valid-uuid'
+      const result = processUserUUID(invalidUuid)
+      expect(result).toBe(false)
+    })
+
+    it('should return false for empty string', () => {
+      const result = processUserUUID('')
+      expect(result).toBe(false)
+    })
+
+    it('should return false for a random string', () => {
+      const result = processUserUUID('abc-123-def-456')
+      expect(result).toBe(false)
+    })
+
+    it('should return false for a valid UUIDv4 (not v7)', () => {
+      const validUuidV4 = '550e8400-e29b-41d4-a716-446655440000'
+      const result = processUserUUID(validUuidV4)
+      expect(result).toBe(false)
+    })
+
+    it('should return false for a valid UUIDv1 (not v7)', () => {
+      const validUuidV1 = '12345678-1234-1234-1234-123456789012'
+      const result = processUserUUID(validUuidV1)
+      expect(result).toBe(false)
+    })
+  })
+
+  describe('edge cases', () => {
+    it('should handle UUID with uppercase letters', () => {
+      const uppercaseUuid = '01942F8E-67A3-7B2C-9D4E-5F6A7B8C9D0E'
+      const result = processUserUUID(uppercaseUuid)
+      expect(result).toBe(true)
+    })
+
+    it('should return false for UUID without hyphens', () => {
+      const noHyphens = '01942f8e67a37b2c9d4e5f6a7b8c9d0e'
+      const result = processUserUUID(noHyphens)
+      expect(result).toBe(false)
+    })
+
+    it('should return false for malformed UUID', () => {
+      const malformed = '01942f8e-67a3-7b2c-9d4e-5f6a7b8c'
+      const result = processUserUUID(malformed)
+      expect(result).toBe(false)
+    })
+  })
+})
 
 describe('useAIChat', () => {
   const mockPush = vi.fn()
