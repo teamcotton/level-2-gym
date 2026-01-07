@@ -548,6 +548,11 @@ describe('AIController', () => {
         const mockChats = [new ChatId(uuidv7()).getValue(), new ChatId(uuidv7()).getValue()]
 
         mockRequest.params = { userId }
+        mockRequest.user = {
+          sub: userId, // Same user accessing their own data
+          email: 'user@example.com',
+          roles: ['user'],
+        }
         vi.mocked(mockGetChatsByUserIdUseCase.execute).mockResolvedValue(mockChats)
 
         const result = await controller.getAIChatsByUserId(mockRequest, mockReply)
@@ -563,6 +568,11 @@ describe('AIController', () => {
         const mockChats: any[] = []
 
         mockRequest.params = { userId }
+        mockRequest.user = {
+          sub: userId, // Same user accessing their own data
+          email: 'user@example.com',
+          roles: ['user'],
+        }
         vi.mocked(mockGetChatsByUserIdUseCase.execute).mockResolvedValue(mockChats)
 
         const result = await controller.getAIChatsByUserId(mockRequest, mockReply)
@@ -576,6 +586,11 @@ describe('AIController', () => {
         const mockChats = Array.from({ length: 10 }, () => new ChatId(uuidv7()).getValue())
 
         mockRequest.params = { userId }
+        mockRequest.user = {
+          sub: userId, // Same user accessing their own data
+          email: 'user@example.com',
+          roles: ['user'],
+        }
         vi.mocked(mockGetChatsByUserIdUseCase.execute).mockResolvedValue(mockChats)
 
         const result = await controller.getAIChatsByUserId(mockRequest, mockReply)
@@ -619,6 +634,11 @@ describe('AIController', () => {
       it('should log debug message on request', async () => {
         const userId = new UserId(uuidv7()).getValue()
         mockRequest.params = { userId }
+        mockRequest.user = {
+          sub: userId, // Same user accessing their own data
+          email: 'user@example.com',
+          roles: ['user'],
+        }
         vi.mocked(mockGetChatsByUserIdUseCase.execute).mockResolvedValue([])
 
         await controller.getAIChatsByUserId(mockRequest, mockReply)
@@ -632,6 +652,11 @@ describe('AIController', () => {
       it('should return 500 when use case throws error', async () => {
         const userId = new UserId(uuidv7()).getValue()
         mockRequest.params = { userId }
+        mockRequest.user = {
+          sub: userId, // Same user accessing their own data
+          email: 'user@example.com',
+          roles: ['user'],
+        }
 
         vi.mocked(mockGetChatsByUserIdUseCase.execute).mockRejectedValue(
           new Error('Database connection failed')
@@ -648,6 +673,11 @@ describe('AIController', () => {
       it('should return 500 when repository throws error', async () => {
         const userId = new UserId(uuidv7()).getValue()
         mockRequest.params = { userId }
+        mockRequest.user = {
+          sub: userId, // Same user accessing their own data
+          email: 'user@example.com',
+          roles: ['user'],
+        }
 
         vi.mocked(mockGetChatsByUserIdUseCase.execute).mockRejectedValue(
           new Error('Repository error')
@@ -669,6 +699,140 @@ describe('AIController', () => {
         expect(mockReply.status).toHaveBeenCalledWith(400)
         expect(mockReply.send).toHaveBeenCalled()
         expect(mockGetChatsByUserIdUseCase.execute).not.toHaveBeenCalled()
+      })
+    })
+
+    describe('authorization', () => {
+      it('should allow user to access their own chat history', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+        const mockChats = [new ChatId(uuidv7()).getValue(), new ChatId(uuidv7()).getValue()]
+
+        mockRequest.params = { userId }
+        mockRequest.user = {
+          sub: userId, // Same as requested userId
+          email: 'user@example.com',
+          roles: ['user'],
+        }
+        vi.mocked(mockGetChatsByUserIdUseCase.execute).mockResolvedValue(mockChats)
+
+        const result = await controller.getAIChatsByUserId(mockRequest, mockReply)
+
+        expect(result).toEqual(mockChats)
+        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(userId)
+        expect(mockReply.status).not.toHaveBeenCalledWith(403)
+      })
+
+      it('should allow admin to access any user chat history', async () => {
+        const targetUserId = new UserId(uuidv7()).getValue()
+        const adminUserId = new UserId(uuidv7()).getValue()
+        const mockChats = [new ChatId(uuidv7()).getValue()]
+
+        mockRequest.params = { userId: targetUserId }
+        mockRequest.user = {
+          sub: adminUserId, // Different from target userId
+          email: 'admin@example.com',
+          roles: ['admin'],
+        }
+        vi.mocked(mockGetChatsByUserIdUseCase.execute).mockResolvedValue(mockChats)
+
+        const result = await controller.getAIChatsByUserId(mockRequest, mockReply)
+
+        expect(result).toEqual(mockChats)
+        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(targetUserId)
+        expect(mockReply.status).not.toHaveBeenCalledWith(403)
+      })
+
+      it('should allow moderator to access any user chat history', async () => {
+        const targetUserId = new UserId(uuidv7()).getValue()
+        const moderatorUserId = new UserId(uuidv7()).getValue()
+        const mockChats = [new ChatId(uuidv7()).getValue()]
+
+        mockRequest.params = { userId: targetUserId }
+        mockRequest.user = {
+          sub: moderatorUserId, // Different from target userId
+          email: 'moderator@example.com',
+          roles: ['moderator'],
+        }
+        vi.mocked(mockGetChatsByUserIdUseCase.execute).mockResolvedValue(mockChats)
+
+        const result = await controller.getAIChatsByUserId(mockRequest, mockReply)
+
+        expect(result).toEqual(mockChats)
+        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(targetUserId)
+        expect(mockReply.status).not.toHaveBeenCalledWith(403)
+      })
+
+      it('should return 403 when user tries to access another user chat history', async () => {
+        const targetUserId = new UserId(uuidv7()).getValue()
+        const requestingUserId = new UserId(uuidv7()).getValue()
+
+        mockRequest.params = { userId: targetUserId }
+        mockRequest.user = {
+          sub: requestingUserId, // Different from target userId
+          email: 'user@example.com',
+          roles: ['user'],
+        }
+
+        await controller.getAIChatsByUserId(mockRequest, mockReply)
+
+        expect(mockReply.status).toHaveBeenCalledWith(403)
+        expect(mockReply.send).toHaveBeenCalled()
+        expect(mockGetChatsByUserIdUseCase.execute).not.toHaveBeenCalled()
+        expect(mockLogger.warn).toHaveBeenCalled()
+      })
+
+      it('should return 403 when user has no roles and tries to access another user chat history', async () => {
+        const targetUserId = new UserId(uuidv7()).getValue()
+        const requestingUserId = new UserId(uuidv7()).getValue()
+
+        mockRequest.params = { userId: targetUserId }
+        mockRequest.user = {
+          sub: requestingUserId,
+          email: 'user@example.com',
+          roles: [], // No roles
+        }
+
+        await controller.getAIChatsByUserId(mockRequest, mockReply)
+
+        expect(mockReply.status).toHaveBeenCalledWith(403)
+        expect(mockReply.send).toHaveBeenCalled()
+        expect(mockGetChatsByUserIdUseCase.execute).not.toHaveBeenCalled()
+      })
+
+      it('should return 401 when user is not authenticated', async () => {
+        const userId = new UserId(uuidv7()).getValue()
+
+        mockRequest.params = { userId }
+        mockRequest.user = undefined // No authenticated user
+
+        await controller.getAIChatsByUserId(mockRequest, mockReply)
+
+        expect(mockReply.status).toHaveBeenCalledWith(401)
+        expect(mockReply.send).toHaveBeenCalled()
+        expect(mockGetChatsByUserIdUseCase.execute).not.toHaveBeenCalled()
+        expect(mockLogger.warn).toHaveBeenCalledWith(
+          'Authorization check failed: User not authenticated'
+        )
+      })
+
+      it('should allow user with both admin and moderator roles to access any user chat history', async () => {
+        const targetUserId = new UserId(uuidv7()).getValue()
+        const adminUserId = new UserId(uuidv7()).getValue()
+        const mockChats = [new ChatId(uuidv7()).getValue()]
+
+        mockRequest.params = { userId: targetUserId }
+        mockRequest.user = {
+          sub: adminUserId,
+          email: 'superuser@example.com',
+          roles: ['admin', 'moderator'], // Multiple roles
+        }
+        vi.mocked(mockGetChatsByUserIdUseCase.execute).mockResolvedValue(mockChats)
+
+        const result = await controller.getAIChatsByUserId(mockRequest, mockReply)
+
+        expect(result).toEqual(mockChats)
+        expect(mockGetChatsByUserIdUseCase.execute).toHaveBeenCalledWith(targetUserId)
+        expect(mockReply.status).not.toHaveBeenCalledWith(403)
       })
     })
   })

@@ -235,11 +235,18 @@ export class AIController {
   /**
    * Retrieves all chat IDs associated with a specific user.
    *
-   * @param request - The Fastify request object containing the userId parameter
+   * This endpoint implements authorization checks to ensure users can only access their own chat history
+   * unless they have admin or moderator privileges. The authorization flow is:
+   * 1. User can access their own chat history (userId matches authenticated user's ID)
+   * 2. Admin or moderator can access any user's chat history
+   *
+   * @param request - The Fastify request object containing the userId parameter and authenticated user info
    * @param reply - The Fastify reply object for sending responses
    * @returns A promise that resolves to an array of ChatIdType or void if an error response is sent
    *
    * @throws {400} When userId parameter is missing or has invalid format (not a valid UUID v7)
+   * @throws {401} When user is not authenticated
+   * @throws {403} When user attempts to access another user's chat history without admin/moderator role
    * @throws {500} When an error occurs while fetching chats from the repository
    *
    * @example
@@ -272,6 +279,33 @@ export class AIController {
         this.logger.error(`Invalid userId format in getAIChatsByUserId: ${userIdParam}`, error)
       }
       return reply.status(400).send(FastifyUtil.createResponse('Invalid userId format', 400))
+    }
+
+    // Authorization check: User can only access their own chat history unless they have admin/moderator role
+    const authenticatedUserId = request.user?.sub
+    const userRoles = request.user?.roles || []
+
+    if (!authenticatedUserId) {
+      this.logger.warn('Authorization check failed: User not authenticated')
+      return reply.status(401).send(FastifyUtil.createResponse('Authentication required', 401))
+    }
+
+    // Check if user is accessing their own data OR has admin/moderator role
+    const isOwnData = authenticatedUserId === userId
+    const hasAdminRole = userRoles.includes('admin') || userRoles.includes('moderator')
+
+    if (!isOwnData && !hasAdminRole) {
+      this.logger.warn(
+        `Authorization check failed: User ${authenticatedUserId} attempted to access chats for user ${userId} without required permissions`
+      )
+      return reply
+        .status(403)
+        .send(
+          FastifyUtil.createResponse(
+            'Access denied. You can only access your own chat history or must have admin/moderator role',
+            403
+          )
+        )
     }
 
     try {
