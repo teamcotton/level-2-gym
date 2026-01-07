@@ -22,6 +22,7 @@ fi
 if command -v pnpm >/dev/null 2>&1; then
   pnpm run format
   pnpm run lint
+  pnpm run typecheck
 else
   if [ "$CI" = "true" ]; then
     echo "ERROR: pnpm not found in CI environment. Please ensure pnpm is installed (e.g., via corepack enable)."
