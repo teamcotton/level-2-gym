@@ -152,6 +152,7 @@ export function AIChatView({
                 <ListItemText
                   primary={
                     <Typography variant="body2" noWrap>
+                      {/* TODO: will add full metadata at a later date */}
                       Chat {chatId.slice(0, 8)}...
                     </Typography>
                   }
