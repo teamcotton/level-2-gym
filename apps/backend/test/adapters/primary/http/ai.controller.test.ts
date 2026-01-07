@@ -656,14 +656,13 @@ describe('AIController', () => {
         )
       })
 
-      it('should return 500 error for invalid userId format', async () => {
+      it('should return 400 error for invalid userId format', async () => {
         mockRequest.params = { userId: 'invalid-uuid-format' }
 
         await controller.getAIChatsByUserId(mockRequest, mockReply)
 
-        expect(mockReply.status).toHaveBeenCalledWith(500)
+        expect(mockReply.status).toHaveBeenCalledWith(400)
         expect(mockReply.send).toHaveBeenCalled()
-        expect(mockLogger.error).toHaveBeenCalled()
         expect(mockGetChatsByUserIdUseCase.execute).not.toHaveBeenCalled()
       })
     })
