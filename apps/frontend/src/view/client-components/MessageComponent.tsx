@@ -1,8 +1,6 @@
 import { Box } from '@mui/material'
 import type { UIDataTypes, UIMessagePart, UITools } from 'ai'
-import ReactMarkdown from 'react-markdown'
-import rehypeHighlight from 'rehype-highlight'
-import remarkGfm from 'remark-gfm'
+import { Streamdown } from 'streamdown'
 
 interface ToolInput {
   path?: string
@@ -192,9 +190,7 @@ export const Message = ({
         '& *': { color: 'rgba(0, 0, 0, 0.87) !important' },
       }}
     >
-      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
-        {prefix + text}
-      </ReactMarkdown>
+      <Streamdown>{prefix + text}</Streamdown>
       {parts.map((part, index) => renderToolPart(part, index))}
     </Box>
   )
