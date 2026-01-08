@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import ErrorPage from '../../src/app/error/page.js'
 
 // Mock Next.js navigation
-vi.mock('next/navigation', () => ({
+vi.mock('next/navigation.js', () => ({
   useRouter: vi.fn(),
   useSearchParams: vi.fn(),
 }))

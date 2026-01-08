@@ -1,85 +1,29 @@
 'use client'
 
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
-import HomeIcon from '@mui/icons-material/Home'
-import { Box, Button, Container, Paper, Typography } from '@mui/material'
-import { useRouter, useSearchParams } from 'next/navigation.js'
+import { ErrorPageDisplay } from '@/view/client-components/ErrorPageDisplay.js'
+import { useErrorPage } from '@/view/hooks/useErrorPage.js'
 
+/**
+ * Error page following DDD architecture.
+ * This page is minimal and declarative - it only orchestrates the hook and component.
+ * Business logic is in the hook, presentation is in the component.
+ *
+ * @example
+ * // Access with default error
+ * /error
+ *
+ * // Access with custom error code and message
+ * /error?code=404&message=Page not found
+ */
 export default function ErrorPage() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const errorMessage = searchParams.get('message') || 'An unexpected error occurred'
-  const errorCode = searchParams.get('code') || '500'
+  const { errorCode, errorMessage, handleGoBack, handleGoHome } = useErrorPage()
 
   return (
-    <Container maxWidth="md">
-      <Box
-        sx={{
-          minHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          py: 4,
-        }}
-      >
-        <Paper
-          elevation={3}
-          sx={{
-            p: 6,
-            borderRadius: 2,
-            textAlign: 'center',
-          }}
-        >
-          <ErrorOutlineIcon
-            sx={{
-              fontSize: 100,
-              color: 'error.main',
-              mb: 3,
-            }}
-          />
-
-          <Typography variant="h1" component="h1" sx={{ mb: 2, fontSize: '4rem', fontWeight: 700 }}>
-            {errorCode}
-          </Typography>
-
-          <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 3, fontWeight: 600 }}>
-            Oops! Something went wrong
-          </Typography>
-
-          <Typography
-            variant="body1"
-            color="text.secondary"
-            sx={{ mb: 4, maxWidth: 500, mx: 'auto' }}
-          >
-            {errorMessage}
-          </Typography>
-
-          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Button
-              variant="outlined"
-              startIcon={<ArrowBackIcon />}
-              onClick={() => router.back()}
-              sx={{ px: 3, py: 1.5 }}
-            >
-              Go Back
-            </Button>
-
-            <Button
-              variant="contained"
-              startIcon={<HomeIcon />}
-              onClick={() => router.push('/')}
-              sx={{ px: 3, py: 1.5 }}
-            >
-              Go Home
-            </Button>
-          </Box>
-
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 4, display: 'block' }}>
-            If this problem persists, please contact support.
-          </Typography>
-        </Paper>
-      </Box>
-    </Container>
+    <ErrorPageDisplay
+      errorCode={errorCode}
+      errorMessage={errorMessage}
+      onGoBack={handleGoBack}
+      onGoHome={handleGoHome}
+    />
   )
 }
