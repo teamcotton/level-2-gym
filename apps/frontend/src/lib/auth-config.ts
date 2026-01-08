@@ -8,6 +8,24 @@ const logger = createLogger({ prefix: '[auth-config]' })
 
 const backendUrl = process.env.BACKEND_AI_CALLBACK_URL
 
+// Validate required Google OAuth environment variables
+const googleId = process.env.GOOGLE_ID
+const googleSecret = process.env.GOOGLE_SECRET
+
+// Validate credentials to prevent runtime errors
+if (!googleId || !googleSecret) {
+  const errorMessage =
+    'Google OAuth credentials not configured. Please set GOOGLE_ID and GOOGLE_SECRET environment variables.'
+
+  // In production, fail fast with a clear error
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(errorMessage)
+  }
+
+  // In development/test, log a warning but allow the app to continue
+  logger.warn(`${errorMessage} Google sign-in will not be available.`)
+}
+
 interface BackendLoginResponse {
   success: boolean
   data?: {
@@ -27,16 +45,18 @@ interface CredentialsInput {
 /**
  * NextAuth configuration options for authentication
  *
- * Configures authentication using credentials provider with backend API integration.
+ * Configures authentication using credentials provider with backend API integration
+ * and conditionally includes Google OAuth provider if credentials are configured.
  * Uses JWT strategy for session management with 30-day expiration.
  *
- * @property {Array} providers - Authentication providers (Credentials)
+ * @property {Array} providers - Authentication providers (Google OAuth if configured, Credentials)
  * @property {object} callbacks - Custom callbacks for JWT and session handling
  * @property {Function} callbacks.jwt - JWT callback to add custom properties (accessToken, id, roles)
  * @property {Function} callbacks.session - Session callback to expose JWT properties to client
  * @property {object} pages - Custom authentication page routes
- * @property {string} pages.signIn - Sign-in page route (/login)
- * @property {string} pages.error - Error page route (/login)
+ * @property {string} pages.signIn - Sign-in page route (/signin)
+ * @property {string} pages.signOut - Redirect after sign-out (/signin)
+ * @property {string} pages.error - Error page route (/error)
  * @property {object} session - Session configuration
  * @property {string} session.strategy - Session strategy ('jwt')
  * @property {number} session.maxAge - Session max age in seconds (30 days)
@@ -56,64 +76,80 @@ interface CredentialsInput {
  *
  * @see {@link https://next-auth.js.org/configuration/options|NextAuth Options}
  */
-export const authOptions: NextAuthOptions = {
-  providers: [
-    // @ts-expect-error - NextAuth v4 ESM/CommonJS interop issue with credentials provider
+
+// Build providers array conditionally based on available credentials
+// Using any[] because individual providers have NextAuth v4 ESM/CommonJS interop type issues
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const providers: any[] = []
+
+// Add GoogleProvider only if credentials are configured
+// TypeScript narrows the types to string when using the condition directly
+if (googleId && googleSecret) {
+  // @ts-expect-error - NextAuth v4 ESM/CommonJS interop issue with Google provider
+  providers.push(
     GoogleProvider({
-      clientId: process.env.GOOGLE_ID,
-      clientSecret: process.env.GOOGLE_SECRET,
-    }),
-    // @ts-expect-error - NextAuth v4 ESM/CommonJS interop issue with credentials provider
-    CredentialsProvider({
-      name: 'Credentials',
-      credentials: {
-        email: { label: 'Email', type: 'email', placeholder: 'user@example.com' },
-        password: { label: 'Password', type: 'password' },
-      },
-      async authorize(credentials: CredentialsInput | undefined): Promise<User | null> {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error('Missing credentials')
+      clientId: googleId,
+      clientSecret: googleSecret,
+    })
+  )
+}
+
+// Always add CredentialsProvider
+// @ts-expect-error - NextAuth v4 ESM/CommonJS interop issue with credentials provider
+providers.push(
+  CredentialsProvider({
+    name: 'Credentials',
+    credentials: {
+      email: { label: 'Email', type: 'email', placeholder: 'user@example.com' },
+      password: { label: 'Password', type: 'password' },
+    },
+    async authorize(credentials: CredentialsInput | undefined): Promise<User | null> {
+      if (!credentials?.email || !credentials?.password) {
+        throw new Error('Missing credentials')
+      }
+
+      try {
+        // Call backend login endpoint
+        const response = await fetch(`${backendUrl}/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: credentials.email,
+            password: credentials.password,
+          }),
+        })
+
+        const result = (await response.json()) as BackendLoginResponse
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Authentication failed')
         }
 
-        try {
-          // Call backend login endpoint
-          const response = await fetch(`${backendUrl}/auth/login`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              email: credentials.email,
-              password: credentials.password,
-            }),
-          })
+        const data = result.data
 
-          const result = (await response.json()) as BackendLoginResponse
-
-          if (!response.ok) {
-            throw new Error(result.error || 'Authentication failed')
-          }
-
-          const data = result.data
-
-          // Backend should return: { userId, email, access_token, roles }
-          if (data?.access_token) {
-            return {
-              id: data.userId,
-              email: data.email,
-              accessToken: data.access_token,
-              roles: data.roles || [],
-            } as User
-          }
-
-          return null
-        } catch (error) {
-          logger.error('Authentication error:', error)
-          throw error
+        // Backend should return: { userId, email, access_token, roles }
+        if (data?.access_token) {
+          return {
+            id: data.userId,
+            email: data.email,
+            accessToken: data.access_token,
+            roles: data.roles || [],
+          } as User
         }
-      },
-    }),
-  ],
+
+        return null
+      } catch (error) {
+        logger.error('Authentication error:', error)
+        throw error
+      }
+    },
+  })
+)
+
+export const authOptions: NextAuthOptions = {
+  providers,
   callbacks: {
     async signIn({ account, profile, user }) {
       // Sync OAuth users to backend database
