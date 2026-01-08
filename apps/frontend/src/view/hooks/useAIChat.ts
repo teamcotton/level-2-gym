@@ -8,6 +8,7 @@ import { isValidUUID, uuidVersionValidation } from 'uuidv7-utilities'
 
 import { fileToDataURL } from '@/application/services/fileToDataURL.service.js'
 import { createLogger } from '@/infrastructure/logging/logger.js'
+import { useUserChats } from '@/view/hooks/useUserChats.js'
 
 const logger = createLogger({ prefix: 'useAIChat' })
 
@@ -64,6 +65,13 @@ export function useAIChat({ id }: UseAIChatProps = {}) {
   const [errorMessage, setErrorMessage] = useState<string>('')
   const [mobileOpen, setMobileOpen] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Fetch user chats
+  const {
+    data: chats,
+    isError: isChatsError,
+    isLoading: isLoadingChats,
+  } = useUserChats(session?.user?.id ?? null)
 
   useEffect(() => {
     if (id && !processUserUUID(id)) {
@@ -185,6 +193,11 @@ export function useAIChat({ id }: UseAIChatProps = {}) {
     disabled,
     userId: session?.user?.id ?? null,
     currentChatId: id,
+
+    // Chat history
+    chats,
+    isChatsError,
+    isLoadingChats,
 
     // Handlers
     handleSubmit,

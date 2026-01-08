@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 
 import { fileToDataURL } from '@/application/services/fileToDataURL.service.js'
 import { processUserUUID, useAIChat } from '@/view/hooks/useAIChat.js'
+import { useUserChats } from '@/view/hooks/useUserChats.js'
 
 // Mock dependencies
 vi.mock('next/navigation.js', () => ({
@@ -31,6 +32,10 @@ vi.mock('@/infrastructure/logging/logger.js', () => ({
     warn: vi.fn(),
     debug: vi.fn(),
   })),
+}))
+
+vi.mock('@/view/hooks/useUserChats.js', () => ({
+  useUserChats: vi.fn(),
 }))
 
 describe('processUserUUID', () => {
@@ -142,6 +147,11 @@ describe('useAIChat', () => {
       stop: vi.fn().mockResolvedValue(undefined),
     })
     ;(fileToDataURL as Mock).mockResolvedValue('data:image/png;base64,abc123')
+    ;(useUserChats as Mock).mockReturnValue({
+      data: undefined,
+      isError: false,
+      isLoading: false,
+    })
   })
 
   describe('Initial State', () => {

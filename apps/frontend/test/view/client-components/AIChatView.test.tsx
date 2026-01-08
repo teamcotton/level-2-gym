@@ -8,11 +8,6 @@ vi.mock('next/navigation.js', () => ({
   useRouter: vi.fn(),
 }))
 
-// Mock useUserChats hook
-vi.mock('@/view/hooks/useUserChats.js', () => ({
-  useUserChats: vi.fn(),
-}))
-
 describe('AIChatView Component', () => {
   const mockOnSubmit = vi.fn()
   const mockOnFileSelect = vi.fn()
@@ -24,14 +19,16 @@ describe('AIChatView Component', () => {
   const mockPush = vi.fn()
 
   const defaultProps = {
+    chats: undefined,
     disabled: false,
     errorMessage: '',
     input: '',
+    isChatsError: false,
     isLoading: false,
+    isLoadingChats: false,
     messages: [],
     messagesEndRef: mockMessagesEndRef,
     mobileOpen: false,
-    userId: null,
     currentChatId: undefined,
     onDrawerToggle: mockOnDrawerToggle,
     onErrorClose: mockOnErrorClose,
@@ -54,14 +51,6 @@ describe('AIChatView Component', () => {
       forward: vi.fn(),
       refresh: vi.fn(),
       prefetch: vi.fn(),
-    })
-
-    // Mock useUserChats
-    const { useUserChats } = await import('@/view/hooks/useUserChats.js')
-    ;(useUserChats as Mock).mockReturnValue({
-      data: undefined,
-      isLoading: false,
-      error: null,
     })
   })
 

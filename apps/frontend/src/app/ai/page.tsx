@@ -10,6 +10,7 @@ import { useAIChat } from '@/view/hooks/useAIChat.js'
  */
 export default function AIChatPage() {
   const {
+    chats,
     currentChatId,
     disabled,
     errorMessage,
@@ -20,25 +21,28 @@ export default function AIChatPage() {
     handleNewChat,
     handleSubmit,
     input,
+    isChatsError,
     isLoading,
+    isLoadingChats,
     messages,
     messagesEndRef,
     mobileOpen,
     selectedFile,
-    userId,
   } = useAIChat()
 
   return (
     <AIChatView
+      chats={chats}
+      currentChatId={currentChatId}
       disabled={disabled}
       errorMessage={errorMessage}
       input={input}
+      isChatsError={isChatsError}
       isLoading={isLoading}
+      isLoadingChats={isLoadingChats}
       messages={messages}
       messagesEndRef={messagesEndRef}
       mobileOpen={mobileOpen}
-      userId={userId}
-      currentChatId={currentChatId}
       onDrawerToggle={handleDrawerToggle}
       onErrorClose={handleErrorClose}
       onFileSelect={handleFileSelect}

@@ -31,7 +31,6 @@ import { IntroComponent } from '@/view/client-components/IntroComponent.js'
 import { Message } from '@/view/client-components/MessageComponent.js'
 import { MessageIntroComponent } from '@/view/client-components/MessageIntroComponent.js'
 import { Wrapper } from '@/view/client-components/WrapperComponent.js'
-import { useUserChats } from '@/view/hooks/useUserChats.js'
 
 const DRAWER_WIDTH = 280
 
@@ -49,8 +48,10 @@ interface AIChatViewProps {
   readonly messagesEndRef: React.RefObject<HTMLDivElement | null>
   readonly disabled: boolean
   readonly mobileOpen: boolean
-  readonly userId: string | null
   readonly currentChatId?: string
+  readonly chats: string[] | undefined
+  readonly isChatsError: boolean
+  readonly isLoadingChats: boolean
   readonly onDrawerToggle: () => void
   readonly onErrorClose: () => void
   readonly onFileSelect: (file: File | null) => void
@@ -61,11 +62,14 @@ interface AIChatViewProps {
 }
 
 export function AIChatView({
+  chats,
   currentChatId,
   disabled,
   errorMessage,
   input,
+  isChatsError,
   isLoading,
+  isLoadingChats,
   messages,
   messagesEndRef,
   mobileOpen,
@@ -76,10 +80,8 @@ export function AIChatView({
   onNewChat,
   onSubmit,
   selectedFile,
-  userId,
 }: AIChatViewProps) {
   const router = useRouter()
-  const { data: chats, isError, isLoading: isLoadingChats } = useUserChats(userId)
   const drawer = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ p: 2, flexShrink: 0 }}>
@@ -131,7 +133,7 @@ export function AIChatView({
                 <CircularProgress size={24} aria-label="Loading chat history" />
               </Box>
             </ListItem>
-          ) : isError ? (
+          ) : isChatsError ? (
             <ListItem>
               <Box sx={{ width: '100%', p: 2 }}>
                 <Alert severity="error">
