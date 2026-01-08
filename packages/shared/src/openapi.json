@@ -574,6 +574,74 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid request data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "invalidUserId": {
+                    "summary": "Invalid userId parameter",
+                    "value": {
+                      "success": false,
+                      "error": "Invalid userId parameter"
+                    }
+                  },
+                  "invalidFormat": {
+                    "summary": "Invalid userId format",
+                    "value": {
+                      "success": false,
+                      "error": "Invalid userId format"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Authentication required"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - User does not have required role (user, moderator or admin)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Access denied. You can only access your own chat history or must have admin/moderator role"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Internal server error"
+                }
+              }
+            }
           }
         }
       }

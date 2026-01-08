@@ -139,7 +139,8 @@ describe('AIRepository', () => {
         },
       ]
 
-      const mockWhere = vi.fn().mockResolvedValue(mockResult)
+      const mockOrderBy = vi.fn().mockResolvedValue(mockResult)
+      const mockWhere = vi.fn().mockReturnValue({ orderBy: mockOrderBy })
       const mockLeftJoin = vi.fn().mockReturnValue({ where: mockWhere })
       const mockInnerJoin = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
       const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin })
@@ -152,7 +153,8 @@ describe('AIRepository', () => {
     })
 
     it('should return empty array when chat has no messages', async () => {
-      const mockWhere = vi.fn().mockResolvedValue([])
+      const mockOrderBy = vi.fn().mockResolvedValue([])
+      const mockWhere = vi.fn().mockReturnValue({ orderBy: mockOrderBy })
       const mockLeftJoin = vi.fn().mockReturnValue({ where: mockWhere })
       const mockInnerJoin = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
       const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin })
@@ -171,7 +173,8 @@ describe('AIRepository', () => {
         },
       ]
 
-      const mockWhere = vi.fn().mockResolvedValue(mockResult)
+      const mockOrderBy = vi.fn().mockResolvedValue(mockResult)
+      const mockWhere = vi.fn().mockReturnValue({ orderBy: mockOrderBy })
       const mockLeftJoin = vi.fn().mockReturnValue({ where: mockWhere })
       const mockInnerJoin = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
       const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin })
@@ -195,7 +198,8 @@ describe('AIRepository', () => {
         },
       ]
 
-      const mockWhere = vi.fn().mockResolvedValue(mockResult)
+      const mockOrderBy = vi.fn().mockResolvedValue(mockResult)
+      const mockWhere = vi.fn().mockReturnValue({ orderBy: mockOrderBy })
       const mockLeftJoin = vi.fn().mockReturnValue({ where: mockWhere })
       const mockInnerJoin = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
       const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin })
@@ -211,7 +215,8 @@ describe('AIRepository', () => {
     it('should throw error when database query fails', async () => {
       const dbError = new Error('Database connection failed')
 
-      const mockWhere = vi.fn().mockRejectedValue(dbError)
+      const mockOrderBy = vi.fn().mockRejectedValue(dbError)
+      const mockWhere = vi.fn().mockReturnValue({ orderBy: mockOrderBy })
       const mockLeftJoin = vi.fn().mockReturnValue({ where: mockWhere })
       const mockInnerJoin = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
       const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin })
@@ -237,7 +242,8 @@ describe('AIRepository', () => {
         },
       ]
 
-      const mockWhere = vi.fn().mockResolvedValue(mockResult)
+      const mockOrderBy = vi.fn().mockResolvedValue(mockResult)
+      const mockWhere = vi.fn().mockReturnValue({ orderBy: mockOrderBy })
       const mockLeftJoin = vi.fn().mockReturnValue({ where: mockWhere })
       const mockInnerJoin = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
       const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin })
@@ -252,7 +258,8 @@ describe('AIRepository', () => {
     it('should return empty array when chat exists but has no messages', async () => {
       const mockResult: any[] = []
 
-      const mockWhere = vi.fn().mockResolvedValue(mockResult)
+      const mockOrderBy = vi.fn().mockResolvedValue(mockResult)
+      const mockWhere = vi.fn().mockReturnValue({ orderBy: mockOrderBy })
       const mockLeftJoin = vi.fn().mockReturnValue({ where: mockWhere })
       const mockInnerJoin = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
       const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin })
@@ -617,7 +624,8 @@ describe('AIRepository', () => {
         },
       ]
 
-      const mockWhere = vi.fn().mockResolvedValue(mockResult)
+      const mockOrderBy = vi.fn().mockResolvedValue(mockResult)
+      const mockWhere = vi.fn().mockReturnValue({ orderBy: mockOrderBy })
       const mockLeftJoin = vi.fn().mockReturnValue({ where: mockWhere })
       const mockInnerJoin = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
       const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin })
@@ -630,7 +638,8 @@ describe('AIRepository', () => {
     })
 
     it('should return empty array when chat has no messages', async () => {
-      const mockWhere = vi.fn().mockResolvedValue([])
+      const mockOrderBy = vi.fn().mockResolvedValue([])
+      const mockWhere = vi.fn().mockReturnValue({ orderBy: mockOrderBy })
       const mockLeftJoin = vi.fn().mockReturnValue({ where: mockWhere })
       const mockInnerJoin = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
       const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin })
@@ -649,7 +658,8 @@ describe('AIRepository', () => {
         },
       ]
 
-      const mockWhere = vi.fn().mockResolvedValue(mockResult)
+      const mockOrderBy = vi.fn().mockResolvedValue(mockResult)
+      const mockWhere = vi.fn().mockReturnValue({ orderBy: mockOrderBy })
       const mockLeftJoin = vi.fn().mockReturnValue({ where: mockWhere })
       const mockInnerJoin = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
       const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin })
@@ -673,7 +683,8 @@ describe('AIRepository', () => {
         },
       ]
 
-      const mockWhere = vi.fn().mockResolvedValue(mockResult)
+      const mockOrderBy = vi.fn().mockResolvedValue(mockResult)
+      const mockWhere = vi.fn().mockReturnValue({ orderBy: mockOrderBy })
       const mockLeftJoin = vi.fn().mockReturnValue({ where: mockWhere })
       const mockInnerJoin = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
       const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin })
@@ -689,7 +700,8 @@ describe('AIRepository', () => {
     it('should throw error when database query fails', async () => {
       const dbError = new Error('Database connection failed')
 
-      const mockWhere = vi.fn().mockRejectedValue(dbError)
+      const mockOrderBy = vi.fn().mockRejectedValue(dbError)
+      const mockWhere = vi.fn().mockReturnValue({ orderBy: mockOrderBy })
       const mockLeftJoin = vi.fn().mockReturnValue({ where: mockWhere })
       const mockInnerJoin = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
       const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin })
@@ -715,7 +727,8 @@ describe('AIRepository', () => {
         },
       ]
 
-      const mockWhere = vi.fn().mockResolvedValue(mockResult)
+      const mockOrderBy = vi.fn().mockResolvedValue(mockResult)
+      const mockWhere = vi.fn().mockReturnValue({ orderBy: mockOrderBy })
       const mockLeftJoin = vi.fn().mockReturnValue({ where: mockWhere })
       const mockInnerJoin = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
       const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin })
@@ -730,7 +743,8 @@ describe('AIRepository', () => {
     it('should return empty array when chat exists but has no messages', async () => {
       const mockResult: any[] = []
 
-      const mockWhere = vi.fn().mockResolvedValue(mockResult)
+      const mockOrderBy = vi.fn().mockResolvedValue(mockResult)
+      const mockWhere = vi.fn().mockReturnValue({ orderBy: mockOrderBy })
       const mockLeftJoin = vi.fn().mockReturnValue({ where: mockWhere })
       const mockInnerJoin = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
       const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin })
@@ -767,7 +781,8 @@ describe('AIRepository', () => {
         },
       ]
 
-      const mockWhere = vi.fn().mockResolvedValue(mockResult)
+      const mockOrderBy = vi.fn().mockResolvedValue(mockResult)
+      const mockWhere = vi.fn().mockReturnValue({ orderBy: mockOrderBy })
       const mockLeftJoin = vi.fn().mockReturnValue({ where: mockWhere })
       const mockInnerJoin = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
       const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin })
@@ -810,7 +825,8 @@ describe('AIRepository', () => {
         },
       ]
 
-      const mockWhere = vi.fn().mockResolvedValue(mockResult)
+      const mockOrderBy = vi.fn().mockResolvedValue(mockResult)
+      const mockWhere = vi.fn().mockReturnValue({ orderBy: mockOrderBy })
       const mockLeftJoin = vi.fn().mockReturnValue({ where: mockWhere })
       const mockInnerJoin = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
       const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin })
@@ -843,7 +859,8 @@ describe('AIRepository', () => {
         },
       ]
 
-      const mockWhere = vi.fn().mockResolvedValue(mockResult)
+      const mockOrderBy = vi.fn().mockResolvedValue(mockResult)
+      const mockWhere = vi.fn().mockReturnValue({ orderBy: mockOrderBy })
       const mockLeftJoin = vi.fn().mockReturnValue({ where: mockWhere })
       const mockInnerJoin = vi.fn().mockReturnValue({ leftJoin: mockLeftJoin })
       const mockFrom = vi.fn().mockReturnValue({ innerJoin: mockInnerJoin })
