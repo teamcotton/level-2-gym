@@ -407,9 +407,7 @@ describe('OAuthSyncDto', () => {
         }
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
-        expect(() => OAuthSyncDto.validate(data)).toThrow(
-          'Email must be a valid email address'
-        )
+        expect(() => OAuthSyncDto.validate(data)).toThrow('Email must be a valid email address')
       })
 
       it('should throw ValidationException when email is missing @ symbol', () => {
@@ -420,9 +418,7 @@ describe('OAuthSyncDto', () => {
         }
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
-        expect(() => OAuthSyncDto.validate(data)).toThrow(
-          'Email must be a valid email address'
-        )
+        expect(() => OAuthSyncDto.validate(data)).toThrow('Email must be a valid email address')
       })
 
       it('should throw ValidationException when email is missing domain', () => {
@@ -433,9 +429,7 @@ describe('OAuthSyncDto', () => {
         }
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
-        expect(() => OAuthSyncDto.validate(data)).toThrow(
-          'Email must be a valid email address'
-        )
+        expect(() => OAuthSyncDto.validate(data)).toThrow('Email must be a valid email address')
       })
 
       it('should throw ValidationException when email has no local part', () => {
@@ -446,9 +440,7 @@ describe('OAuthSyncDto', () => {
         }
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
-        expect(() => OAuthSyncDto.validate(data)).toThrow(
-          'Email must be a valid email address'
-        )
+        expect(() => OAuthSyncDto.validate(data)).toThrow('Email must be a valid email address')
       })
     })
 
