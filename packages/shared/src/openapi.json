@@ -555,13 +555,6 @@
             "required": true,
             "description": "The chat's unique identifier",
             "schema": { "type": "string", "format": "uuid" }
-          },
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "description": "The user's unique identifier who owns the chat",
-            "schema": { "type": "string", "format": "uuid" }
           }
         ],
         "responses": {
