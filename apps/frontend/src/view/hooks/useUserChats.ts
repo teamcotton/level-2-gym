@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query'
 
 import { getChatsByUserIdAction } from '@/infrastructure/serverActions/getChatsByUserId.server.js'
 
+const ONE_MINUTE_MS = 60_000
+
 /**
  * React hook that loads the list of chat IDs associated with a given user.
  *
@@ -16,7 +18,6 @@ import { getChatsByUserIdAction } from '@/infrastructure/serverActions/getChatsB
  *   `data` field contains an array of chat IDs for the user when the query succeeds.
  */
 export function useUserChats(userId: string | null) {
-  const ONE_MINUTE_MS = 60_000
   return useQuery({
     queryKey: ['user-chats', userId],
     queryFn: async () => {
