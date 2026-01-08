@@ -138,7 +138,7 @@ export class AIRepository implements AIServicePort {
       .innerJoin(messages, eq(messages.chatId, chats.id))
       .leftJoin(parts, eq(parts.messageId, messages.id))
       .where(eq(chats.id, chatId))
-      .orderBy(asc(parts.order)) // Ensures correct part ordering
+      .orderBy(asc(messages.createdAt), asc(parts.order)) // Order by message creation time first, then part order
 
     return result
   }
@@ -151,7 +151,7 @@ export class AIRepository implements AIServicePort {
       .innerJoin(messages, eq(messages.chatId, chats.id))
       .leftJoin(parts, eq(parts.messageId, messages.id))
       .where(eq(chats.id, chatId))
-      .orderBy(asc(parts.order)) // Ensures correct part ordering
+      .orderBy(asc(messages.createdAt), asc(parts.order)) // Order by message creation time first, then part order
 
     return result
   }
