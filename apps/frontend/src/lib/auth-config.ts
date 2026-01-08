@@ -184,6 +184,15 @@ export const authOptions: NextAuthOptions = {
       return session
     },
     async redirect({ baseUrl, url }) {
+      // After successful sign-in, redirect to dashboard
+      // Allows relative callback URLs like "/dashboard"
+      if (url.startsWith('/')) {
+        return `${baseUrl}${url}`
+      }
+      // Allows callback URLs on the same origin
+      if (new URL(url).origin === baseUrl) {
+        return url
+      }
       // Normalize the target URL against the base URL and enforce same-origin redirects
       try {
         const base = new URL(baseUrl)
