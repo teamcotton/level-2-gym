@@ -12,11 +12,8 @@ const backendUrl = process.env.BACKEND_AI_CALLBACK_URL
 const googleId = process.env.GOOGLE_ID
 const googleSecret = process.env.GOOGLE_SECRET
 
-// Check if Google OAuth credentials are configured
-const hasGoogleCredentials = Boolean(googleId && googleSecret)
-
 // Validate credentials to prevent runtime errors
-if (!hasGoogleCredentials) {
+if (!googleId || !googleSecret) {
   const errorMessage =
     'Google OAuth credentials not configured. Please set GOOGLE_ID and GOOGLE_SECRET environment variables.'
 
@@ -86,14 +83,13 @@ interface CredentialsInput {
 const providers: any[] = []
 
 // Add GoogleProvider only if credentials are configured
-if (hasGoogleCredentials) {
-  // TypeScript doesn't narrow types through Boolean(), so we assert they are strings here
-  // We know they're valid because hasGoogleCredentials is true
+// TypeScript narrows the types to string when using the condition directly
+if (googleId && googleSecret) {
   // @ts-expect-error - NextAuth v4 ESM/CommonJS interop issue with Google provider
   providers.push(
     GoogleProvider({
-      clientId: googleId as string,
-      clientSecret: googleSecret as string,
+      clientId: googleId,
+      clientSecret: googleSecret,
     })
   )
 }
