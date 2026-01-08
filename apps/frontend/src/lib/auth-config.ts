@@ -85,8 +85,8 @@ const providers: any[] = []
 // Add GoogleProvider only if credentials are configured
 // TypeScript narrows the types to string when using the condition directly
 if (googleId && googleSecret) {
-  // @ts-expect-error - NextAuth v4 ESM/CommonJS interop issue with Google provider
   providers.push(
+    // @ts-expect-error - NextAuth v4 ESM/CommonJS interop issue with Google provider
     GoogleProvider({
       clientId: googleId,
       clientSecret: googleSecret,
@@ -95,8 +95,8 @@ if (googleId && googleSecret) {
 }
 
 // Always add CredentialsProvider
-// @ts-expect-error - NextAuth v4 ESM/CommonJS interop issue with credentials provider
 providers.push(
+  // @ts-expect-error - NextAuth v4 ESM/CommonJS interop issue with credentials provider
   CredentialsProvider({
     name: 'Credentials',
     credentials: {
