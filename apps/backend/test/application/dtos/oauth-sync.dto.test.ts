@@ -189,9 +189,11 @@ describe('OAuthSyncDto', () => {
           email: 'test@example.com',
         }
 
-        const dto = OAuthSyncDto.validate(data)
-
-        expect(dto.provider).toBe('   ')
+        // Whitespace-only strings should now be rejected
+        expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
+        expect(() => OAuthSyncDto.validate(data)).toThrow(
+          'Provider is required and must be a non-empty string'
+        )
       })
 
       it('should validate with whitespace-only providerId (truthy string)', () => {
@@ -201,9 +203,11 @@ describe('OAuthSyncDto', () => {
           email: 'test@example.com',
         }
 
-        const dto = OAuthSyncDto.validate(data)
-
-        expect(dto.providerId).toBe('   ')
+        // Whitespace-only strings should now be rejected
+        expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
+        expect(() => OAuthSyncDto.validate(data)).toThrow(
+          'ProviderId is required and must be a non-empty string'
+        )
       })
 
       it('should validate with whitespace-only name (truthy string)', () => {
@@ -256,7 +260,7 @@ describe('OAuthSyncDto', () => {
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
         expect(() => OAuthSyncDto.validate(data)).toThrow(
-          'Provider is required and must be a string'
+          'Provider is required and must be a non-empty string'
         )
       })
 
@@ -269,7 +273,7 @@ describe('OAuthSyncDto', () => {
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
         expect(() => OAuthSyncDto.validate(data)).toThrow(
-          'Provider is required and must be a string'
+          'Provider is required and must be a non-empty string'
         )
       })
 
@@ -282,7 +286,7 @@ describe('OAuthSyncDto', () => {
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
         expect(() => OAuthSyncDto.validate(data)).toThrow(
-          'Provider is required and must be a string'
+          'Provider is required and must be a non-empty string'
         )
       })
 
@@ -295,7 +299,7 @@ describe('OAuthSyncDto', () => {
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
         expect(() => OAuthSyncDto.validate(data)).toThrow(
-          'Provider is required and must be a string'
+          'Provider is required and must be a non-empty string'
         )
       })
     })
@@ -309,7 +313,7 @@ describe('OAuthSyncDto', () => {
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
         expect(() => OAuthSyncDto.validate(data)).toThrow(
-          'ProviderId is required and must be a string'
+          'ProviderId is required and must be a non-empty string'
         )
       })
 
@@ -322,7 +326,7 @@ describe('OAuthSyncDto', () => {
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
         expect(() => OAuthSyncDto.validate(data)).toThrow(
-          'ProviderId is required and must be a string'
+          'ProviderId is required and must be a non-empty string'
         )
       })
 
@@ -335,7 +339,7 @@ describe('OAuthSyncDto', () => {
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
         expect(() => OAuthSyncDto.validate(data)).toThrow(
-          'ProviderId is required and must be a string'
+          'ProviderId is required and must be a non-empty string'
         )
       })
 
@@ -348,7 +352,7 @@ describe('OAuthSyncDto', () => {
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
         expect(() => OAuthSyncDto.validate(data)).toThrow(
-          'ProviderId is required and must be a string'
+          'ProviderId is required and must be a non-empty string'
         )
       })
     })
@@ -361,7 +365,7 @@ describe('OAuthSyncDto', () => {
         }
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
-        expect(() => OAuthSyncDto.validate(data)).toThrow('Email is required and must be a string')
+        expect(() => OAuthSyncDto.validate(data)).toThrow('Email is required and must be a non-empty string')
       })
 
       it('should throw ValidationException when email is null', () => {
@@ -372,7 +376,7 @@ describe('OAuthSyncDto', () => {
         }
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
-        expect(() => OAuthSyncDto.validate(data)).toThrow('Email is required and must be a string')
+        expect(() => OAuthSyncDto.validate(data)).toThrow('Email is required and must be a non-empty string')
       })
 
       it('should throw ValidationException when email is empty string', () => {
@@ -383,7 +387,7 @@ describe('OAuthSyncDto', () => {
         }
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
-        expect(() => OAuthSyncDto.validate(data)).toThrow('Email is required and must be a string')
+        expect(() => OAuthSyncDto.validate(data)).toThrow('Email is required and must be a non-empty string')
       })
 
       it('should throw ValidationException when email is a number', () => {
@@ -394,7 +398,7 @@ describe('OAuthSyncDto', () => {
         }
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
-        expect(() => OAuthSyncDto.validate(data)).toThrow('Email is required and must be a string')
+        expect(() => OAuthSyncDto.validate(data)).toThrow('Email is required and must be a non-empty string')
       })
     })
 

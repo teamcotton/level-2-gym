@@ -90,16 +90,16 @@ export class OAuthSyncDto {
       throw new TypeException('Data must be a valid object')
     }
 
-    if (!data.provider || !isString(data.provider)) {
-      throw new ValidationException('Provider is required and must be a string')
+    if (!data.provider || !isString(data.provider) || !data.provider.trim()) {
+      throw new ValidationException('Provider is required and must be a non-empty string')
     }
 
-    if (!data.providerId || !isString(data.providerId)) {
-      throw new ValidationException('ProviderId is required and must be a string')
+    if (!data.providerId || !isString(data.providerId) || !data.providerId.trim()) {
+      throw new ValidationException('ProviderId is required and must be a non-empty string')
     }
 
-    if (!data.email || !isString(data.email)) {
-      throw new ValidationException('Email is required and must be a string')
+    if (!data.email || !isString(data.email) || !data.email.trim()) {
+      throw new ValidationException('Email is required and must be a non-empty string')
     }
 
     if (!ValidationUtil.isEmail(data.email)) {
