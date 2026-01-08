@@ -4,7 +4,6 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import HomeIcon from '@mui/icons-material/Home'
 import { Box, Button, Container, Paper, Typography } from '@mui/material'
-import React from 'react'
 
 interface ErrorPageDisplayProps {
   readonly errorCode: string

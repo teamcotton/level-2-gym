@@ -134,20 +134,20 @@ describe('ErrorPage', () => {
     })
 
     it('should render error icon', () => {
-      const { container } = render(<ErrorPage />)
-      const icon = container.querySelector('svg[data-testid="ErrorOutlineIcon"]')
+      const { container: _container } = render(<ErrorPage />)
+      const icon = _container.querySelector('svg[data-testid="ErrorOutlineIcon"]')
       expect(icon).toBeInTheDocument()
     })
 
     it('should render home icon in button', () => {
-      const { container } = render(<ErrorPage />)
+      render(<ErrorPage />)
       const homeButton = screen.getByRole('button', { name: /Go Home/i })
       const icon = homeButton.querySelector('svg[data-testid="HomeIcon"]')
       expect(icon).toBeInTheDocument()
     })
 
     it('should render back arrow icon in button', () => {
-      const { container } = render(<ErrorPage />)
+      render(<ErrorPage />)
       const backButton = screen.getByRole('button', { name: /Go Back/i })
       const icon = backButton.querySelector('svg[data-testid="ArrowBackIcon"]')
       expect(icon).toBeInTheDocument()

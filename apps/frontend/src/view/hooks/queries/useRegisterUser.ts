@@ -16,7 +16,7 @@ export function useRegisterUser() {
     onSuccess: (result) => {
       if (result && (result as { success?: boolean }).success) {
         // Invalidate users list if needed
-        queryClient.invalidateQueries({ queryKey: ['users'] }).catch((err) => {})
+        queryClient.invalidateQueries({ queryKey: ['users'] }).catch((_err) => {})
       }
     },
   })

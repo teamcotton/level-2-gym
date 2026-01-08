@@ -8,4 +8,4 @@ export const PROTECTED_ROUTES = ['/admin', '/dashboard', '/profile', '/ai', '/ai
  * Authentication route patterns that redirect authenticated users
  * @constant
  */
-export const AUTH_ROUTES = ['/register', '/signin']
+export const AUTH_ROUTES = ['/register', '/signin', '/error']
