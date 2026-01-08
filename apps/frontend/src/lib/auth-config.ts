@@ -1,5 +1,6 @@
 import { type NextAuthOptions, type User } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
+import GoogleProvider from 'next-auth/providers/google'
 
 import { createLogger } from '@/infrastructure/logging/logger.js'
 
@@ -58,6 +59,11 @@ interface CredentialsInput {
 export const authOptions: NextAuthOptions = {
   providers: [
     // @ts-expect-error - NextAuth v4 ESM/CommonJS interop issue with credentials provider
+    GoogleProvider({
+      clientId: process.env.GOOGLE_ID,
+      clientSecret: process.env.GOOGLE_SECRET,
+    }),
+    // @ts-expect-error - NextAuth v4 ESM/CommonJS interop issue with credentials provider
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
@@ -71,7 +77,6 @@ export const authOptions: NextAuthOptions = {
 
         try {
           // Call backend login endpoint
-          console.log(`${backendUrl}/auth/login`)
           const response = await fetch(`${backendUrl}/auth/login`, {
             method: 'POST',
             headers: {
@@ -110,13 +115,28 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ account, token, user }) {
       // Initial sign in
       if (user) {
-        token.accessToken = user.accessToken
-        token.id = user.id
-        token.roles = user.roles
+        // Credentials provider: user object has accessToken and roles from backend
+        if (account?.provider === 'credentials') {
+          token.accessToken = user.accessToken
+          token.id = user.id
+          token.roles = user.roles
+        }
+        // OAuth providers (Google, GitHub, etc.): assign default user role
+        else {
+          token.id = user.id
+          token.roles = ['user'] // Default role for OAuth users
+          token.accessToken = 'oauth-provider' // Mark as OAuth authentication
+        }
       }
+
+      // Defensive: ensure roles exist on all tokens (handles old sessions)
+      if (!token.roles) {
+        token.roles = ['user']
+      }
+
       return token
     },
     async session({ session, token }) {
@@ -128,9 +148,22 @@ export const authOptions: NextAuthOptions = {
       session.accessToken = token.accessToken as string
       return session
     },
+    async redirect({ baseUrl, url }) {
+      // After successful sign-in, redirect to dashboard
+      // Allows relative callback URLs like "/dashboard"
+      if (url.startsWith('/')) {
+        return `${baseUrl}${url}`
+      }
+      // Allows callback URLs on the same origin
+      if (new URL(url).origin === baseUrl) {
+        return url
+      }
+      return `${baseUrl}/dashboard`
+    },
   },
   pages: {
     signIn: '/signin',
+    signOut: '/signin',
     error: '/error',
   },
   session: {
