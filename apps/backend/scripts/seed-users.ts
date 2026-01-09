@@ -14,9 +14,11 @@
  * - 1 admin account
  * - 2 moderator accounts
  * - Remaining accounts as regular users
+ * - Approximately 10% of users (excluding admin/moderators) as OAuth users with Google provider
  *
- * All accounts use the password specified by SEED_PASSWORD env var,
+ * All password-based accounts use the password specified by SEED_PASSWORD env var,
  * or 'Password123!' if SEED_PASSWORD is not set.
+ * OAuth users have no password and use 'google' as their provider.
  *
  * Maximum Users:
  * The script can generate approximately 51,840 unique email addresses
@@ -299,19 +301,30 @@ function getRole(index: number): 'admin' | 'moderator' | 'user' {
   return 'user'
 }
 
+/**
+ * Determine if user should be OAuth user (10% chance)
+ * OAuth users are evenly distributed throughout the user list
+ */
+function isOAuthUser(index: number): boolean {
+  // Every 10th user (starting from index 3 to preserve admin/moderators)
+  return index >= 3 && index % 10 === 3
+}
+
 async function seedUsers() {
   console.log('🌱 Starting user seed script...')
   console.log(`📊 Creating ${TOTAL_USERS} user accounts`)
-  console.log(`🔐 All accounts use password: ${DEFAULT_PASSWORD}`)
+  console.log(`🔐 Password accounts use: ${DEFAULT_PASSWORD}`)
+  console.log(`🔗 OAuth accounts (Google): ~10% of users`)
 
   try {
-    // Hash the password once (all users will use the same hashed password)
+    // Hash the password once (all password-based users will use the same hashed password)
     console.log('\n⏳ Hashing password...')
     const hashedPassword = (await Password.create(DEFAULT_PASSWORD)).getHash()
     console.log('✅ Password hashed')
 
     const usersToInsert = []
     const generatedEmails = new Set<string>()
+    let oauthUserCount = 0
 
     console.log('\n👥 Generating user data...')
     for (let i = 0; i < TOTAL_USERS; i++) {
@@ -320,13 +333,24 @@ async function seedUsers() {
       const name = generateName(firstName, lastName)
       const email = generateEmail(firstName, lastName, i, generatedEmails)
       const role = getRole(i)
+      const isOAuth = isOAuthUser(i)
 
-      usersToInsert.push({
-        name,
-        email,
-        password: hashedPassword,
-        role,
-      })
+      if (isOAuth) {
+        oauthUserCount++
+        usersToInsert.push({
+          name,
+          email,
+          role,
+          provider: 'google',
+        })
+      } else {
+        usersToInsert.push({
+          name,
+          email,
+          password: hashedPassword,
+          role,
+        })
+      }
 
       // Log special accounts
       if (role === 'admin') {
@@ -337,6 +361,8 @@ async function seedUsers() {
     }
 
     console.log(`   👤 Regular users: ${TOTAL_USERS - 3}`)
+    console.log(`   🔗 OAuth users (Google): ${oauthUserCount}`)
+    console.log(`   🔐 Password users: ${TOTAL_USERS - oauthUserCount}`)
 
     console.log('\n💾 Inserting users into database...')
     const insertedUsers = await db.insert(user).values(usersToInsert).returning()
@@ -347,9 +373,17 @@ async function seedUsers() {
     console.log(`   Admins: ${insertedUsers.filter((u) => u.role === 'admin').length}`)
     console.log(`   Moderators: ${insertedUsers.filter((u) => u.role === 'moderator').length}`)
     console.log(`   Users: ${insertedUsers.filter((u) => u.role === 'user').length}`)
+    console.log(
+      `   OAuth users (Google): ${insertedUsers.filter((u) => u.provider === 'google').length}`
+    )
+    console.log(`   Password users: ${insertedUsers.filter((u) => u.password !== null).length}`)
     console.log('\n🔑 Login credentials:')
-    console.log(`   Email: Any of the generated emails`)
-    console.log(`   Password: ${DEFAULT_PASSWORD}`)
+    console.log(`   Password users:`)
+    console.log(`     Email: Any of the generated emails without OAuth`)
+    console.log(`     Password: ${DEFAULT_PASSWORD}`)
+    console.log(`   OAuth users:`)
+    console.log(`     Email: Any of the generated emails marked with OAuth provider`)
+    console.log(`     Login via: Google OAuth`)
   } catch (error) {
     console.error('\n❌ Error seeding users:', error)
     if (error instanceof Error) {

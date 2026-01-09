@@ -694,7 +694,7 @@ describe('UserController', () => {
         expect(mockReply.code).toHaveBeenCalledWith(400)
         expect(mockReply.send).toHaveBeenCalledWith({
           success: false,
-          error: 'Password is required and must be a string',
+          error: 'Password must be a string when provider is not provided',
         })
       })
 

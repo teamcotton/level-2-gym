@@ -1,5 +1,6 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { LoginUserUseCase } from '../../../application/use-cases/login-user.use-case.js'
+import { RegisterUserWithProviderUseCase } from '../../../application/use-cases/register-user-with-provider.use-case.js'
 import { LoginUserDto } from '../../../application/dtos/login-user.dto.js'
 import { OAuthSyncDto } from '../../../application/dtos/oauth-sync.dto.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
@@ -47,6 +48,7 @@ export class AuthController {
    * Creates a new AuthController instance
    *
    * @param {LoginUserUseCase} loginUserUseCase - Use case for user authentication
+   * @param {RegisterUserWithProviderUseCase} registerUserWithProviderUseCase - Use case for registering OAuth users
    *
    * @example
    * ```typescript
@@ -58,7 +60,10 @@ export class AuthController {
    * const authController = new AuthController(loginUseCase)
    * ```
    */
-  constructor(private readonly loginUserUseCase: LoginUserUseCase) {}
+  constructor(
+    private readonly loginUserUseCase: LoginUserUseCase,
+    private readonly registerUserWithProviderUseCase: RegisterUserWithProviderUseCase
+  ) {}
 
   /**
    * Registers authentication routes with the Fastify application
@@ -240,22 +245,14 @@ export class AuthController {
    */
   async oauthSync(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {
-      // Validate request body using DTO
+      request.log.info({ body: request.body }, 'OAuth sync request received')
       const dto = OAuthSyncDto.validate(request.body)
 
-      // TODO: Implement user repository method to create/update OAuth user
-      // For now, just log the sync request
-      request.log.info({
-        msg: 'OAuth user sync requested',
-        provider: dto.provider,
-        providerId: dto.providerId,
-        email: dto.email,
-        name: dto.name,
-      })
+      const result = await this.registerUserWithProviderUseCase.execute(dto)
 
       reply.code(200).send({
         success: true,
-        message: 'OAuth user sync completed',
+        data: result,
       })
     } catch (error) {
       const err = error as Error

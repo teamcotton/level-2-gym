@@ -7,49 +7,67 @@ describe('RegisterUserDto', () => {
   describe('constructor', () => {
     it('should create a RegisterUserDto with valid data', () => {
       const email = 'test@example.com'
-      const password = 'password123'
       const name = 'John Doe'
+      const password = 'password123'
 
-      const dto = new RegisterUserDto(email, password, name)
+      const dto = new RegisterUserDto(email, name, 'user', password)
 
       expect(dto.email).toBe(email)
-      expect(dto.password).toBe(password)
       expect(dto.name).toBe(name)
+      expect(dto.password).toBe(password)
       expect(dto.role).toBe('user')
+      expect(dto.provider).toBeUndefined()
     })
 
     it('should create a RegisterUserDto with custom role', () => {
       const email = 'admin@example.com'
-      const password = 'password123'
       const name = 'Admin User'
+      const password = 'password123'
       const role = 'admin'
 
-      const dto = new RegisterUserDto(email, password, name, role)
+      const dto = new RegisterUserDto(email, name, role, password)
 
       expect(dto.email).toBe(email)
-      expect(dto.password).toBe(password)
       expect(dto.name).toBe(name)
+      expect(dto.password).toBe(password)
       expect(dto.role).toBe(role)
+      expect(dto.provider).toBeUndefined()
     })
 
     it('should default to "user" role when not provided', () => {
-      const dto = new RegisterUserDto('test@example.com', 'password123', 'John Doe')
+      const dto = new RegisterUserDto('test@example.com', 'John Doe', undefined, 'password123')
 
       expect(dto.role).toBe('user')
     })
 
+    it('should create OAuth user without password', () => {
+      const email = 'oauth@example.com'
+      const name = 'OAuth User'
+      const provider = 'google'
+      const providerId = '1234567890'
+
+      const dto = new RegisterUserDto(email, name, 'user', undefined, provider, providerId)
+
+      expect(dto.email).toBe(email)
+      expect(dto.name).toBe(name)
+      expect(dto.password).toBeUndefined()
+      expect(dto.provider).toBe(provider)
+      expect(dto.providerId).toBe(providerId)
+      expect(dto.role).toBe('user')
+    })
+
     it('should have readonly properties at compile time', () => {
-      const dto = new RegisterUserDto('test@example.com', 'password123', 'John Doe')
+      const dto = new RegisterUserDto('test@example.com', 'John Doe', 'user', 'password123')
 
       // TypeScript readonly is compile-time only, but properties should exist
       expect(dto.email).toBeDefined()
-      expect(dto.password).toBeDefined()
       expect(dto.name).toBeDefined()
+      expect(dto.password).toBeDefined()
 
       // Properties are public and enumerable
       const descriptor1 = Object.getOwnPropertyDescriptor(dto, 'email')
-      const descriptor2 = Object.getOwnPropertyDescriptor(dto, 'password')
-      const descriptor3 = Object.getOwnPropertyDescriptor(dto, 'name')
+      const descriptor2 = Object.getOwnPropertyDescriptor(dto, 'name')
+      const descriptor3 = Object.getOwnPropertyDescriptor(dto, 'password')
 
       expect(descriptor1?.enumerable).toBe(true)
       expect(descriptor2?.enumerable).toBe(true)
@@ -57,7 +75,7 @@ describe('RegisterUserDto', () => {
     })
 
     it('should be instance of RegisterUserDto', () => {
-      const dto = new RegisterUserDto('test@example.com', 'password123', 'John Doe')
+      const dto = new RegisterUserDto('test@example.com', 'John Doe', 'user', 'password123')
 
       expect(dto).toBeInstanceOf(RegisterUserDto)
     })
@@ -93,8 +111,28 @@ describe('RegisterUserDto', () => {
 
         expect(dto).toBeInstanceOf(RegisterUserDto)
         expect(dto.email).toBe(data.email)
-        expect(dto.password).toBe(data.password)
         expect(dto.name).toBe(data.name)
+        expect(dto.password).toBe(data.password)
+        expect(dto.role).toBe('user')
+        expect(dto.provider).toBeUndefined()
+      })
+
+      it('should validate OAuth user with provider and providerId, no password', () => {
+        const data = {
+          email: 'oauth@example.com',
+          name: 'OAuth User',
+          provider: 'google',
+          providerId: '123456789',
+        }
+
+        const dto = RegisterUserDto.validate(data)
+
+        expect(dto).toBeInstanceOf(RegisterUserDto)
+        expect(dto.email).toBe(data.email)
+        expect(dto.name).toBe(data.name)
+        expect(dto.password).toBeUndefined()
+        expect(dto.provider).toBe('google')
+        expect(dto.providerId).toBe('123456789')
         expect(dto.role).toBe('user')
       })
 
@@ -110,8 +148,8 @@ describe('RegisterUserDto', () => {
         const dto = RegisterUserDto.validate(data)
 
         expect(dto.email).toBe(data.email)
-        expect(dto.password).toBe(data.password)
         expect(dto.name).toBe(data.name)
+        expect(dto.password).toBe(data.password)
         expect((dto as any).extraField).toBeUndefined()
       })
 
@@ -125,8 +163,8 @@ describe('RegisterUserDto', () => {
         const dto = RegisterUserDto.validate(data)
 
         expect(dto.email).toBe(data.email)
-        expect(dto.password).toBe(data.password)
         expect(dto.name).toBe(data.name)
+        expect(dto.password).toBe(data.password)
       })
     })
 
@@ -223,7 +261,7 @@ describe('RegisterUserDto', () => {
     })
 
     describe('password validation', () => {
-      it('should throw ValidationException when password is missing', () => {
+      it('should throw ValidationException when password is missing and no provider', () => {
         const data = {
           email: 'test@example.com',
           name: 'John Doe',
@@ -231,11 +269,11 @@ describe('RegisterUserDto', () => {
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
-          'Password is required and must be a string'
+          'Password must be a string when provider is not provided'
         )
       })
 
-      it('should throw ValidationException when password is null', () => {
+      it('should throw ValidationException when password is null and no provider', () => {
         const data = {
           email: 'test@example.com',
           password: null,
@@ -244,11 +282,11 @@ describe('RegisterUserDto', () => {
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
-          'Password is required and must be a string'
+          'Password must be a string when provider is not provided'
         )
       })
 
-      it('should throw ValidationException when password is undefined', () => {
+      it('should throw ValidationException when password is undefined and no provider', () => {
         const data = {
           email: 'test@example.com',
           password: undefined,
@@ -257,7 +295,7 @@ describe('RegisterUserDto', () => {
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
-          'Password is required and must be a string'
+          'Password must be a string when provider is not provided'
         )
       })
 
@@ -270,7 +308,7 @@ describe('RegisterUserDto', () => {
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
-          'Password is required and must be a string'
+          'Password must be a string when provider is not provided'
         )
       })
 
@@ -283,7 +321,7 @@ describe('RegisterUserDto', () => {
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
-          'Password is required and must be a string'
+          'Password must be a string when provider is not provided'
         )
       })
 
@@ -296,7 +334,7 @@ describe('RegisterUserDto', () => {
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
-          'Password is required and must be a string'
+          'Password must be a string when provider is not provided'
         )
       })
 
@@ -309,7 +347,7 @@ describe('RegisterUserDto', () => {
 
         expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
         expect(() => RegisterUserDto.validate(data)).toThrow(
-          'Password is required and must be a string'
+          'Password must be a string when provider is not provided'
         )
       })
     })
@@ -548,6 +586,179 @@ describe('RegisterUserDto', () => {
       })
     })
 
+    describe('provider validation', () => {
+      it('should allow provider without password for OAuth users', () => {
+        const data = {
+          email: 'oauth@example.com',
+          name: 'OAuth User',
+          provider: 'google',
+          providerId: '123456789',
+        }
+
+        const dto = RegisterUserDto.validate(data)
+
+        expect(dto).toBeInstanceOf(RegisterUserDto)
+        expect(dto.provider).toBe('google')
+        expect(dto.providerId).toBe('123456789')
+        expect(dto.password).toBeUndefined()
+      })
+
+      it('should allow provider with providerId for OAuth users', () => {
+        const data = {
+          email: 'oauth@example.com',
+          name: 'OAuth User',
+          provider: 'google',
+          providerId: '123456789',
+        }
+
+        const dto = RegisterUserDto.validate(data)
+
+        expect(dto).toBeInstanceOf(RegisterUserDto)
+        expect(dto.provider).toBe('google')
+        expect(dto.providerId).toBe('123456789')
+        expect(dto.password).toBeUndefined()
+      })
+
+      it('should throw ValidationException when provider is not a string', () => {
+        const data = {
+          email: 'test@example.com',
+          name: 'John Doe',
+          provider: 123,
+        }
+
+        expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
+        expect(() => RegisterUserDto.validate(data)).toThrow(
+          'Provider must be a string when password is not provided'
+        )
+      })
+
+      it('should throw ValidationException when provider is an array', () => {
+        const data = {
+          email: 'test@example.com',
+          name: 'John Doe',
+          provider: ['google'],
+        }
+
+        expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
+        expect(() => RegisterUserDto.validate(data)).toThrow(
+          'Provider must be a string when password is not provided'
+        )
+      })
+
+      it('should throw ValidationException when provider is an object', () => {
+        const data = {
+          email: 'test@example.com',
+          name: 'John Doe',
+          provider: { name: 'google' },
+        }
+
+        expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
+        expect(() => RegisterUserDto.validate(data)).toThrow(
+          'Provider must be a string when password is not provided'
+        )
+      })
+
+      it('should allow both password and provider', () => {
+        const data = {
+          email: 'test@example.com',
+          name: 'John Doe',
+          password: 'password123',
+          provider: 'google',
+        }
+
+        const dto = RegisterUserDto.validate(data)
+
+        expect(dto).toBeInstanceOf(RegisterUserDto)
+        expect(dto.password).toBe('password123')
+        expect(dto.provider).toBe('google')
+      })
+
+      it('should throw ValidationException when providerId is not a string', () => {
+        const data = {
+          email: 'test@example.com',
+          name: 'John Doe',
+          provider: 'google',
+          providerId: 12345,
+        }
+
+        expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
+        expect(() => RegisterUserDto.validate(data)).toThrow(
+          'ProviderId must be a string when provided'
+        )
+      })
+
+      it('should throw ValidationException when providerId is empty string', () => {
+        const data = {
+          email: 'test@example.com',
+          name: 'John Doe',
+          provider: 'google',
+          providerId: '',
+        }
+
+        expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
+        expect(() => RegisterUserDto.validate(data)).toThrow(
+          'ProviderId must be a non-empty string when provided'
+        )
+      })
+
+      it('should throw ValidationException when providerId is whitespace only', () => {
+        const data = {
+          email: 'test@example.com',
+          name: 'John Doe',
+          provider: 'google',
+          providerId: '   ',
+        }
+
+        expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
+        expect(() => RegisterUserDto.validate(data)).toThrow(
+          'ProviderId must be a non-empty string when provided'
+        )
+      })
+
+      it('should throw ValidationException when provider is set without password but providerId is missing', () => {
+        const data = {
+          email: 'test@example.com',
+          name: 'John Doe',
+          provider: 'google',
+        }
+
+        expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
+        expect(() => RegisterUserDto.validate(data)).toThrow(
+          'ProviderId is required when using OAuth provider without password'
+        )
+      })
+
+      it('should allow providerId as undefined', () => {
+        const data = {
+          email: 'test@example.com',
+          name: 'John Doe',
+          provider: 'google',
+          providerId: undefined,
+        }
+
+        expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
+        expect(() => RegisterUserDto.validate(data)).toThrow(
+          'ProviderId is required when using OAuth provider without password'
+        )
+      })
+
+      it('should allow password with provider without providerId', () => {
+        const data = {
+          email: 'test@example.com',
+          name: 'John Doe',
+          password: 'password123',
+          provider: 'google',
+        }
+
+        const dto = RegisterUserDto.validate(data)
+
+        expect(dto).toBeInstanceOf(RegisterUserDto)
+        expect(dto.password).toBe('password123')
+        expect(dto.provider).toBe('google')
+        expect(dto.providerId).toBeUndefined()
+      })
+    })
+
     describe('edge cases', () => {
       it('should throw error when data is null', () => {
         expect(() => RegisterUserDto.validate(null)).toThrow()
@@ -582,7 +793,7 @@ describe('RegisterUserDto', () => {
         }
 
         expect(() => RegisterUserDto.validate(data)).toThrow(
-          'Password is required and must be a string'
+          'Password must be a string when provider is not provided'
         )
       })
 
@@ -596,6 +807,22 @@ describe('RegisterUserDto', () => {
         expect(() => RegisterUserDto.validate(data)).toThrow(
           'Name is required and must be a string'
         )
+      })
+
+      it('should skip password validation if provider and providerId are present', () => {
+        const data = {
+          email: 'test@example.com',
+          name: 'OAuth User',
+          provider: 'google',
+          providerId: '123456789',
+        }
+
+        const dto = RegisterUserDto.validate(data)
+
+        expect(dto).toBeInstanceOf(RegisterUserDto)
+        expect(dto.password).toBeUndefined()
+        expect(dto.provider).toBe('google')
+        expect(dto.providerId).toBe('123456789')
       })
     })
 
@@ -628,8 +855,25 @@ describe('RegisterUserDto', () => {
         const dto = RegisterUserDto.validate(data)
 
         expect(typeof dto.email).toBe('string')
-        expect(typeof dto.password).toBe('string')
         expect(typeof dto.name).toBe('string')
+        expect(typeof dto.password).toBe('string')
+      })
+
+      it('should handle OAuth user types with providerId', () => {
+        const data: any = {
+          email: 'test@example.com',
+          name: 'John Doe',
+          provider: 'google',
+          providerId: '987654321',
+        }
+
+        const dto = RegisterUserDto.validate(data)
+
+        expect(typeof dto.email).toBe('string')
+        expect(typeof dto.name).toBe('string')
+        expect(dto.password).toBeUndefined()
+        expect(typeof dto.provider).toBe('string')
+        expect(typeof dto.providerId).toBe('string')
       })
 
       it('should preserve exact string values', () => {
@@ -642,8 +886,8 @@ describe('RegisterUserDto', () => {
         const dto = RegisterUserDto.validate(data)
 
         expect(dto.email).toBe('user@domain.co.uk')
-        expect(dto.password).toBe('MyP@ssw0rd!')
         expect(dto.name).toBe("Jane O'Brien-Smith")
+        expect(dto.password).toBe('MyP@ssw0rd!')
       })
 
       it('should handle special characters in strings', () => {
@@ -656,8 +900,8 @@ describe('RegisterUserDto', () => {
         const dto = RegisterUserDto.validate(data)
 
         expect(dto.email).toBe(data.email)
-        expect(dto.password).toBe(data.password)
         expect(dto.name).toBe(data.name)
+        expect(dto.password).toBe(data.password)
       })
     })
   })

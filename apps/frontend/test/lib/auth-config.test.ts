@@ -442,6 +442,7 @@ describe('authOptions Configuration', () => {
             providerId: 'user-123',
             email: 'google@example.com',
             name: 'Google User',
+            roles: 'user',
           }),
         })
       )
@@ -556,7 +557,7 @@ describe('authOptions Configuration', () => {
       expect(global.fetch).not.toHaveBeenCalled()
     })
 
-    it('should allow sign-in even when OAuth sync fails', async () => {
+    it('should redirect to error page when OAuth sync fails', async () => {
       const authOptions = await getAuthOptions()
 
       const mockUser = {
@@ -583,7 +584,7 @@ describe('authOptions Configuration', () => {
       global.fetch = vi.fn().mockResolvedValue({
         ok: false,
         status: 500,
-        json: async () => ({ success: false, message: 'Internal server error' }),
+        json: async () => ({ success: false, error: 'Internal server error' }),
       })
 
       const result = await authOptions.callbacks!.signIn!({
@@ -592,11 +593,51 @@ describe('authOptions Configuration', () => {
         profile: mockProfile,
       })
 
-      expect(result).toBe(true)
+      expect(result).toBe('/error?code=500&message=Internal%20server%20error')
       expect(global.fetch).toHaveBeenCalledTimes(1)
     })
 
-    it('should handle network errors gracefully and allow sign-in', async () => {
+    it('should display backend error message for duplicate email', async () => {
+      const authOptions = await getAuthOptions()
+
+      const mockUser = {
+        id: 'user-123',
+        email: 'existing@example.com',
+        emailVerified: null,
+        accessToken: '',
+        roles: [],
+      }
+
+      const mockAccount = {
+        provider: 'google',
+        providerAccountId: 'google-123',
+        type: 'oauth' as const,
+        access_token: 'google-token',
+      }
+
+      const mockProfile = {
+        email: 'existing@example.com',
+        name: 'Existing User',
+        sub: 'google-123',
+      }
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 409,
+        json: async () => ({ success: false, error: 'User with this email already exists' }),
+      })
+
+      const result = await authOptions.callbacks!.signIn!({
+        user: mockUser,
+        account: mockAccount,
+        profile: mockProfile,
+      })
+
+      expect(result).toBe('/error?code=409&message=User%20with%20this%20email%20already%20exists')
+      expect(global.fetch).toHaveBeenCalledTimes(1)
+    })
+
+    it('should redirect to error page for network errors', async () => {
       const authOptions = await getAuthOptions()
 
       const mockUser = {
@@ -628,7 +669,9 @@ describe('authOptions Configuration', () => {
         profile: mockProfile,
       })
 
-      expect(result).toBe(true)
+      expect(result).toBe(
+        '/error?code=500&message=OAuth%20authentication%20error.%20Please%20try%20again.'
+      )
       expect(global.fetch).toHaveBeenCalledTimes(1)
     })
 

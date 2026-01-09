@@ -36,6 +36,7 @@ export const user = pgTable(
     email: citext('email').notNull().unique(),
     role: text('role').notNull().default('user'),
     provider: text('provider'),
+    providerId: text('provider_id'),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .default(sql`now()`),
