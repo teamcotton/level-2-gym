@@ -70,6 +70,7 @@ export class RegisterUserWithProviderUseCase {
    * 3. Saving the user to the database (with duplicate email detection)
    * 4. Sending a welcome email (failure doesn't block registration)
    * 5. Generating a JWT access token for immediate login
+   * 6. Recording an audit log entry for the registration event
    *
    * @param {RegisterUserDto} dto - User registration data (email, name, role, provider)
    * @param auditContext
