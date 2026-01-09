@@ -212,10 +212,24 @@ POSTGRES_DB=norbertsSpark
 # Database connection string
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/norbertsSpark
 
+# OAuth Sync Shared Secret
+# Shared secret for authenticating frontend OAuth sync requests
+# Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+OAUTH_SYNC_SECRET=your-oauth-sync-shared-secret-here
+
 # Server Configuration
 USE_HTTPS=true  # Enable HTTPS in development
 # PORT=3000     # Optional: Change server port
 ```
+
+### OAuth Sync Security
+
+The `/auth/oauth-sync` endpoint is protected by a shared secret authentication mechanism to prevent unauthorized user creation. The frontend must include a matching `X-OAuth-Sync-Secret` header when calling this endpoint.
+
+**Setup:**
+1. Generate a secure secret: `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`
+2. Add `OAUTH_SYNC_SECRET` to both backend `.env` and frontend `.env.local` with the same value
+3. The middleware uses constant-time comparison to prevent timing attacks
 
 ### Port 3000 already in use
 
