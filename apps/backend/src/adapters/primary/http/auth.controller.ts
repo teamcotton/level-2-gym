@@ -245,7 +245,7 @@ export class AuthController {
    */
   async oauthSync(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {
-      console.log('OAuth sync request received:', request.body)
+      request.log.info({ body: request.body }, 'OAuth sync request received')
       const dto = OAuthSyncDto.validate(request.body)
 
       const result = await this.registerUserWithProviderUseCase.execute(dto)
