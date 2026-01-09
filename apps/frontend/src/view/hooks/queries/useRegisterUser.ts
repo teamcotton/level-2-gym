@@ -4,6 +4,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { registerUser as registerUserAppAction } from '@/application/actions/registerUser.js'
 import type { RegisterUserData } from '@/domain/auth/index.js'
+import { createLogger } from '@/infrastructure/logging/logger.js'
+
+const logger = createLogger({ prefix: '[useRegisterUser]' })
 
 export function useRegisterUser() {
   const queryClient = useQueryClient()
@@ -16,7 +19,9 @@ export function useRegisterUser() {
     onSuccess: (result) => {
       if (result && (result as { success?: boolean }).success) {
         // Invalidate users list if needed
-        queryClient.invalidateQueries({ queryKey: ['users'] })
+        queryClient.invalidateQueries({ queryKey: ['users'] }).catch((error) => {
+          logger.error(`Failed to invalidate users query after registration`, { error })
+        })
       }
     },
   })

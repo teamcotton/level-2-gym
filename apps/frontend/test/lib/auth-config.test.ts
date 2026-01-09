@@ -40,14 +40,14 @@ describe('authOptions Configuration', () => {
 
     it('should have custom pages configured', async () => {
       const authOptions = await getAuthOptions()
-      expect(authOptions.pages?.signIn).toBe('/login')
-      expect(authOptions.pages?.error).toBe('/login')
+      expect(authOptions.pages?.signIn).toBe('/signin')
+      expect(authOptions.pages?.error).toBe('/error')
     })
 
     it('should have providers configured', async () => {
       const authOptions = await getAuthOptions()
       expect(authOptions.providers).toBeDefined()
-      expect(authOptions.providers).toHaveLength(1)
+      expect(authOptions.providers).toHaveLength(2) // Google + Credentials
     })
 
     it('should have callbacks configured', async () => {
@@ -61,7 +61,8 @@ describe('authOptions Configuration', () => {
   describe('CredentialsProvider authorize', () => {
     const getAuthorizeFunction = async () => {
       const authOptions = await getAuthOptions()
-      const provider = authOptions.providers[0]
+      // Credentials provider is now at index 1 (Google is at 0)
+      const provider = authOptions.providers[1]
       // @ts-expect-error - accessing internal provider structure
       return provider.options?.authorize
     }
@@ -404,7 +405,11 @@ describe('authOptions Configuration', () => {
         user: mockUser as NextAuthUser,
         trigger: 'signIn',
         session: undefined,
-        account: null,
+        account: {
+          provider: 'credentials',
+          type: 'credentials',
+          providerAccountId: 'test-account-id',
+        },
         profile: undefined,
       })
 
@@ -475,7 +480,11 @@ describe('authOptions Configuration', () => {
         user: mockUser as NextAuthUser,
         trigger: 'signIn',
         session: undefined,
-        account: null,
+        account: {
+          provider: 'credentials',
+          type: 'credentials',
+          providerAccountId: 'test-account-id',
+        },
         profile: undefined,
       })
 
@@ -653,7 +662,8 @@ describe('authOptions Configuration', () => {
         json: async () => mockBackendResponse,
       })
 
-      const provider = authOptions.providers[0] as {
+      // Credentials provider is now at index 1 (Google is at 0)
+      const provider = authOptions.providers[1] as {
         options: {
           authorize: (
             credentials: Record<string, string>,
@@ -677,7 +687,11 @@ describe('authOptions Configuration', () => {
         user: user as NextAuthUser,
         trigger: 'signIn',
         session: undefined,
-        account: null,
+        account: {
+          provider: 'credentials',
+          type: 'credentials',
+          providerAccountId: 'test-account-id',
+        },
         profile: undefined,
       })
 

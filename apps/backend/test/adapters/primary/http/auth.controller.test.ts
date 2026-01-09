@@ -78,8 +78,9 @@ describe('AuthController', () => {
 
       controller.registerRoutes(mockApp)
 
-      expect(mockApp.post).toHaveBeenCalledTimes(1)
+      expect(mockApp.post).toHaveBeenCalledTimes(2)
       expect(mockApp.post).toHaveBeenCalledWith('/auth/login', expect.any(Function))
+      expect(mockApp.post).toHaveBeenCalledWith('/auth/oauth-sync', expect.any(Function))
     })
 
     it('should bind controller context to route handler', () => {
@@ -105,7 +106,7 @@ describe('AuthController', () => {
 
       controller.registerRoutes(mockApp)
 
-      expect(mockApp.post).toHaveBeenCalledTimes(1)
+      expect(mockApp.post).toHaveBeenCalledTimes(2)
       expect(mockApp.get).not.toHaveBeenCalled()
       expect(mockApp.put).not.toHaveBeenCalled()
       expect(mockApp.delete).not.toHaveBeenCalled()

@@ -162,7 +162,9 @@ export function useSignInForm() {
   }
 
   const handleGoogleSignIn = () => {
-    // TODO: Implement Google OAuth
+    // NextAuth handles redirect via callbacks.redirect in auth-config
+    // No need for manual router.push or router.refresh
+    return signIn('google', { callbackUrl: '/dashboard' })
   }
 
   const handleGitHubSignIn = () => {

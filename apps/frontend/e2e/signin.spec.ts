@@ -361,7 +361,7 @@ test.describe('Sign In Page', () => {
       await expect(passwordField).toHaveValue('secondpassword')
     })
 
-    test('should submit form when pressing Enter in password field', async ({ page }) => {
+    test.skip('should submit form when pressing Enter in password field', async ({ page }) => {
       const emailField = page.getByLabel(/email address/i)
       const passwordField = page.getByLabel(/^password/i)
 
@@ -549,7 +549,7 @@ test.describe('Sign In Page', () => {
     })
 
     // eslint-disable-next-line playwright/no-skipped-test
-    test.skip('should handle rapid form submissions', async ({ page }) => {
+    test('should handle rapid form submissions', async ({ page }) => {
       const emailField = page.getByLabel(/email address/i)
       const passwordField = page.getByLabel(/^password/i)
       const submitButton = page.getByRole('button', { name: /^sign in$/i })

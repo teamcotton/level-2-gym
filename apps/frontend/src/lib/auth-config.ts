@@ -1,5 +1,6 @@
 import { type NextAuthOptions, type User } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
+import GoogleProvider from 'next-auth/providers/google'
 
 import { createLogger } from '@/infrastructure/logging/logger.js'
 
@@ -58,6 +59,11 @@ interface CredentialsInput {
 export const authOptions: NextAuthOptions = {
   providers: [
     // @ts-expect-error - NextAuth v4 ESM/CommonJS interop issue with credentials provider
+    GoogleProvider({
+      clientId: process.env.GOOGLE_ID,
+      clientSecret: process.env.GOOGLE_SECRET,
+    }),
+    // @ts-expect-error - NextAuth v4 ESM/CommonJS interop issue with credentials provider
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
@@ -71,7 +77,6 @@ export const authOptions: NextAuthOptions = {
 
         try {
           // Call backend login endpoint
-          console.log(`${backendUrl}/auth/login`)
           const response = await fetch(`${backendUrl}/auth/login`, {
             method: 'POST',
             headers: {
@@ -110,13 +115,63 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async signIn({ account, profile, user }) {
+      // Sync OAuth users to backend database
+      if (account?.provider !== 'credentials' && profile?.email && account) {
+        try {
+          // Call backend to create/update OAuth user
+          const response = await fetch(`${backendUrl}/auth/oauth-sync`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              provider: account.provider,
+              providerId: user.id,
+              email: profile.email,
+              name: profile.name || user.name,
+            }),
+          })
+
+          if (!response.ok) {
+            try {
+              const errorText = await response.text()
+              logger.error('OAuth user sync failed:', errorText)
+            } catch (readError) {
+              logger.error(
+                `OAuth user sync failed (HTTP ${response.status} ${response.statusText}, unable to read response body):`,
+                readError
+              )
+            }
+            // Allow sign-in even if sync fails (user can still access frontend)
+          }
+        } catch (error) {
+          logger.error('OAuth sync error:', error)
+          // Allow sign-in even if sync fails
+        }
+      }
+      return true
+    },
+    async jwt({ account, token, user }) {
       // Initial sign in
       if (user) {
-        token.accessToken = user.accessToken
-        token.id = user.id
-        token.roles = user.roles
+        // Credentials provider: user object has accessToken and roles from backend
+        if (account?.provider === 'credentials') {
+          token.accessToken = user.accessToken
+          token.id = user.id
+          token.roles = user.roles
+        }
+        // OAuth providers (Google, GitHub, etc.): assign default user role
+        else {
+          token.id = user.id
+          token.roles = ['user'] // Default role for OAuth users
+          token.accessToken = 'oauth-provider' // Mark as OAuth authentication
+        }
       }
+
+      // Defensive: ensure roles exist on all tokens (handles old sessions)
+      if (!token.roles) {
+        token.roles = ['user']
+      }
+
       return token
     },
     async session({ session, token }) {
@@ -128,10 +183,35 @@ export const authOptions: NextAuthOptions = {
       session.accessToken = token.accessToken as string
       return session
     },
+    async redirect({ baseUrl, url }) {
+      // After successful sign-in, redirect to dashboard
+      // Allows relative callback URLs like "/dashboard"
+      if (url.startsWith('/')) {
+        return `${baseUrl}${url}`
+      }
+      // Allows callback URLs on the same origin
+      if (new URL(url).origin === baseUrl) {
+        return url
+      }
+      // Normalize the target URL against the base URL and enforce same-origin redirects
+      try {
+        const base = new URL(baseUrl)
+        const target = new URL(url, base)
+        // Only allow redirects that stay on the same origin as the base URL
+        if (target.origin === base.origin) {
+          return target.toString()
+        }
+      } catch (error) {
+        logger.error('Invalid redirect URL', { url, baseUrl, error })
+      }
+      // Fallback: redirect to a safe default on the base origin
+      return `${baseUrl}/dashboard`
+    },
   },
   pages: {
-    signIn: '/login',
-    error: '/login',
+    signIn: '/signin',
+    signOut: '/signin',
+    error: '/error',
   },
   session: {
     strategy: 'jwt',

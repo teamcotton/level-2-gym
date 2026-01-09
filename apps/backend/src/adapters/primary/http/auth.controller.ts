@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { LoginUserUseCase } from '../../../application/use-cases/login-user.use-case.js'
 import { LoginUserDto } from '../../../application/dtos/login-user.dto.js'
+import { OAuthSyncDto } from '../../../application/dtos/oauth-sync.dto.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
 
 /**
@@ -81,6 +82,7 @@ export class AuthController {
    */
   registerRoutes(app: FastifyInstance): void {
     app.post('/auth/login', this.login.bind(this))
+    app.post('/auth/oauth-sync', this.oauthSync.bind(this))
   }
 
   /**
@@ -185,6 +187,72 @@ export class AuthController {
       const err = error as Error
       const statusCode = err instanceof BaseException ? err.statusCode : 500
       const errorMessage = err?.message || 'An unexpected error occurred'
+      reply.code(statusCode).send({
+        success: false,
+        error: errorMessage,
+      })
+    }
+  }
+
+  /**
+   * Handles OAuth user synchronization
+   *
+   * Creates or updates user records for OAuth-authenticated users (Google, GitHub, etc.)
+   * This endpoint is called by the frontend NextAuth callback to ensure OAuth users
+   * are stored in the backend database for consistency with credentials users.
+   *
+   * @async
+   * @param {FastifyRequest} request - Fastify request with OAuth user data in body
+   * @param {FastifyReply} reply - Fastify reply object for sending HTTP response
+   * @returns {Promise<void>} Resolves when response is sent
+   *
+   * @remarks
+   * Request body should contain:
+   * - `provider` (string): OAuth provider name (e.g., 'google', 'github')
+   * - `providerId` (string): User ID from OAuth provider
+   * - `email` (string): User's email address (must be valid email format)
+   * - `name` (string, optional): User's display name
+   *
+   * Success response (200):
+   * ```json
+   * {
+   *   "success": true,
+   *   "message": "OAuth user sync completed"
+   * }
+   * ```
+   *
+   * Error responses:
+   * - 400: Validation error (invalid request body)
+   * - 500: Internal server error
+   *
+   * This is a simple implementation that logs the sync request.
+   * TODO: Implement actual user creation/update in database
+   *
+   * @see {@link OAuthSyncDto.validate} for request body validation
+   */
+  async oauthSync(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    try {
+      // Validate request body using DTO
+      const dto = OAuthSyncDto.validate(request.body)
+
+      // TODO: Implement user repository method to create/update OAuth user
+      // For now, just log the sync request
+      request.log.info({
+        msg: 'OAuth user sync requested',
+        provider: dto.provider,
+        providerId: dto.providerId,
+        email: dto.email,
+        name: dto.name,
+      })
+
+      reply.code(200).send({
+        success: true,
+        message: 'OAuth user sync completed',
+      })
+    } catch (error) {
+      const err = error as Error
+      const statusCode = err instanceof BaseException ? err.statusCode : 500
+      const errorMessage = err?.message || 'OAuth sync failed'
       reply.code(statusCode).send({
         success: false,
         error: errorMessage,
