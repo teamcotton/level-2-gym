@@ -51,7 +51,7 @@ export class RegisterUserWithProviderUseCase {
    * @param {EmailServicePort} emailService - Service for sending welcome emails
    * @param {LoggerPort} logger - Logger for tracking operations
    * @param {TokenGeneratorPort} tokenGenerator - Service for generating JWT tokens
-   * @param auditLog
+   * @param {AuditLogPort} auditLog - Audit logging service for recording user registration events
    */
   constructor(
     private readonly userRepository: UserRepositoryPort,
