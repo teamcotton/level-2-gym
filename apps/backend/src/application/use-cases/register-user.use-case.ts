@@ -118,22 +118,11 @@ export class RegisterUserUseCase {
       userId = await this.userRepository.save(user)
     } catch (error) {
       this.logger.error('Failed to save user', error as Error, { email: dto.email })
-      if (error instanceof Error) {
-        await this.auditLog.log({
-          userId: null,
-          entityType: EntityType.USER,
-          entityId: 'unknown',
-          action: AuditAction.REGISTRATION_FAILED,
-          changes: { reason: error.message },
-          ipAddress: auditContext.ipAddress,
-          userAgent: auditContext.userAgent ?? undefined,
-        })
-      }
       if (DatabaseUtil.isDuplicateKeyError(error)) {
         await this.auditLog.log({
           userId: null,
           entityType: EntityType.USER,
-          entityId: 'unknown',
+          entityId: String(email),
           action: AuditAction.REGISTRATION_FAILED,
           changes: { reason: 'duplicate_email' },
           ipAddress: auditContext.ipAddress,
@@ -147,7 +136,7 @@ export class RegisterUserUseCase {
     await this.auditLog.log({
       userId: userId,
       entityType: EntityType.USER,
-      entityId: 'unknown',
+      entityId: userId,
       action: AuditAction.CREATE,
       changes: { reason: 'new_user' },
       ipAddress: auditContext.ipAddress,
