@@ -70,7 +70,7 @@ export class RegisterUserUseCase {
    * 5. Generating a JWT access token for immediate login
    *
    * @param {RegisterUserDto} dto - User registration data (email, password, name, role)
-   * @param auditContext
+   * @param {object} auditContext - Context information for audit logging including IP address and user agent
    * @returns {Promise<{ userId: string, access_token: string, token_type: string, expires_in: number }>}   *          Registration result with user ID and authentication token
    * @throws {ConflictException} If a user with the same email already exists
    * @throws {Error} If password validation, database operation, or token generation fails.
