@@ -133,7 +133,7 @@ export const authOptions: NextAuthOptions = {
               providerId: user.id,
               email: profile.email,
               name: profile.name || user.name,
-              roles: ['user'], // Default role
+              roles: 'user', // Default role
             }),
           })
 

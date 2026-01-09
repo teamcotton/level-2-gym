@@ -442,7 +442,7 @@ describe('authOptions Configuration', () => {
             providerId: 'user-123',
             email: 'google@example.com',
             name: 'Google User',
-            roles: ['user'],
+            roles: 'user',
           }),
         })
       )
