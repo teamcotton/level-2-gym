@@ -6,6 +6,7 @@ CREATE TABLE users (
     email       CITEXT      NOT NULL UNIQUE,
     role        TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin', 'moderator')),
     provider    TEXT CHECK (provider IN ('google')),
+    provider_id TEXT,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

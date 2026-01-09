@@ -83,6 +83,7 @@ CREATE TABLE "users" (
 	"email" "citext" NOT NULL,
 	"role" text DEFAULT 'user' NOT NULL,
 	"provider" text,
+    "provider_id" text,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "users_email_unique" UNIQUE("email"),
 	CONSTRAINT "provider_check" CHECK ("users"."provider" IN ('google')),

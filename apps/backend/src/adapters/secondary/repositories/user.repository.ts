@@ -97,6 +97,7 @@ export class PostgresUserRepository implements UserRepositoryPort {
         role: userEntity.getRole(),
         password: userEntity.getPassword() ? userEntity.getPasswordHash() : null,
         provider: userEntity.getProvider() ? userEntity.getProvider() : null,
+        providerId: userEntity.getProviderId() ? userEntity.getProviderId() : null,
         createdAt: new Date(),
       }
 
@@ -129,6 +130,7 @@ export class PostgresUserRepository implements UserRepositoryPort {
         name: userEntity.getName(),
         role: userEntity.getRole(),
         provider: userEntity.getProvider(),
+        providerId: userEntity.getProviderId() ? userEntity.getProviderId() : null,
         createdAt: new Date(),
       }
 
@@ -444,7 +446,8 @@ export class PostgresUserRepository implements UserRepositoryPort {
       role,
       password,
       record.createdAt,
-      record.provider ?? undefined
+      record.provider ?? undefined,
+      record.providerId ?? undefined
     )
   }
 }
