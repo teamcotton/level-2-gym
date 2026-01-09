@@ -8,7 +8,8 @@ export class RegisterUserDto {
     public readonly name: string,
     public readonly role: string = 'user',
     public readonly password?: string,
-    public readonly provider?: string
+    public readonly provider?: string,
+    public readonly providerId?: string
   ) {}
 
   static validate(data: any): RegisterUserDto {
@@ -41,6 +42,11 @@ export class RegisterUserDto {
       throw new ValidationException('Provider must be a string when password is not provided')
     }
 
-    return new RegisterUserDto(data.email, data.name, data.role, data.password, data.provider)
+    // ProviderId validation: if provided, must be a string
+    if (data.providerId !== undefined && !isString(data.providerId)) {
+      throw new ValidationException('ProviderId must be a string when provided')
+    }
+
+    return new RegisterUserDto(data.email, data.name, data.role, data.password, data.provider, data.providerId)
   }
 }

@@ -53,6 +53,7 @@ export class User {
    * @param password - User's hashed password (PasswordType branded type for type safety, optional for OAuth users)
    * @param createdAt - Timestamp when the user was created (defaults to current date/time)
    * @param provider - Authentication provider (optional, for OAuth users)
+   * @param providerId - Unique identifier from the authentication provider (optional, for OAuth users)
    *
    * @example
    * ```typescript
@@ -64,7 +65,7 @@ export class User {
    * // For existing users, provide ID
    * const existingUser = new User('user-456', email, 'John Smith', role, password)
    * // For OAuth users without password
-   * const oauthUser = new User(undefined, email, 'John Smith', role, undefined, undefined, 'google')
+   * const oauthUser = new User(undefined, email, 'John Smith', role, undefined, undefined, 'google', '1234567890')
    * ```
    */
   constructor(
@@ -74,7 +75,8 @@ export class User {
     private role: RoleType,
     private password?: PasswordType,
     private createdAt: Date = new Date(),
-    private provider?: string
+    private provider?: string,
+    private providerId?: string
   ) {}
 
   /**
@@ -183,6 +185,10 @@ export class User {
 
   getProvider(): string | undefined {
     return this.provider
+  }
+
+  getProviderId(): string | undefined {
+    return this.providerId
   }
 
   getPassword(): PasswordType | undefined {
