@@ -2,6 +2,15 @@ import { TypeException } from '../../shared/exceptions/type.exception.js'
 import { ValidationException } from '../../shared/exceptions/validation.exception.js'
 import { isString } from '@norberts-spark/shared'
 
+/**
+ * Helper function to check if a providerId value is valid (non-empty string)
+ * @param value - The value to check
+ * @returns true if value is a valid non-empty string, false otherwise
+ */
+function isValidProviderId(value: any): boolean {
+  return isString(value) && value.trim() !== ''
+}
+
 export class RegisterUserDto {
   constructor(
     public readonly email: string,
@@ -47,13 +56,13 @@ export class RegisterUserDto {
       if (!isString(data.providerId)) {
         throw new ValidationException('ProviderId must be a string when provided')
       }
-      if (data.providerId.trim() === '') {
+      if (!isValidProviderId(data.providerId)) {
         throw new ValidationException('ProviderId must be a non-empty string when provided')
       }
     }
 
-    // If provider is set and no password, providerId should also be set
-    if (data.provider && !data.password && (!data.providerId || !isString(data.providerId) || !data.providerId.trim())) {
+    // If provider is set and no password, providerId should also be set and valid
+    if (data.provider && !data.password && !isValidProviderId(data.providerId)) {
       throw new ValidationException('ProviderId is required when using OAuth provider without password')
     }
 
