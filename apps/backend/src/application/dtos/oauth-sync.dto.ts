@@ -35,7 +35,8 @@ export class OAuthSyncDto {
     public readonly provider: string,
     public readonly providerId: string,
     public readonly email: string,
-    public readonly name?: string
+    public readonly name: string,
+    public readonly role: string = 'user'
   ) {}
 
   /**
@@ -106,10 +107,15 @@ export class OAuthSyncDto {
       throw new ValidationException('Email must be a valid email address')
     }
 
-    if (data.name !== undefined && !isString(data.name)) {
-      throw new ValidationException('Name must be a string')
+    if (!data.name || !isString(data.name) || !data.name.trim()) {
+      throw new ValidationException('Name is required and must be a non-empty string')
     }
 
-    return new OAuthSyncDto(data.provider, data.providerId, data.email, data.name)
+    // Security: Only allow 'user' role during registration to prevent privilege escalation
+    if (data.role !== undefined && data.role !== 'user') {
+      throw new ValidationException('Only "user" role is allowed during registration')
+    }
+
+    return new OAuthSyncDto(data.provider, data.providerId, data.email, data.name, data.role)
   }
 }

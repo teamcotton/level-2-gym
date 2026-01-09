@@ -133,24 +133,31 @@ export const authOptions: NextAuthOptions = {
               providerId: user.id,
               email: profile.email,
               name: profile.name || user.name,
+              roles: ['user'], // Default role
             }),
           })
 
           if (!response.ok) {
+            let errorMessage = 'OAuth authentication sync failed. Please try again.'
             try {
-              const errorText = await response.text()
-              logger.error('OAuth user sync failed:', errorText)
+              const errorData = (await response.json()) as { success: boolean; error?: string }
+              if (errorData?.error) {
+                errorMessage = errorData.error
+              }
+              logger.error('OAuth user sync failed:', errorData)
             } catch (readError) {
               logger.error(
                 `OAuth user sync failed (HTTP ${response.status} ${response.statusText}, unable to read response body):`,
                 readError
               )
             }
-            // Allow sign-in even if sync fails (user can still access frontend)
+            // Redirect to error page with backend error message
+            return `/error?code=${response.status}&message=${encodeURIComponent(errorMessage)}`
           }
         } catch (error) {
           logger.error('OAuth sync error:', error)
-          // Allow sign-in even if sync fails
+          // Redirect to error page for sync failures
+          return `/error?code=500&message=${encodeURIComponent('OAuth authentication error. Please try again.')}`
         }
       }
       return true

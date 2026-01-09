@@ -11,12 +11,12 @@ describe('OAuthSyncDto', () => {
       const providerId = '1234567890'
       const email = 'test@example.com'
 
-      const dto = new OAuthSyncDto(provider, providerId, email)
+      const dto = new OAuthSyncDto(provider, providerId, email, 'Test User')
 
       expect(dto.provider).toBe(provider)
       expect(dto.providerId).toBe(providerId)
       expect(dto.email).toBe(email)
-      expect(dto.name).toBeUndefined()
+      expect(dto.name).toBe('Test User')
     })
 
     it('should create an OAuthSyncDto with optional name field', () => {
@@ -53,7 +53,7 @@ describe('OAuthSyncDto', () => {
     })
 
     it('should be instance of OAuthSyncDto', () => {
-      const dto = new OAuthSyncDto('google', '12345', 'test@example.com')
+      const dto = new OAuthSyncDto('google', '12345', 'test@example.com', 'Test User')
 
       expect(dto).toBeInstanceOf(OAuthSyncDto)
     })
@@ -66,6 +66,7 @@ describe('OAuthSyncDto', () => {
           provider: 'google',
           providerId: '1234567890',
           email: 'test@example.com',
+          name: 'Test User',
         }
 
         const dto = OAuthSyncDto.validate(data)
@@ -74,10 +75,10 @@ describe('OAuthSyncDto', () => {
         expect(dto.provider).toBe(data.provider)
         expect(dto.providerId).toBe(data.providerId)
         expect(dto.email).toBe(data.email)
-        expect(dto.name).toBeUndefined()
+        expect(dto.name).toBe('Test User')
       })
 
-      it('should validate and create OAuthSyncDto with optional name field', () => {
+      it('should validate and create OAuthSyncDto with name field', () => {
         const data = {
           provider: 'github',
           providerId: '9876543210',
@@ -91,7 +92,7 @@ describe('OAuthSyncDto', () => {
         expect(dto.provider).toBe(data.provider)
         expect(dto.providerId).toBe(data.providerId)
         expect(dto.email).toBe(data.email)
-        expect(dto.name).toBe(data.name)
+        expect(dto.name).toBe('John Doe')
       })
 
       it('should validate with email containing special characters', () => {
@@ -99,6 +100,7 @@ describe('OAuthSyncDto', () => {
           provider: 'google',
           providerId: '12345',
           email: 'user+tag@example.co.uk',
+          name: 'Test User',
         }
 
         const dto = OAuthSyncDto.validate(data)
@@ -114,6 +116,7 @@ describe('OAuthSyncDto', () => {
             provider,
             providerId: '12345',
             email: 'user@example.com',
+            name: 'Test User',
           }
 
           const dto = OAuthSyncDto.validate(data)
@@ -128,6 +131,7 @@ describe('OAuthSyncDto', () => {
           provider: 'google',
           providerId: longProviderId,
           email: 'user@example.com',
+          name: 'Test User',
         }
 
         const dto = OAuthSyncDto.validate(data)
@@ -159,7 +163,7 @@ describe('OAuthSyncDto', () => {
 
         const dto = OAuthSyncDto.validate(data)
 
-        expect(dto.name).toBe(data.name)
+        expect(dto.name).toBe('José García 汉字')
       })
 
       it('should ignore extra properties in data object', () => {
@@ -187,6 +191,7 @@ describe('OAuthSyncDto', () => {
           provider: '   ',
           providerId: '12345',
           email: 'test@example.com',
+          name: 'Test User',
         }
 
         // Whitespace-only strings should now be rejected
@@ -201,6 +206,7 @@ describe('OAuthSyncDto', () => {
           provider: 'google',
           providerId: '   ',
           email: 'test@example.com',
+          name: 'Test User',
         }
 
         // Whitespace-only strings should now be rejected
@@ -210,7 +216,7 @@ describe('OAuthSyncDto', () => {
         )
       })
 
-      it('should validate with whitespace-only name (truthy string)', () => {
+      it('should throw ValidationException for whitespace-only name', () => {
         const data = {
           provider: 'google',
           providerId: '12345',
@@ -218,9 +224,11 @@ describe('OAuthSyncDto', () => {
           name: '   ',
         }
 
-        const dto = OAuthSyncDto.validate(data)
-
-        expect(dto.name).toBe('   ')
+        // Whitespace-only strings should be rejected
+        expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
+        expect(() => OAuthSyncDto.validate(data)).toThrow(
+          'Name is required and must be a non-empty string'
+        )
       })
     })
 
@@ -256,6 +264,7 @@ describe('OAuthSyncDto', () => {
         const data = {
           providerId: '12345',
           email: 'test@example.com',
+          name: 'Test User',
         }
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
@@ -269,6 +278,7 @@ describe('OAuthSyncDto', () => {
           provider: null,
           providerId: '12345',
           email: 'test@example.com',
+          name: 'Test User',
         }
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
@@ -282,6 +292,7 @@ describe('OAuthSyncDto', () => {
           provider: '',
           providerId: '12345',
           email: 'test@example.com',
+          name: 'Test User',
         }
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
@@ -295,6 +306,7 @@ describe('OAuthSyncDto', () => {
           provider: 123,
           providerId: '12345',
           email: 'test@example.com',
+          name: 'Test User',
         }
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
@@ -309,6 +321,7 @@ describe('OAuthSyncDto', () => {
         const data = {
           provider: 'google',
           email: 'test@example.com',
+          name: 'Test User',
         }
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
@@ -322,6 +335,7 @@ describe('OAuthSyncDto', () => {
           provider: 'google',
           providerId: null,
           email: 'test@example.com',
+          name: 'Test User',
         }
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
@@ -335,6 +349,7 @@ describe('OAuthSyncDto', () => {
           provider: 'google',
           providerId: '',
           email: 'test@example.com',
+          name: 'Test User',
         }
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
@@ -348,6 +363,7 @@ describe('OAuthSyncDto', () => {
           provider: 'google',
           providerId: 12345,
           email: 'test@example.com',
+          name: 'Test User',
         }
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
@@ -416,6 +432,7 @@ describe('OAuthSyncDto', () => {
           provider: 'google',
           providerId: '12345',
           email: 'not-an-email',
+          name: 'Test User',
         }
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
@@ -427,6 +444,7 @@ describe('OAuthSyncDto', () => {
           provider: 'google',
           providerId: '12345',
           email: 'testexample.com',
+          name: 'Test User',
         }
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
@@ -438,6 +456,7 @@ describe('OAuthSyncDto', () => {
           provider: 'google',
           providerId: '12345',
           email: 'test@',
+          name: 'Test User',
         }
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
@@ -449,6 +468,7 @@ describe('OAuthSyncDto', () => {
           provider: 'google',
           providerId: '12345',
           email: '@example.com',
+          name: 'Test User',
         }
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
@@ -466,7 +486,9 @@ describe('OAuthSyncDto', () => {
         }
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
-        expect(() => OAuthSyncDto.validate(data)).toThrow('Name must be a string')
+        expect(() => OAuthSyncDto.validate(data)).toThrow(
+          'Name is required and must be a non-empty string'
+        )
       })
 
       it('should throw ValidationException when name is a boolean', () => {
@@ -478,7 +500,9 @@ describe('OAuthSyncDto', () => {
         }
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
-        expect(() => OAuthSyncDto.validate(data)).toThrow('Name must be a string')
+        expect(() => OAuthSyncDto.validate(data)).toThrow(
+          'Name is required and must be a non-empty string'
+        )
       })
 
       it('should throw ValidationException when name is an object', () => {
@@ -490,7 +514,9 @@ describe('OAuthSyncDto', () => {
         }
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
-        expect(() => OAuthSyncDto.validate(data)).toThrow('Name must be a string')
+        expect(() => OAuthSyncDto.validate(data)).toThrow(
+          'Name is required and must be a non-empty string'
+        )
       })
 
       it('should throw ValidationException when name is an array', () => {
@@ -502,10 +528,12 @@ describe('OAuthSyncDto', () => {
         }
 
         expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
-        expect(() => OAuthSyncDto.validate(data)).toThrow('Name must be a string')
+        expect(() => OAuthSyncDto.validate(data)).toThrow(
+          'Name is required and must be a non-empty string'
+        )
       })
 
-      it('should NOT throw ValidationException when name is empty string', () => {
+      it('should throw ValidationException when name is empty string', () => {
         const data = {
           provider: 'google',
           providerId: '12345',
@@ -513,9 +541,11 @@ describe('OAuthSyncDto', () => {
           name: '',
         }
 
-        // Empty string is a valid string, so it should pass
-        const dto = OAuthSyncDto.validate(data)
-        expect(dto.name).toBe('')
+        // Empty string is not allowed - name is required
+        expect(() => OAuthSyncDto.validate(data)).toThrow(ValidationException)
+        expect(() => OAuthSyncDto.validate(data)).toThrow(
+          'Name is required and must be a non-empty string'
+        )
       })
     })
 
@@ -525,6 +555,7 @@ describe('OAuthSyncDto', () => {
           provider: 'google',
           providerId: '12345',
           email: 'test@example.com',
+          name: 'Test User',
         }
 
         const dto = OAuthSyncDto.validate(data)
@@ -537,6 +568,7 @@ describe('OAuthSyncDto', () => {
           provider: 'google',
           providerId: '12345',
           email: 'test@example.com',
+          name: 'Test User',
         }
 
         const dto1 = OAuthSyncDto.validate(data)
@@ -548,23 +580,25 @@ describe('OAuthSyncDto', () => {
         expect(dto1.email).toBe(dto2.email)
       })
 
-      it('should have only expected properties without name', () => {
+      it('should have only expected properties including name and role', () => {
         const data = {
           provider: 'google',
           providerId: '12345',
           email: 'test@example.com',
+          name: 'Test User',
         }
 
         const dto = OAuthSyncDto.validate(data)
         const keys = Object.keys(dto)
 
-        // Constructor creates all 4 properties, with name being undefined when not provided
-        expect(keys).toHaveLength(4)
+        // Constructor creates all 5 properties (provider, providerId, email, name, role)
+        expect(keys).toHaveLength(5)
         expect(keys).toContain('provider')
         expect(keys).toContain('providerId')
         expect(keys).toContain('email')
         expect(keys).toContain('name')
-        expect(dto.name).toBeUndefined()
+        expect(keys).toContain('role')
+        expect(dto.name).toBe('Test User')
       })
 
       it('should have only expected properties with name', () => {
@@ -578,11 +612,13 @@ describe('OAuthSyncDto', () => {
         const dto = OAuthSyncDto.validate(data)
         const keys = Object.keys(dto)
 
-        expect(keys).toHaveLength(4)
+        expect(keys).toHaveLength(5)
         expect(keys).toContain('provider')
         expect(keys).toContain('providerId')
         expect(keys).toContain('email')
         expect(keys).toContain('name')
+        expect(keys).toContain('role')
+        expect(dto.name).toBe('John Doe')
       })
     })
   })

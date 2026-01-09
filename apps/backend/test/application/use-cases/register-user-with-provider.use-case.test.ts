@@ -6,7 +6,7 @@ import type { EmailServicePort } from '../../../src/application/ports/email.serv
 import type { LoggerPort } from '../../../src/application/ports/logger.port.js'
 import type { TokenGeneratorPort } from '../../../src/application/ports/token-generator.port.js'
 import type { UserRepositoryPort } from '../../../src/application/ports/user.repository.port.js'
-import { RegisterUserWithProviderUseCase } from '../../../src/application/use-cases/register-user-with-provider.js'
+import { RegisterUserWithProviderUseCase } from '../../../src/application/use-cases/register-user-with-provider.use-case.js'
 import { User } from '../../../src/domain/entities/user.js'
 import { UserId, type UserIdType } from '../../../src/domain/value-objects/userID.js'
 import { ConflictException } from '../../../src/shared/exceptions/conflict.exception.js'

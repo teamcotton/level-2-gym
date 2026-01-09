@@ -33,8 +33,12 @@ describe('AuthController', () => {
       execute: vi.fn(),
     } as any
 
+    const mockRegisterUserWithProviderUseCase = {
+      execute: vi.fn(),
+    } as any
+
     // Create controller instance with mocked use case
-    controller = new AuthController(mockLoginUserUseCase)
+    controller = new AuthController(mockLoginUserUseCase, mockRegisterUserWithProviderUseCase)
 
     // Create mock Fastify reply with chainable methods
     mockReply = {
@@ -56,14 +60,16 @@ describe('AuthController', () => {
 
   describe('constructor', () => {
     it('should create instance with LoginUserUseCase dependency', () => {
-      const instance = new AuthController(mockLoginUserUseCase)
+      const mockRegisterUseCase = { execute: vi.fn() } as any
+      const instance = new AuthController(mockLoginUserUseCase, mockRegisterUseCase)
 
       expect(instance).toBeInstanceOf(AuthController)
       expect(instance).toBeDefined()
     })
 
     it('should accept LoginUserUseCase as dependency', () => {
-      const instance = new AuthController(mockLoginUserUseCase)
+      const mockRegisterUseCase = { execute: vi.fn() } as any
+      const instance = new AuthController(mockLoginUserUseCase, mockRegisterUseCase)
 
       expect(instance).toBeDefined()
       expect(instance).toBeInstanceOf(AuthController)

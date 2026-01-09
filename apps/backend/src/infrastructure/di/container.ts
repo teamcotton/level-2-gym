@@ -10,6 +10,7 @@ import { AppendedChatUseCase } from '../../application/use-cases/append-chat.use
 import { SaveChatUseCase } from '../../application/use-cases/save-chat.use-case.js'
 import { GetChatsByUserIdUseCase } from '../../application/use-cases/get-chats-by-userid.use-case.js'
 import { GetChatContentByChatIdUseCase } from '../../application/use-cases/get-chat-content-by-chat-id.use-case.js'
+import { RegisterUserWithProviderUseCase } from '../../application/use-cases/register-user-with-provider.use-case.js'
 
 // Adapters
 import { PostgresUserRepository } from '../../adapters/secondary/repositories/user.repository.js'
@@ -81,6 +82,7 @@ export class Container {
   private readonly saveChatUseCase: SaveChatUseCase
   private readonly getChatsByUserIdUseCase: GetChatsByUserIdUseCase
   private readonly getChatContentByChatIdUseCase: GetChatContentByChatIdUseCase
+  private readonly registerUserWithProviderUseCase: RegisterUserWithProviderUseCase
 
   // Controllers
   public readonly userController: UserController
@@ -189,10 +191,19 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.aiRepository,
       this.logger
     )
+    this.registerUserWithProviderUseCase = new RegisterUserWithProviderUseCase(
+      this.userRepository,
+      this.emailService,
+      this.logger,
+      this.tokenGenerator
+    )
 
     // Initialize controllers (primary adapters)
     this.userController = new UserController(this.registerUserUseCase, this.getAllUsersUseCase)
-    this.authController = new AuthController(this.loginUserUseCase)
+    this.authController = new AuthController(
+      this.loginUserUseCase,
+      this.registerUserWithProviderUseCase
+    )
     this.aiController = new AIController(
       this.getChatUseCase,
       this.logger,
