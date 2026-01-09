@@ -44,13 +44,15 @@ describe('RegisterUserDto', () => {
       const email = 'oauth@example.com'
       const name = 'OAuth User'
       const provider = 'google'
+      const providerId = '1234567890'
 
-      const dto = new RegisterUserDto(email, name, 'user', undefined, provider)
+      const dto = new RegisterUserDto(email, name, 'user', undefined, provider, providerId)
 
       expect(dto.email).toBe(email)
       expect(dto.name).toBe(name)
       expect(dto.password).toBeUndefined()
       expect(dto.provider).toBe(provider)
+      expect(dto.providerId).toBe(providerId)
       expect(dto.role).toBe('user')
     })
 
@@ -597,6 +599,22 @@ describe('RegisterUserDto', () => {
         expect(dto.password).toBeUndefined()
       })
 
+      it('should allow provider with providerId for OAuth users', () => {
+        const data = {
+          email: 'oauth@example.com',
+          name: 'OAuth User',
+          provider: 'google',
+          providerId: '123456789',
+        }
+
+        const dto = RegisterUserDto.validate(data)
+
+        expect(dto).toBeInstanceOf(RegisterUserDto)
+        expect(dto.provider).toBe('google')
+        expect(dto.providerId).toBe('123456789')
+        expect(dto.password).toBeUndefined()
+      })
+
       it('should throw ValidationException when provider is not a string', () => {
         const data = {
           email: 'test@example.com',
@@ -649,6 +667,34 @@ describe('RegisterUserDto', () => {
         expect(dto).toBeInstanceOf(RegisterUserDto)
         expect(dto.password).toBe('password123')
         expect(dto.provider).toBe('google')
+      })
+
+      it('should throw ValidationException when providerId is not a string', () => {
+        const data = {
+          email: 'test@example.com',
+          name: 'John Doe',
+          provider: 'google',
+          providerId: 12345,
+        }
+
+        expect(() => RegisterUserDto.validate(data)).toThrow(ValidationException)
+        expect(() => RegisterUserDto.validate(data)).toThrow(
+          'ProviderId must be a string when provided'
+        )
+      })
+
+      it('should allow providerId as undefined', () => {
+        const data = {
+          email: 'test@example.com',
+          name: 'John Doe',
+          provider: 'google',
+          providerId: undefined,
+        }
+
+        const dto = RegisterUserDto.validate(data)
+
+        expect(dto).toBeInstanceOf(RegisterUserDto)
+        expect(dto.providerId).toBeUndefined()
       })
     })
 
