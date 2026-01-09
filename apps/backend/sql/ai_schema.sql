@@ -2,7 +2,7 @@
 CREATE TABLE users (
     user_id     UUID PRIMARY KEY DEFAULT uuidv7(),
     name        TEXT NOT NULL CHECK (length(name) >= 2 AND length(name) <= 100),
-    password    TEXT CHECK (length(password) = 60), -- bcrypt hash
+    password    TEXT CHECK (password IS NULL OR length(password) = 60), -- bcrypt hash
     email       CITEXT      NOT NULL UNIQUE,
     role        TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin', 'moderator')),
     provider    TEXT CHECK (provider IN ('google')),
