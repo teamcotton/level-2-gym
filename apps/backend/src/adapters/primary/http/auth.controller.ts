@@ -238,7 +238,6 @@ export class AuthController {
    * - 500: Internal server error
    *
    * This is a simple implementation that logs the sync request.
-   * TODO: Implement actual user creation/update in database
    *
    * @see {@link OAuthSyncDto.validate} for request body validation
    * @see {@link oauthSyncAuthMiddleware} for authentication implementation
@@ -246,9 +245,16 @@ export class AuthController {
   async oauthSync(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {
       request.log.info({ body: request.body }, 'OAuth sync request received')
+
+      // Extract audit context from request
+      const auditContext = {
+        ipAddress: request.ip,
+        userAgent: request.headers['user-agent'] ?? null,
+      }
+
       const dto = OAuthSyncDto.validate(request.body)
 
-      const result = await this.registerUserWithProviderUseCase.execute(dto)
+      const result = await this.registerUserWithProviderUseCase.execute(dto, auditContext)
 
       reply.code(200).send({
         success: true,

@@ -196,7 +196,8 @@ cd apps/backend/certs && mkcert -key-file key.pem -cert-file cert.pem \\
       this.userRepository,
       this.emailService,
       this.logger,
-      this.tokenGenerator
+      this.tokenGenerator,
+      this.auditLog
     )
 
     // Initialize controllers (primary adapters)
