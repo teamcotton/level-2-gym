@@ -86,7 +86,7 @@ export class RegisterUserWithProviderUseCase {
    * ```
    */
   async execute(
-    dto: RegisterUserDto,
+    dto: RegisterUserDto
   ): Promise<{ userId: string; access_token: string; token_type: string; expires_in: number }> {
     this.logger.info('Starting user registration', { email: dto.email })
 
