@@ -3,7 +3,6 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
 
 import { createLogger } from '@/infrastructure/logging/logger.js'
-import { getAuthSession } from '@/lib/auth.js'
 
 const logger = createLogger({ prefix: '[auth-config]' })
 
