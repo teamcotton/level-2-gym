@@ -21,7 +21,7 @@ import type { UserIdType } from '../../domain/value-objects/userID.js'
  * - Sending welcome email (non-blocking)
  * - Generating JWT access token
  *
- * @class RegisterUserUseCase
+ * @class RegisterUserWithProviderUseCase
  * @example
  * ```typescript
  * const useCase = new RegisterUserUseCase(
@@ -32,9 +32,9 @@ import type { UserIdType } from '../../domain/value-objects/userID.js'
  * )
  * const result = await useCase.execute({
  *   email: 'user@example.com',
- *   password: 'SecurePass123',
  *   name: 'John Doe',
  *   role: 'member'
+ *   provider: 'google'
  * })
  * ```
  */
@@ -86,7 +86,7 @@ export class RegisterUserWithProviderUseCase {
    * ```
    */
   async execute(
-    dto: RegisterUserDto
+    dto: RegisterUserDto,
   ): Promise<{ userId: string; access_token: string; token_type: string; expires_in: number }> {
     this.logger.info('Starting user registration', { email: dto.email })
 
