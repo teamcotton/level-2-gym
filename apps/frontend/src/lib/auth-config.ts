@@ -3,6 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
 
 import { createLogger } from '@/infrastructure/logging/logger.js'
+import { getAuthSession } from '@/lib/auth.js'
 
 const logger = createLogger({ prefix: '[auth-config]' })
 
@@ -76,12 +77,13 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
+          const headers = new Headers()
+          headers.append('Content-Type', 'application/json')
+
           // Call backend login endpoint
           const response = await fetch(`${backendUrl}/auth/login`, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers,
             body: JSON.stringify({
               email: credentials.email,
               password: credentials.password,
@@ -119,10 +121,14 @@ export const authOptions: NextAuthOptions = {
       // Sync OAuth users to backend database
       if (account?.provider !== 'credentials' && profile?.email && account) {
         try {
+          const headers = new Headers()
+          headers.append('Content-Type', 'application/json')
+          headers.append('X-OAuth-Sync-Secret', process.env.OAUTH_SYNC_SECRET || '')
+
           // Call backend to create/update OAuth user
           const response = await fetch(`${backendUrl}/auth/oauth-sync`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             body: JSON.stringify({
               provider: account.provider,
               providerId: user.id,

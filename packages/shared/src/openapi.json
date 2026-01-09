@@ -317,6 +317,91 @@
         }
       }
     },
+    "/auth/oauth-sync": {
+      "post": {
+        "summary": "Synchronize OAuth user data",
+        "description": "Creates or updates user records for OAuth-authenticated users (Google, GitHub, etc.). This endpoint is called by the frontend NextAuth callback to ensure OAuth users are stored in the backend database for consistency with credentials users. Protected by a shared secret header to prevent unauthorized access.",
+        "operationId": "oauthSync",
+        "tags": ["auth"],
+        "security": [{ "oauthSyncSecret": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OAuthSyncRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OAuth user sync completed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthSyncResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data - validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "missingProvider": {
+                    "summary": "Missing provider field",
+                    "value": {
+                      "success": false,
+                      "error": "Provider is required and must be a non-empty string"
+                    }
+                  },
+                  "invalidEmail": {
+                    "summary": "Invalid email format",
+                    "value": {
+                      "success": false,
+                      "error": "Email must be a valid email address"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid or missing shared secret",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Unauthorized access to OAuth sync endpoint"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "error": "OAuth sync failed"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/ai/chat": {
       "post": {
         "summary": "Get AI-generated response",
@@ -706,6 +791,50 @@
           }
         }
       },
+      "OAuthSyncRequest": {
+        "type": "object",
+        "description": "Request payload for OAuth user synchronization",
+        "required": ["provider", "providerId", "email"],
+        "properties": {
+          "provider": {
+            "type": "string",
+            "example": "google",
+            "description": "OAuth provider name (e.g., 'google', 'github')"
+          },
+          "providerId": {
+            "type": "string",
+            "example": "1234567890",
+            "description": "User ID from OAuth provider"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "user@example.com",
+            "description": "User's email address from OAuth provider"
+          },
+          "name": {
+            "type": "string",
+            "example": "John Doe",
+            "description": "User's display name from OAuth provider (optional)"
+          }
+        }
+      },
+      "OAuthSyncResponse": {
+        "type": "object",
+        "description": "Response returned after successful OAuth user synchronization",
+        "required": ["success", "message"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "OAuth user sync completed",
+            "description": "Success message confirming the sync operation"
+          }
+        }
+      },
       "RegisterUserRequest": {
         "type": "object",
         "description": "Request payload for registering a new user",
@@ -919,6 +1048,12 @@
         "scheme": "bearer",
         "bearerFormat": "JWT",
         "description": "JWT token for authenticated requests"
+      },
+      "oauthSyncSecret": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-OAuth-Sync-Secret",
+        "description": "Shared secret for OAuth sync endpoint authentication. Must match OAUTH_SYNC_SECRET environment variable."
       }
     }
   }

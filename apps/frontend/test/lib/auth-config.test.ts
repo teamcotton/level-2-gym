@@ -12,6 +12,10 @@ describe('authOptions Configuration', () => {
     vi.clearAllMocks()
     global.fetch = vi.fn()
     vi.spyOn(console, 'error').mockImplementation(() => {})
+    // Set backend URL for tests
+    process.env.BACKEND_AI_CALLBACK_URL = 'http://localhost:3000'
+    // Set OAuth sync secret for tests
+    process.env.OAUTH_SYNC_SECRET = 'test-secret-key'
     // Reset modules to get fresh config
     vi.resetModules()
   })
@@ -134,19 +138,19 @@ describe('authOptions Configuration', () => {
         roles: ['user'],
       })
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/auth/login'),
-        expect.objectContaining({
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: 'test@example.com',
-            password: 'password123',
-          }),
+      expect(global.fetch).toHaveBeenCalledTimes(1)
+      const [url, options] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0]!
+
+      expect(url).toContain('/auth/login')
+      expect(options.method).toBe('POST')
+      expect(options.body).toBe(
+        JSON.stringify({
+          email: 'test@example.com',
+          password: 'password123',
         })
       )
+      expect(options.headers).toBeInstanceOf(Headers)
+      expect(options.headers.get('Content-Type')).toBe('application/json')
     })
 
     // TODO: Fix test - BACKEND_AI_CALLBACK_URL_DEV is undefined in test environment
@@ -384,6 +388,331 @@ describe('authOptions Configuration', () => {
         accessToken: 'token',
         roles: [],
       })
+    })
+  })
+
+  describe('signIn Callback', () => {
+    beforeEach(() => {
+      vi.clearAllMocks()
+    })
+
+    it('should call OAuth sync for Google provider with correct headers and body', async () => {
+      const authOptions = await getAuthOptions()
+
+      const mockUser = {
+        id: 'user-123',
+        email: 'google@example.com',
+        emailVerified: null,
+        accessToken: '',
+        roles: [],
+      }
+
+      const mockAccount = {
+        provider: 'google',
+        providerAccountId: 'google-123',
+        type: 'oauth' as const,
+        access_token: 'google-token',
+      }
+
+      const mockProfile = {
+        email: 'google@example.com',
+        name: 'Google User',
+        sub: 'google-123',
+      }
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ success: true }),
+      })
+
+      const result = await authOptions.callbacks!.signIn!({
+        user: mockUser,
+        account: mockAccount,
+        profile: mockProfile,
+      })
+
+      expect(result).toBe(true)
+      expect(global.fetch).toHaveBeenCalledTimes(1)
+      expect(global.fetch).toHaveBeenCalledWith(
+        'http://localhost:3000/auth/oauth-sync',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            provider: 'google',
+            providerId: 'user-123',
+            email: 'google@example.com',
+            name: 'Google User',
+          }),
+        })
+      )
+
+      const fetchCall = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0]!
+      const options = fetchCall[1]
+      expect(options.headers).toBeInstanceOf(Headers)
+      expect(options.headers.get('Content-Type')).toBe('application/json')
+      expect(options.headers.get('X-OAuth-Sync-Secret')).toBe(process.env.OAUTH_SYNC_SECRET)
+    })
+
+    it('should not call OAuth sync for credentials provider', async () => {
+      const authOptions = await getAuthOptions()
+
+      const mockUser = {
+        id: 'user-123',
+        email: 'test@example.com',
+        emailVerified: null,
+        accessToken: '',
+        roles: [],
+      }
+
+      const mockAccount = {
+        provider: 'credentials',
+        providerAccountId: 'user-123',
+        type: 'credentials' as const,
+      }
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ success: true }),
+      })
+
+      const result = await authOptions.callbacks!.signIn!({
+        user: mockUser,
+        account: mockAccount,
+        profile: undefined,
+      })
+
+      expect(result).toBe(true)
+      expect(global.fetch).not.toHaveBeenCalled()
+    })
+
+    it('should not call OAuth sync when profile email is missing', async () => {
+      const authOptions = await getAuthOptions()
+
+      const mockUser = {
+        id: 'user-123',
+        email: 'google@example.com',
+        emailVerified: null,
+        accessToken: '',
+        roles: [],
+      }
+
+      const mockAccount = {
+        provider: 'google',
+        providerAccountId: 'google-123',
+        type: 'oauth' as const,
+        access_token: 'google-token',
+      }
+
+      const mockProfile = {
+        name: 'Google User',
+        sub: 'google-123',
+        // email is missing
+      }
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ success: true }),
+      })
+
+      const result = await authOptions.callbacks!.signIn!({
+        user: mockUser,
+        account: mockAccount,
+        profile: mockProfile,
+      })
+
+      expect(result).toBe(true)
+      expect(global.fetch).not.toHaveBeenCalled()
+    })
+
+    it('should not call OAuth sync when account is missing', async () => {
+      const authOptions = await getAuthOptions()
+
+      const mockUser = {
+        id: 'user-123',
+        email: 'google@example.com',
+        emailVerified: null,
+        accessToken: '',
+        roles: [],
+      }
+
+      const mockProfile = {
+        email: 'google@example.com',
+        name: 'Google User',
+        sub: 'google-123',
+      }
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ success: true }),
+      })
+
+      const result = await authOptions.callbacks!.signIn!({
+        user: mockUser,
+        account: null,
+        profile: mockProfile,
+      })
+
+      expect(result).toBe(true)
+      expect(global.fetch).not.toHaveBeenCalled()
+    })
+
+    it('should allow sign-in even when OAuth sync fails', async () => {
+      const authOptions = await getAuthOptions()
+
+      const mockUser = {
+        id: 'user-123',
+        email: 'google@example.com',
+        emailVerified: null,
+        accessToken: '',
+        roles: [],
+      }
+
+      const mockAccount = {
+        provider: 'google',
+        providerAccountId: 'google-123',
+        type: 'oauth' as const,
+        access_token: 'google-token',
+      }
+
+      const mockProfile = {
+        email: 'google@example.com',
+        name: 'Google User',
+        sub: 'google-123',
+      }
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: async () => ({ success: false, message: 'Internal server error' }),
+      })
+
+      const result = await authOptions.callbacks!.signIn!({
+        user: mockUser,
+        account: mockAccount,
+        profile: mockProfile,
+      })
+
+      expect(result).toBe(true)
+      expect(global.fetch).toHaveBeenCalledTimes(1)
+    })
+
+    it('should handle network errors gracefully and allow sign-in', async () => {
+      const authOptions = await getAuthOptions()
+
+      const mockUser = {
+        id: 'user-123',
+        email: 'google@example.com',
+        emailVerified: null,
+        accessToken: '',
+        roles: [],
+      }
+
+      const mockAccount = {
+        provider: 'google',
+        providerAccountId: 'google-123',
+        type: 'oauth' as const,
+        access_token: 'google-token',
+      }
+
+      const mockProfile = {
+        email: 'google@example.com',
+        name: 'Google User',
+        sub: 'google-123',
+      }
+
+      global.fetch = vi.fn().mockRejectedValue(new Error('Network error'))
+
+      const result = await authOptions.callbacks!.signIn!({
+        user: mockUser,
+        account: mockAccount,
+        profile: mockProfile,
+      })
+
+      expect(result).toBe(true)
+      expect(global.fetch).toHaveBeenCalledTimes(1)
+    })
+
+    it('should include user name in sync request when available', async () => {
+      const authOptions = await getAuthOptions()
+
+      const mockUser = {
+        id: 'user-123',
+        email: 'google@example.com',
+        emailVerified: null,
+        accessToken: '',
+        roles: [],
+      }
+
+      const mockAccount = {
+        provider: 'google',
+        providerAccountId: 'google-123',
+        type: 'oauth' as const,
+        access_token: 'google-token',
+      }
+
+      const mockProfile = {
+        email: 'google@example.com',
+        name: 'Test User Name',
+        sub: 'google-123',
+      }
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ success: true }),
+      })
+
+      await authOptions.callbacks!.signIn!({
+        user: mockUser,
+        account: mockAccount,
+        profile: mockProfile,
+      })
+
+      const fetchCall = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0]!
+      const body = JSON.parse(fetchCall[1].body) as { name?: string }
+      expect(body.name).toBe('Test User Name')
+    })
+
+    it('should handle OAuth sync without user name', async () => {
+      const authOptions = await getAuthOptions()
+
+      const mockUser = {
+        id: 'user-123',
+        email: 'google@example.com',
+        emailVerified: null,
+        accessToken: '',
+        roles: [],
+      }
+
+      const mockAccount = {
+        provider: 'google',
+        providerAccountId: 'google-123',
+        type: 'oauth' as const,
+        access_token: 'google-token',
+      }
+
+      const mockProfile = {
+        email: 'google@example.com',
+        sub: 'google-123',
+        // name is missing
+      }
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ success: true }),
+      })
+
+      const result = await authOptions.callbacks!.signIn!({
+        user: mockUser,
+        account: mockAccount,
+        profile: mockProfile,
+      })
+
+      expect(result).toBe(true)
+      expect(global.fetch).toHaveBeenCalledTimes(1)
+
+      const fetchCall = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0]!
+      const body = JSON.parse(fetchCall[1].body) as { name?: string }
+      expect(body.name).toBeUndefined()
     })
   })
 

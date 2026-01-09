@@ -704,6 +704,79 @@ describe('EnvConfig', () => {
     })
   })
 
+  describe('OAUTH_SYNC_SECRET', () => {
+    it('should be a static readonly property', async () => {
+      process.env.OAUTH_SYNC_SECRET = 'test_oauth_secret_12345'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+      process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test_google_key'
+      process.env.MODEL_NAME = 'gemini-pro'
+      process.env.RESEND_API_KEY = 'test_resend_key'
+      process.env.JWT_SECRET = 'test_jwt_secret'
+      process.env.API_VERSION = 'v1'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      const descriptor = Object.getOwnPropertyDescriptor(EnvConfig, 'OAUTH_SYNC_SECRET')
+      expect(descriptor).toBeDefined()
+      expect(descriptor?.configurable).toBe(true)
+      expect(descriptor?.enumerable).toBe(true)
+    })
+
+    it('should have type Obscured<string | undefined>', async () => {
+      process.env.OAUTH_SYNC_SECRET = 'test_oauth_secret_12345'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+      process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test_google_key'
+      process.env.MODEL_NAME = 'gemini-pro'
+      process.env.RESEND_API_KEY = 'test_resend_key'
+      process.env.JWT_SECRET = 'test_jwt_secret'
+      process.env.API_VERSION = 'v1'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // Type assertion to verify compile-time type
+      const _typeCheck: Obscured<string | undefined> = EnvConfig.OAUTH_SYNC_SECRET
+
+      // Runtime checks - Obscured objects have specific characteristics
+      expect(EnvConfig.OAUTH_SYNC_SECRET).toBeDefined()
+      expect(typeof EnvConfig.OAUTH_SYNC_SECRET).toBe('object')
+
+      // Obscured objects return '[OBSCURED]' when converted to string
+      expect(String(EnvConfig.OAUTH_SYNC_SECRET)).toBe('[OBSCURED]')
+      expect(EnvConfig.OAUTH_SYNC_SECRET.toString()).toBe('[OBSCURED]')
+
+      // Prevent unused variable warning
+      void _typeCheck
+    })
+
+    it('should obscure the actual OAuth sync secret value', async () => {
+      process.env.OAUTH_SYNC_SECRET = 'super-secret-oauth-key-xyz-789'
+      process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+      process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test_google_key'
+      process.env.MODEL_NAME = 'gemini-pro'
+      process.env.RESEND_API_KEY = 'test_resend_key'
+      process.env.JWT_SECRET = 'test_jwt_secret'
+      process.env.API_VERSION = 'v1'
+
+      const { EnvConfig } = await import('../../../src/infrastructure/config/env.config.js')
+
+      // Verify the secret is obscured (doesn't expose the raw value)
+      expect(String(EnvConfig.OAUTH_SYNC_SECRET)).not.toContain('super-secret-oauth-key')
+      expect(EnvConfig.OAUTH_SYNC_SECRET.toString()).toBe('[OBSCURED]')
+    })
+
+    it('should be required for validation', async () => {
+      // Read the source file to verify OAUTH_SYNC_SECRET is in requiredEnvs array
+      const fs = await import('fs/promises')
+      const path = await import('path')
+      const envConfigPath = path.join(process.cwd(), 'src/infrastructure/config/env.config.ts')
+      const content = await fs.readFile(envConfigPath, 'utf-8')
+
+      // Verify OAUTH_SYNC_SECRET is listed in the requiredEnvs array
+      expect(content).toContain('OAUTH_SYNC_SECRET')
+      expect(content).toMatch(/requiredEnvs.*=.*\[[\s\S]*'OAUTH_SYNC_SECRET'/m)
+    })
+  })
+
   describe('REQUEST_TIMEOUT', () => {
     it('should be a static readonly property', async () => {
       process.env.REQUEST_TIMEOUT = '30000'

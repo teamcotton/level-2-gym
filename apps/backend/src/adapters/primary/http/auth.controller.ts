@@ -3,6 +3,7 @@ import { LoginUserUseCase } from '../../../application/use-cases/login-user.use-
 import { LoginUserDto } from '../../../application/dtos/login-user.dto.js'
 import { OAuthSyncDto } from '../../../application/dtos/oauth-sync.dto.js'
 import { BaseException } from '../../../shared/exceptions/base.exception.js'
+import { oauthSyncAuthMiddleware } from '../../../infrastructure/http/middleware/auth-sync-auth.middleware.js'
 
 /**
  * HTTP controller for authentication endpoints
@@ -82,7 +83,7 @@ export class AuthController {
    */
   registerRoutes(app: FastifyInstance): void {
     app.post('/auth/login', this.login.bind(this))
-    app.post('/auth/oauth-sync', this.oauthSync.bind(this))
+    app.post('/auth/oauth-sync', { preHandler: oauthSyncAuthMiddleware }, this.oauthSync.bind(this))
   }
 
   /**
@@ -200,6 +201,8 @@ export class AuthController {
    * Creates or updates user records for OAuth-authenticated users (Google, GitHub, etc.)
    * This endpoint is called by the frontend NextAuth callback to ensure OAuth users
    * are stored in the backend database for consistency with credentials users.
+   * **Security:** This endpoint is protected by the oauthSyncAuthMiddleware, which requires
+   * a valid shared secret in the X-OAuth-Sync-Secret header to prevent unauthorized access.
    *
    * @async
    * @param {FastifyRequest} request - Fastify request with OAuth user data in body
@@ -207,6 +210,9 @@ export class AuthController {
    * @returns {Promise<void>} Resolves when response is sent
    *
    * @remarks
+   * Request headers must include:
+   * - `X-OAuth-Sync-Secret`: Shared secret matching OAUTH_SYNC_SECRET environment variable
+   *
    * Request body should contain:
    * - `provider` (string): OAuth provider name (e.g., 'google', 'github')
    * - `providerId` (string): User ID from OAuth provider
@@ -222,6 +228,7 @@ export class AuthController {
    * ```
    *
    * Error responses:
+   * - 401: Unauthorized (invalid or missing shared secret)
    * - 400: Validation error (invalid request body)
    * - 500: Internal server error
    *
@@ -229,6 +236,7 @@ export class AuthController {
    * TODO: Implement actual user creation/update in database
    *
    * @see {@link OAuthSyncDto.validate} for request body validation
+   * @see {@link oauthSyncAuthMiddleware} for authentication implementation
    */
   async oauthSync(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {

@@ -10,6 +10,7 @@ const requiredEnvs: string[] = [
   'RESEND_API_KEY',
   'JWT_SECRET',
   'API_VERSION',
+  'OAUTH_SYNC_SECRET',
 ]
 
 export class EnvConfig {
@@ -44,6 +45,7 @@ export class EnvConfig {
   static readonly REQUEST_TIMEOUT = process.env.REQUEST_TIMEOUT || '30000'
   static readonly CONNECTION_TIMEOUT = process.env.CONNECTION_TIMEOUT || '10000'
   static readonly KEEP_ALIVE_TIMEOUT = process.env.KEEP_ALIVE_TIMEOUT || '65000'
+  static readonly OAUTH_SYNC_SECRET = obscured.make(process.env.OAUTH_SYNC_SECRET)
 
   static validate(): void {
     const missing = requiredEnvs.filter((key) => !process.env[key])

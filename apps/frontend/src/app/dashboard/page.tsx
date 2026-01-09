@@ -15,6 +15,7 @@ const logger = createLogger({ prefix: '[dashboard-page]' })
 export default async function DashboardPage() {
   // Get session first for debugging
   const session = await getAuthSession()
+  // this data from the session needs to be used in the
   logger.info('[Dashboard] Session check:', {
     hasSession: !!session,
     userId: session?.user?.id,

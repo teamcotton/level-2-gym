@@ -548,7 +548,6 @@ test.describe('Sign In Page', () => {
       await expect(emailField).toHaveValue(longEmail)
     })
 
-    // eslint-disable-next-line playwright/no-skipped-test
     test('should handle rapid form submissions', async ({ page }) => {
       const emailField = page.getByLabel(/email address/i)
       const passwordField = page.getByLabel(/^password/i)

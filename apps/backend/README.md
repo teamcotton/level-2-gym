@@ -212,10 +212,54 @@ POSTGRES_DB=norbertsSpark
 # Database connection string
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/norbertsSpark
 
+# OAuth Sync Shared Secret
+# Shared secret for authenticating frontend OAuth sync requests
+# Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+OAUTH_SYNC_SECRET=your-oauth-sync-shared-secret-here
+
 # Server Configuration
 USE_HTTPS=true  # Enable HTTPS in development
 # PORT=3000     # Optional: Change server port
 ```
+
+### OAuth Sync Security
+
+The `/auth/oauth-sync` endpoint is protected by a shared secret authentication mechanism to prevent unauthorized user creation. The frontend must include a matching `X-OAuth-Sync-Secret` header when calling this endpoint.
+
+**Setup:**
+
+1. Generate a secure secret: `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`
+2. Add `OAUTH_SYNC_SECRET` to both backend `.env` and frontend `.env.local` with the same value
+3. The middleware uses constant-time comparison to prevent timing attacks
+
+### Security
+
+#### OAuth Sync Endpoint Authentication
+
+The backend provides an OAuth sync endpoint (`/auth/oauth-sync`) that allows the frontend to synchronize OAuth-authenticated users (Google, GitHub, etc.) with the backend database. To prevent unauthorized access, this endpoint is protected by a shared secret authentication mechanism.
+
+**Setup:**
+
+1. Generate a secure random secret:
+
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+   ```
+
+2. Add the secret to both backend and frontend environment variables:
+   - Backend: `OAUTH_SYNC_SECRET=your-secret-here` in `apps/backend/.env`
+   - Frontend: `OAUTH_SYNC_SECRET=your-secret-here` in `apps/frontend/.env.local`
+
+3. The frontend automatically sends this secret in the `X-OAuth-Sync-Secret` header when calling the OAuth sync endpoint.
+
+**Security Features:**
+
+- Constant-time string comparison to prevent timing attacks
+- Shared secret validation before processing any OAuth sync requests
+- Generic error messages to prevent information disclosure
+- Comprehensive logging for security monitoring
+
+**Note:** The `OAUTH_SYNC_SECRET` must match exactly between frontend and backend configurations.
 
 ### Port 3000 already in use
 

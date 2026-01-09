@@ -80,7 +80,11 @@ describe('AuthController', () => {
 
       expect(mockApp.post).toHaveBeenCalledTimes(2)
       expect(mockApp.post).toHaveBeenCalledWith('/auth/login', expect.any(Function))
-      expect(mockApp.post).toHaveBeenCalledWith('/auth/oauth-sync', expect.any(Function))
+      expect(mockApp.post).toHaveBeenCalledWith(
+        '/auth/oauth-sync',
+        expect.objectContaining({ preHandler: expect.any(Function) }),
+        expect.any(Function)
+      )
     })
 
     it('should bind controller context to route handler', () => {
