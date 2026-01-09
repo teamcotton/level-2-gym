@@ -14,7 +14,7 @@ import { isString } from '@norberts-spark/shared'
  * @property {string} provider - OAuth provider name (e.g., 'google', 'github')
  * @property {string} providerId - User ID from OAuth provider
  * @property {string} email - User's email address
- * @property {string} [name] - User's display name (optional)
+ * @property {string} name - User's display name (required)
  * @property {string} [role='user'] - User role (default is 'user'; only 'user' allowed during registration)
  *
  * @example
@@ -54,7 +54,8 @@ export class OAuthSyncDto {
    * @throws {ValidationException} If provider is missing or not a string
    * @throws {ValidationException} If providerId is missing or not a string
    * @throws {ValidationException} If email is missing, not a string, or invalid format
-   * @throws {ValidationException} If name is provided but not a string
+   * @throws {ValidationException} If name is missing, not a string, or empty
+   * @throws {ValidationException} If role is provided and is not 'user'
    *
    * @example
    * ```typescript
@@ -69,11 +70,12 @@ export class OAuthSyncDto {
    *
    * @example
    * ```typescript
-   * // Valid data without optional name field
+   * // Valid data with all required fields
    * const dto = OAuthSyncDto.validate({
    *   provider: 'github',
    *   providerId: '9876543210',
-   *   email: 'dev@example.com'
+   *   email: 'dev@example.com',
+   *   name: 'Jane Smith'
    * })
    * ```
    *
