@@ -15,15 +15,6 @@ const logger = createLogger({ prefix: '[dashboard-page]' })
 export default async function DashboardPage() {
   // Get session first for debugging
   const session = await getAuthSession()
-  // this data from the session needs to be used in the authOptions
-  logger.info('[Dashboard] Session check:', {
-    hasSession: !!session,
-    userId: session?.user?.id,
-    email: session?.user?.email,
-    roles: session?.user?.roles,
-    accessToken: session?.accessToken ? 'present' : 'missing',
-  })
-
   // Check if user has any of the required roles ('user', 'admin' or 'moderator')
   const hasAccess = await hasAnyRole(['user', 'admin', 'moderator'])
   logger.info('[Dashboard] Role check result:', hasAccess)
