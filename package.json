@@ -20,19 +20,19 @@
     "prepare": "husky"
   },
   "devDependencies": {
-    "@commitlint/cli": "^20.3.0",
-    "@commitlint/config-conventional": "^20.3.0",
+    "@commitlint/cli": "^20.3.1",
+    "@commitlint/config-conventional": "^20.3.1",
     "@eslint/js": "^9.39.2",
-    "@typescript-eslint/eslint-plugin": "^8.51.0",
-    "@typescript-eslint/parser": "^8.51.0",
-    "@typescript-eslint/utils": "^8.51.0",
-    "@vitest/eslint-plugin": "^1.6.5",
+    "@typescript-eslint/eslint-plugin": "^8.52.0",
+    "@typescript-eslint/parser": "^8.52.0",
+    "@typescript-eslint/utils": "^8.52.0",
+    "@vitest/eslint-plugin": "^1.6.6",
     "eslint": "^9.39.2",
-    "eslint-config-turbo": "^2.7.2",
+    "eslint-config-turbo": "^2.7.3",
     "eslint-plugin-codegen": "^0.34.1",
     "eslint-plugin-drizzle": "^0.2.3",
     "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-jsdoc": "^61.5.0",
+    "eslint-plugin-jsdoc": "^61.7.1",
     "eslint-plugin-playwright": "^2.4.0",
     "eslint-plugin-promise": "^7.2.1",
     "eslint-plugin-react": "^7.37.5",
@@ -41,7 +41,7 @@
     "eslint-plugin-sort-destructure-keys": "^2.0.0",
     "husky": "^9.1.7",
     "prettier": "^3.7.4",
-    "turbo": "^2.7.2"
+    "turbo": "^2.7.3"
   },
   "engines": {
     "node": ">=22 <25",
