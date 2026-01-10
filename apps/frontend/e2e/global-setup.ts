@@ -2,11 +2,15 @@ import type { ChildProcess } from 'node:child_process'
 import { spawn } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 import { PostgreSqlContainer, StartedPostgreSqlContainer } from '@testcontainers/postgresql'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import { migrate } from 'drizzle-orm/postgres-js/migrator'
 import postgres from 'postgres'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 let postgresContainer: StartedPostgreSqlContainer
 let backendProcess: ChildProcess | null = null
@@ -44,7 +48,9 @@ async function globalSetup() {
 
     // Run migrations from backend
     console.warn('📝 Running database migrations...')
-    const backendMigrationsPath = path.join(process.cwd(), '..', 'backend', 'drizzle')
+    // Use __dirname to get the directory of this file, then navigate to backend/drizzle
+    const backendMigrationsPath = path.resolve(__dirname, '..', '..', 'backend', 'drizzle')
+    console.warn(`📂 Migrations path: ${backendMigrationsPath}`)
 
     const migrationClient = postgres(connectionString, { max: 1 })
     const db = drizzle(migrationClient)

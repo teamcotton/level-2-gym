@@ -54,8 +54,13 @@ export function useAIChat({ id }: UseAIChatProps = {}) {
   const disabled = !id
 
   const handleNewChat = () => {
-    const newId = uuidv7()
-    router.push(`/ai/${newId}`)
+    try {
+      const newId = uuidv7()
+      logger.info('Creating new chat with ID:', newId)
+      router.push(`/ai/${newId}`)
+    } catch (error) {
+      logger.error('Error creating new chat:', error)
+    }
   }
 
   // State declarations - must be before useChat to avoid reference errors in callbacks

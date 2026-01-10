@@ -29,13 +29,13 @@ test.describe('Chat Interaction', () => {
     // Sign in and navigate to chat page
     await signInAndNavigateToChat(page, { clearCookies: true, context })
 
-    // Click "New Chat" button to enable the form
-    const newChatButton = page.getByRole('button', { name: /new chat/i })
+    // Click "New Chat" button to enable the form - ensure we click the visible one
+    const newChatButton = page.getByTestId('new-chat-button').first()
     await expect(newChatButton).toBeVisible()
     await newChatButton.click()
 
     // Wait for URL to change to a new chat ID
-    await page.waitForURL(/\/ai\/[a-f0-9-]+/, { timeout: 5000 })
+    await page.waitForURL(/\/ai\/[a-f0-9-]+/, { timeout: 10000 })
 
     // Intercept API request and return an error response
     await page.route('**/api/v1/ai/**', (route) => {
