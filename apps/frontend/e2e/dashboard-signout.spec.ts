@@ -20,7 +20,7 @@ test.describe('Dashboard Sign Out', () => {
     await expect(page).toHaveURL('/dashboard', { timeout: 10000 })
   })
 
-  test.skip('should successfully sign out user when clicking Sign Out button', async ({ page }) => {
+  test('should successfully sign out user when clicking Sign Out button', async ({ page }) => {
     // Verify we're on the dashboard
     await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible()
 
@@ -47,7 +47,7 @@ test.describe('Dashboard Sign Out', () => {
     expect(page.url()).toContain('/signin')
   })
 
-  test.skip('should not maintain session after sign out and page refresh', async ({ page }) => {
+  test('should not maintain session after sign out and page refresh', async ({ page }) => {
     // Verify we're on the dashboard
     await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible()
 
@@ -73,7 +73,7 @@ test.describe('Dashboard Sign Out', () => {
     await expect(page.getByRole('heading', { name: /Norbert's Spark/i })).toBeVisible()
   })
 
-  test.skip('should not allow access to protected routes after sign out', async ({ page }) => {
+  test('should not allow access to protected routes after sign out', async ({ page }) => {
     // Sign out
     const signOutButton = page.getByRole('button', { name: /sign out/i })
     await signOutButton.click()

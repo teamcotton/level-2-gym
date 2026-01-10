@@ -1,4 +1,5 @@
 import { useRouter } from 'next/navigation.js'
+import { signOut } from 'next-auth/react'
 
 interface UseDashboardProps {
   userRoles: string[]
@@ -38,10 +39,11 @@ export function useDashboard({ userRoles }: UseDashboardProps): UseDashboardRetu
   }
 
   /**
-   * Navigate to the sign out page
+   * Sign out the user using NextAuth
+   * Clears the session and redirects to the signin page
    */
   const handleSignOut = () => {
-    router.push('/api/auth/signout')
+    signOut({ callbackUrl: '/signin' })
   }
 
   return {

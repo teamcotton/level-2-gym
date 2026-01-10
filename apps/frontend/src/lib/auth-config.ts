@@ -120,9 +120,15 @@ export const authOptions: NextAuthOptions = {
       // Sync OAuth users to backend database
       if (account?.provider !== 'credentials' && profile?.email && account) {
         try {
+          if (!process.env.OAUTH_SYNC_SECRET) {
+            throw new Error('Missing OAUTH_SYNC_SECRET environment variable')
+          }
+
+          const oauthSyncSecret = process.env.OAUTH_SYNC_SECRET
+
           const headers = new Headers()
           headers.append('Content-Type', 'application/json')
-          headers.append('X-OAuth-Sync-Secret', process.env.OAUTH_SYNC_SECRET || '')
+          headers.append('X-OAuth-Sync-Secret', oauthSyncSecret)
 
           // Call backend to create/update OAuth user
           const response = await fetch(`${backendUrl}/auth/oauth-sync`, {
