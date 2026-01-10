@@ -1,6 +1,9 @@
 -- Drop all tables in reverse order of dependencies
 -- This script safely removes all tables created by the migration
 
+-- Drop pg_stat_statements extension if it exists to avoid conflicts with drizzle-kit
+DROP EXTENSION IF EXISTS pg_stat_statements CASCADE;
+
 -- Drop foreign key constraints first by dropping dependent tables
 DROP TABLE IF EXISTS "parts" CASCADE;
 DROP TABLE IF EXISTS "messages" CASCADE;

@@ -133,15 +133,23 @@ export class RegisterUserUseCase {
       throw error
     }
 
-    await this.auditLog.log({
-      userId: userId,
-      entityType: EntityType.USER,
-      entityId: userId,
-      action: AuditAction.CREATE,
-      changes: { reason: 'new_user' },
-      ipAddress: auditContext.ipAddress,
-      userAgent: auditContext.userAgent ?? undefined,
-    })
+    try {
+      await this.auditLog.log({
+        userId: userId,
+        entityType: EntityType.USER,
+        entityId: userId,
+        action: AuditAction.CREATE,
+        changes: { reason: 'new_user' },
+        ipAddress: auditContext.ipAddress,
+        userAgent: auditContext.userAgent ?? undefined,
+      })
+    } catch (error) {
+      this.logger.error('Failed to write audit log for user registration', error as Error, {
+        userId: userId,
+        email: dto.email,
+      })
+      // Don't fail registration if audit logging fails
+    }
 
     // Send welcome email
     try {

@@ -96,6 +96,8 @@ export class PostgresUserRepository implements UserRepositoryPort {
         name: userEntity.getName(),
         role: userEntity.getRole(),
         password: userEntity.getPassword() ? userEntity.getPasswordHash() : null,
+        provider: null,
+        providerId: null,
         createdAt: new Date(),
       }
 
