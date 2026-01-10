@@ -653,7 +653,6 @@ describe('useRegistrationForm', () => {
         })
       }).not.toThrow()
     })
-
   })
 
   describe('Complex Scenarios', () => {
