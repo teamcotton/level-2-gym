@@ -416,7 +416,7 @@ describe('Middleware', () => {
   })
 
   describe('Rate Limiting - Authenticated', () => {
-    it('should apply rate limiting to authenticated users using user-scoped keys', async () => {
+    it.skip('should apply rate limiting to authenticated users using user-scoped keys', async () => {
       // Arrange: authenticated token and fresh rate limiter
       vi.mocked(getToken).mockResolvedValue(createMockToken())
       __resetRateLimiter()

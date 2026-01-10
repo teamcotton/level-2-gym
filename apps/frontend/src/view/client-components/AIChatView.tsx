@@ -86,7 +86,9 @@ export function AIChatView({
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ p: 2, flexShrink: 0 }}>
         <ListItemButton
+          component="button"
           onClick={onNewChat}
+          data-testid="new-chat-button"
           sx={{
             border: '1px solid',
             borderColor: 'primary.main',

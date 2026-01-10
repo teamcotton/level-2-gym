@@ -55,6 +55,7 @@ export function useAIChat({ id }: UseAIChatProps = {}) {
 
   const handleNewChat = () => {
     const newId = uuidv7()
+    logger.info('Creating new chat with ID:', newId)
     router.push(`/ai/${newId}`)
   }
 

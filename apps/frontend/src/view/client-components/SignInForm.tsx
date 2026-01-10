@@ -1,11 +1,6 @@
 'use client'
 
-import {
-  GitHub as GitHubIcon,
-  Google as GoogleIcon,
-  Visibility,
-  VisibilityOff,
-} from '@mui/icons-material'
+import { Google as GoogleIcon, Visibility, VisibilityOff } from '@mui/icons-material'
 import {
   Alert,
   Box,

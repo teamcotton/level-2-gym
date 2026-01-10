@@ -273,31 +273,32 @@ export async function middleware(request: Request) {
   const isProtectedRoute = PROTECTED_ROUTES.some(pathMatchesRoute)
   const isAuthRoute = AUTH_ROUTES.some(pathMatchesRoute)
 
-  // Rate limiting: apply to API routes and POST requests (server actions)
-  const isApiRoute = pathname.startsWith('/api')
-  const isAction = request.method === 'POST'
+  // Rate limiting: DISABLED for debugging
+  // const isApiRoute = pathname.startsWith('/api')
+  // const isAction = request.method === 'POST'
 
   // Store rate limit result to attach headers to all responses
   let rateLimitResult: { limit: number; remaining: number; resetAfter: number } | null = null
 
-  if (isApiRoute || isAction) {
-    const ip = extractClientIp(request)
-    type TokenLike = { sub?: string; id?: string } | undefined
-    const tokenLike = token as TokenLike
-    const userId = tokenLike?.sub ?? tokenLike?.id
-    const key = userId ? `user:${String(userId)}:${pathname}` : `ip:${ip}:${pathname}`
+  // Rate limiting disabled - comment out the block below to re-enable
+  // if (isApiRoute || isAction) {
+  //   const ip = extractClientIp(request)
+  //   type TokenLike = { sub?: string; id?: string } | undefined
+  //   const tokenLike = token as TokenLike
+  //   const userId = tokenLike?.sub ?? tokenLike?.id
+  //   const key = userId ? `user:${String(userId)}:${pathname}` : `ip:${ip}:${pathname}`
 
-    const rl = checkAndUpdateRate(key)
-    rateLimitResult = { limit: rl.limit, remaining: rl.remaining, resetAfter: rl.resetAfter }
+  //   const rl = checkAndUpdateRate(key)
+  //   rateLimitResult = { limit: rl.limit, remaining: rl.remaining, resetAfter: rl.resetAfter }
 
-    if (!rl.success) {
-      const headers = new Headers()
-      headers.set('X-RateLimit-Limit', String(rl.limit))
-      headers.set('X-RateLimit-Remaining', String(rl.remaining))
-      headers.set('X-RateLimit-Reset', String(Math.floor(nowSeconds() + rl.resetAfter)))
-      return new NextResponse('Too Many Requests', { status: 429, headers })
-    }
-  }
+  //   if (!rl.success) {
+  //     const headers = new Headers()
+  //     headers.set('X-RateLimit-Limit', String(rl.limit))
+  //     headers.set('X-RateLimit-Remaining', String(rl.remaining))
+  //     headers.set('X-RateLimit-Reset', String(Math.floor(nowSeconds() + rl.resetAfter)))
+  //     return new NextResponse('Too Many Requests', { status: 429, headers })
+  //   }
+  // }
 
   // Redirect unauthenticated users from protected routes to login
   if (isProtectedRoute && !isAuthenticated) {

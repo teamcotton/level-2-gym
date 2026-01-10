@@ -2,8 +2,11 @@
 
 import { use } from 'react'
 
+import { createLogger } from '@/infrastructure/logging/logger.js'
 import { AIChatView } from '@/view/client-components/AIChatView.js'
 import { useAIChat } from '@/view/hooks/useAIChat.js'
+
+const logger = createLogger({ prefix: 'AIChatPage' })
 
 /**
  * AI Chat page following DDD architecture.
@@ -12,6 +15,8 @@ import { useAIChat } from '@/view/hooks/useAIChat.js'
  */
 export default function AIChatPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
+
+  logger.info('Rendering AIChatPage with ID:', id)
 
   const {
     chats,
