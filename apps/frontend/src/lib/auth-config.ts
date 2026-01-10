@@ -120,7 +120,6 @@ export const authOptions: NextAuthOptions = {
       // Sync OAuth users to backend database
       if (account?.provider !== 'credentials' && profile?.email && account) {
         try {
-
           if (!process.env.OAUTH_SYNC_SECRET) {
             throw new Error('Missing OAUTH_SYNC_SECRET environment variable')
           }
