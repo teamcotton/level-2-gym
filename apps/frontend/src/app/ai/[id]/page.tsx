@@ -6,7 +6,7 @@ import { createLogger } from '@/infrastructure/logging/logger.js'
 import { AIChatView } from '@/view/client-components/AIChatView.js'
 import { useAIChat } from '@/view/hooks/useAIChat.js'
 
-const logger = createLogger({ prefix: 'useAIChat' })
+const logger = createLogger({ prefix: 'AIChatPage' })
 
 /**
  * AI Chat page following DDD architecture.
