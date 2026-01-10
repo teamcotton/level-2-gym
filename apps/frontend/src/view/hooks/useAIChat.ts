@@ -104,7 +104,6 @@ export function useAIChat({ id }: UseAIChatProps = {}) {
 
   useEffect(() => {
     if (!disabled) return
-
     void stop().catch(console.error)
   }, [disabled, stop])
 
