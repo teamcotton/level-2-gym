@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { useRouter } from 'next/navigation.js'
+import { signOut } from 'next-auth/react'
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 
 import { useDashboard } from '@/view/hooks/useDashboard.js'
@@ -7,6 +8,11 @@ import { useDashboard } from '@/view/hooks/useDashboard.js'
 // Mock next/navigation
 vi.mock('next/navigation.js', () => ({
   useRouter: vi.fn(),
+}))
+
+// Mock next-auth/react
+vi.mock('next-auth/react', () => ({
+  signOut: vi.fn(),
 }))
 
 describe('useDashboard', () => {
@@ -23,6 +29,7 @@ describe('useDashboard', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     ;(useRouter as Mock).mockReturnValue(mockRouter)
+    ;(signOut as Mock).mockResolvedValue(undefined)
   })
 
   describe('Initial State', () => {
@@ -352,25 +359,25 @@ describe('useDashboard', () => {
   })
 
   describe('handleSignOut - Sign Out Function', () => {
-    it('should call router.push with /api/auth/signout', () => {
+    it('should call signOut with callbackUrl /signin', () => {
       const { result } = renderHook(() => useDashboard({ userRoles: ['user'] }))
 
       act(() => {
         result.current.handleSignOut()
       })
 
-      expect(mockPush).toHaveBeenCalledWith('/api/auth/signout')
-      expect(mockPush).toHaveBeenCalledTimes(1)
+      expect(signOut).toHaveBeenCalledWith({ callbackUrl: '/signin' })
+      expect(signOut).toHaveBeenCalledTimes(1)
     })
 
-    it('should navigate to sign out endpoint', () => {
+    it('should call signOut function to end session', () => {
       const { result } = renderHook(() => useDashboard({ userRoles: ['admin'] }))
 
       act(() => {
         result.current.handleSignOut()
       })
 
-      expect(mockPush).toHaveBeenCalledWith('/api/auth/signout')
+      expect(signOut).toHaveBeenCalledWith({ callbackUrl: '/signin' })
     })
 
     it('should handle multiple sign out calls', () => {
@@ -382,10 +389,10 @@ describe('useDashboard', () => {
         result.current.handleSignOut()
       })
 
-      expect(mockPush).toHaveBeenCalledTimes(3)
-      expect(mockPush).toHaveBeenNthCalledWith(1, '/api/auth/signout')
-      expect(mockPush).toHaveBeenNthCalledWith(2, '/api/auth/signout')
-      expect(mockPush).toHaveBeenNthCalledWith(3, '/api/auth/signout')
+      expect(signOut).toHaveBeenCalledTimes(3)
+      expect(signOut).toHaveBeenNthCalledWith(1, { callbackUrl: '/signin' })
+      expect(signOut).toHaveBeenNthCalledWith(2, { callbackUrl: '/signin' })
+      expect(signOut).toHaveBeenNthCalledWith(3, { callbackUrl: '/signin' })
     })
 
     it('should work independently from handleNavigate', () => {
@@ -397,10 +404,11 @@ describe('useDashboard', () => {
         result.current.handleNavigate('/ai')
       })
 
-      expect(mockPush).toHaveBeenCalledTimes(3)
+      expect(mockPush).toHaveBeenCalledTimes(2)
       expect(mockPush).toHaveBeenNthCalledWith(1, '/profile')
-      expect(mockPush).toHaveBeenNthCalledWith(2, '/api/auth/signout')
-      expect(mockPush).toHaveBeenNthCalledWith(3, '/ai')
+      expect(mockPush).toHaveBeenNthCalledWith(2, '/ai')
+      expect(signOut).toHaveBeenCalledTimes(1)
+      expect(signOut).toHaveBeenCalledWith({ callbackUrl: '/signin' })
     })
   })
 })
