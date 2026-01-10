@@ -47,6 +47,7 @@ export function PageHeader({ onNavigateHome, onSignOut, title }: PageHeaderProps
         color="primary"
         startIcon={<LogoutIcon />}
         onClick={onSignOut}
+        data-testid="sign-out-button"
         sx={{ textTransform: 'none' }}
       >
         Sign Out
