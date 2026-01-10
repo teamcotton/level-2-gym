@@ -180,6 +180,14 @@ export const AIUserIdResponseSchema = z.object({
   data: z.array(z.uuid()),
 })
 
+export const AIFetchChatResponseSchema = z.object({
+  success: z.boolean(),
+  data: z.object({
+    id: z.string().uuid(),
+    messages: z.array(z.unknown()), // Using unknown for now as messages can have various structures
+  }),
+})
+
 export const metadataSchema = z.object({})
 
 //TODO: define proper metadata schema
@@ -195,6 +203,7 @@ export type AIUsageSchemaType = z.infer<typeof AIUsageSchema>
 export type AIUsageListSchemaType = z.infer<typeof AIUsageListSchema>
 export type AIReturnedResponseSchemaType = z.infer<typeof AIReturnedResponseSchema>
 export type AIUserIdResponseSchemaType = z.infer<typeof AIUserIdResponseSchema>
+export type AIFetchChatResponseSchemaType = z.infer<typeof AIFetchChatResponseSchema>
 export type AIListWithUsageSchemaType = z.infer<typeof AIListWithUsageSchema>
 export type AIModelsSchemaType = z.infer<typeof AIModelsSchema>
 export type AIRequestSchemaType = z.infer<typeof AIRequestSchema>
